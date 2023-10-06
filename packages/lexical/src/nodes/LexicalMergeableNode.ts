@@ -16,7 +16,8 @@ export function $isMergeableNode(
 ): node is MergeableNode<unknown> {
   // @ts-ignore
   return (
-    'mergeWithSibling' in node && typeof node.mergeWithSibling === 'function'
+    'mergeWithSibling' in node &&
+    typeof (node as MergeableNode<unknown>).mergeWithSibling === 'function'
   );
 }
 
