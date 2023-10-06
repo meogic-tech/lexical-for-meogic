@@ -14,8 +14,9 @@ export interface MergeableNode<T> {
 export function $isMergeableNode(
   node: unknown | null | undefined,
 ): node is MergeableNode<unknown> {
-  // @ts-ignore
   return (
+    typeof node === 'object' &&
+    node !== null &&
     'mergeWithSibling' in node &&
     typeof (node as MergeableNode<unknown>).mergeWithSibling === 'function'
   );
