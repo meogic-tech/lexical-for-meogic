@@ -9,8 +9,12 @@
 import type {RangeSelection, TextNode} from '.';
 import type {PointType} from './LexicalSelection';
 
-import {$isElementNode, $isTextNode} from '.';
+import {$isElementNode, $isMergeableNode, $isTextNode} from '.';
 import {getActiveEditor} from './LexicalUpdates';
+import {
+  LexicalMergeableNode,
+  MergeableNode,
+} from './nodes/LexicalMergeableNode';
 
 function $canSimpleTextNodesBeMerged(
   node1: TextNode,
@@ -31,6 +35,19 @@ function $canSimpleTextNodesBeMerged(
 
 function $mergeTextNodes(node1: TextNode, node2: TextNode): TextNode {
   const writableNode1 = node1.mergeWithSibling(node2);
+
+  const normalizedNodes = getActiveEditor()._normalizedNodes;
+
+  normalizedNodes.add(node1.__key);
+  normalizedNodes.add(node2.__key);
+  return writableNode1;
+}
+
+function $mergeMergeableNodes(
+  node1: LexicalMergeableNode,
+  node2: LexicalMergeableNode,
+): LexicalMergeableNode {
+  const writableNode1 = node1.mergeWithSibling(node2) as LexicalMergeableNode;
 
   const normalizedNodes = getActiveEditor()._normalizedNodes;
 
@@ -90,6 +107,34 @@ export function $normalizeSelection(selection: RangeSelection): RangeSelection {
   $normalizePoint(selection.anchor);
   $normalizePoint(selection.focus);
   return selection;
+}
+
+export function $normalizeMergeableNode(
+  mergeableNode: MergeableNode<unknown>,
+): void {
+  let node = mergeableNode as LexicalMergeableNode;
+
+  // Backward
+  let previousNode;
+
+  if (
+    (previousNode = node.getPreviousSibling()) !== null &&
+    $isMergeableNode(previousNode) &&
+    previousNode.__type === node.__type
+  ) {
+    node = $mergeMergeableNodes(previousNode, node);
+  }
+
+  // Forward
+  let nextNode;
+
+  if (
+    (nextNode = node.getNextSibling()) !== null &&
+    $isMergeableNode(nextNode) &&
+    nextNode.__type === node.__type
+  ) {
+    node = $mergeMergeableNodes(node, nextNode);
+  }
 }
 
 function $normalizePoint(point: PointType): void {

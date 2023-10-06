@@ -183,6 +183,8 @@ export {
   $isLineBreakNode,
   LineBreakNode,
 } from './nodes/LexicalLineBreakNode';
+export type {MergeableNode} from './nodes/LexicalMergeableNode';
+export {$isMergeableNode} from './nodes/LexicalMergeableNode';
 export type {SerializedParagraphNode} from './nodes/LexicalParagraphNode';
 export {
   $createParagraphNode,

@@ -12,6 +12,7 @@ import type {
   DOMExportOutput,
   LexicalCommand,
   LexicalNode,
+  MergeableNode,
   NodeKey,
   SerializedLexicalNode,
 } from 'lexical';
@@ -39,7 +40,13 @@ export type SerializedHorizontalRuleNode = SerializedLexicalNode;
 export const INSERT_HORIZONTAL_RULE_COMMAND: LexicalCommand<void> =
   createCommand('INSERT_HORIZONTAL_RULE_COMMAND');
 
-function HorizontalRuleComponent({nodeKey}: {nodeKey: NodeKey}) {
+function HorizontalRuleComponent({
+  nodeKey,
+  count,
+}: {
+  nodeKey: NodeKey;
+  count: number;
+}) {
   const [editor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey);
@@ -97,16 +104,25 @@ function HorizontalRuleComponent({nodeKey}: {nodeKey: NodeKey}) {
     }
   }, [editor, isSelected, nodeKey]);
 
-  return null;
+  const hrArray = Array.from({length: count}, (_, index) => index);
+  return (
+    <React.Fragment>
+      {hrArray.map((_, index) => (
+        <hr key={index} />
+      ))}
+    </React.Fragment>
+  );
 }
 
-export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
+export class HorizontalRuleNode
+  extends DecoratorNode<JSX.Element>
+  implements MergeableNode<HorizontalRuleNode> {
   static getType(): string {
     return 'horizontalrule';
   }
 
   static clone(node: HorizontalRuleNode): HorizontalRuleNode {
-    return new HorizontalRuleNode(node.__key);
+    return new HorizontalRuleNode(node.__key, node.__count);
   }
 
   static importJSON(
@@ -124,6 +140,23 @@ export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
     };
   }
 
+  __count: number;
+
+  setCount(count: number) {
+    const self = this.getWritable();
+    self.__count = count;
+  }
+
+  getCount(): number {
+    const self = this.getLatest();
+    return self.__count;
+  }
+
+  constructor(key?: NodeKey, count?: number) {
+    super(key);
+    this.__count = count ?? 1;
+  }
+
   exportJSON(): SerializedLexicalNode {
     return {
       type: 'horizontalrule',
@@ -136,7 +169,7 @@ export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
   }
 
   createDOM(): HTMLElement {
-    return document.createElement('hr');
+    return document.createElement('div');
   }
 
   getTextContent(): string {
@@ -152,7 +185,16 @@ export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
   }
 
   decorate(): JSX.Element {
-    return <HorizontalRuleComponent nodeKey={this.__key} />;
+    return (
+      <HorizontalRuleComponent nodeKey={this.__key} count={this.__count} />
+    );
+  }
+
+  mergeWithSibling(target: HorizontalRuleNode): HorizontalRuleNode {
+    const writableSelf = this.getWritable();
+    writableSelf.__count = this.getCount() + target.getCount();
+    target.remove();
+    return writableSelf;
   }
 }
 

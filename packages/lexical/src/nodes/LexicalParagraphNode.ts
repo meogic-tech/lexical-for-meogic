@@ -6,6 +6,7 @@
  *
  */
 
+import type {RangeSelection} from '../';
 import type {EditorConfig, LexicalEditor} from '../LexicalEditor';
 import type {
   DOMConversionMap,
@@ -17,7 +18,6 @@ import type {
   ElementFormatType,
   SerializedElementNode,
 } from './LexicalElementNode';
-import type {RangeSelection} from 'lexical';
 
 import {
   $applyNodeReplacement,

@@ -35,7 +35,10 @@ import {
   $garbageCollectDetachedNodes,
 } from './LexicalGC';
 import {initMutationObserver} from './LexicalMutations';
-import {$normalizeTextNode} from './LexicalNormalization';
+import {
+  $normalizeMergeableNode,
+  $normalizeTextNode,
+} from './LexicalNormalization';
 import {reconcileRoot} from './LexicalReconciler';
 import {
   $isNodeSelection,
@@ -54,6 +57,7 @@ import {
   scheduleMicroTask,
   updateDOMBlockCursorElement,
 } from './LexicalUtils';
+import {$isMergeableNode} from './nodes/LexicalMergeableNode';
 
 let activeEditorState: null | EditorState = null;
 let activeEditor: null | LexicalEditor = null;
@@ -224,6 +228,10 @@ function $applyAllTransforms(
           $normalizeTextNode(node);
         }
 
+        if (node && $isMergeableNode(node) && !$isTextNode(node)) {
+          $normalizeMergeableNode(node);
+        }
+
         if (
           node !== undefined &&
           $isNodeValidForTransform(node, compositionKey)
@@ -264,6 +272,10 @@ function $applyAllTransforms(
         $isNodeValidForTransform(node, compositionKey)
       ) {
         $applyTransforms(editor, node, transformsCache);
+      }
+
+      if (node !== undefined && $isMergeableNode(node)) {
+        $normalizeMergeableNode(node);
       }
 
       dirtyElements.set(nodeKey, intentionallyMarkedAsDirty);

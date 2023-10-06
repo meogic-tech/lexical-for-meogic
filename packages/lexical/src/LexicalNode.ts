@@ -7,13 +7,13 @@
  */
 
 /* eslint-disable no-constant-condition */
+import type {Klass} from './';
 import type {EditorConfig, LexicalEditor} from './LexicalEditor';
 import type {
   GridSelection,
   NodeSelection,
   RangeSelection,
 } from './LexicalSelection';
-import type {Klass} from 'lexical';
 
 import invariant from 'shared/invariant';
 
