@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
+import type { Spread } from '../';
 import type { NodeKey, SerializedLexicalNode } from '../LexicalNode';
 import type { GridSelection, NodeSelection, RangeSelection } from '../LexicalSelection';
-import type { Spread } from 'lexical';
 import { TextNode } from '../';
 import { LexicalNode } from '../LexicalNode';
 export type SerializedElementNode<T extends SerializedLexicalNode = SerializedLexicalNode> = Spread<{

@@ -154,7 +154,7 @@ export class HorizontalRuleNode
 
   constructor(key?: NodeKey, count?: number) {
     super(key);
-    this.__count = count ?? 1;
+    this.__count = count !== null && count !== undefined ? count : 1;
   }
 
   exportJSON(): SerializedLexicalNode {

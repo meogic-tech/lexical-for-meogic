@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
+import type { RangeSelection } from '../';
 import type { EditorConfig, LexicalEditor } from '../LexicalEditor';
 import type { DOMConversionMap, DOMExportOutput, LexicalNode } from '../LexicalNode';
 import type { SerializedElementNode } from './LexicalElementNode';
-import type { RangeSelection } from 'lexical';
 import { ElementNode } from './LexicalElementNode';
 export type SerializedParagraphNode = SerializedElementNode;
 /** @noInheritDoc */
