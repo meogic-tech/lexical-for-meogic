@@ -29,6 +29,8 @@ export { DEPRECATED_$isGridNode, DEPRECATED_GridNode, } from './nodes/LexicalGri
 export { DEPRECATED_$isGridRowNode, DEPRECATED_GridRowNode, } from './nodes/LexicalGridRowNode';
 export type { SerializedLineBreakNode } from './nodes/LexicalLineBreakNode';
 export { $createLineBreakNode, $isLineBreakNode, LineBreakNode, } from './nodes/LexicalLineBreakNode';
+export type { MergeableNode } from './nodes/LexicalMergeableNode';
+export { $isMergeableNode } from './nodes/LexicalMergeableNode';
 export type { SerializedParagraphNode } from './nodes/LexicalParagraphNode';
 export { $createParagraphNode, $isParagraphNode, ParagraphNode, } from './nodes/LexicalParagraphNode';
 export { $isRootNode, RootNode } from './nodes/LexicalRootNode';

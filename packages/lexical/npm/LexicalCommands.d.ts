@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { ElementFormatType, LexicalCommand, TextFormatType } from 'lexical';
+import type { ElementFormatType, LexicalCommand, TextFormatType } from './';
 export type PasteCommandType = ClipboardEvent | InputEvent | KeyboardEvent;
 export declare function createCommand<T>(type?: string): LexicalCommand<T>;
 export declare const SELECTION_CHANGE_COMMAND: LexicalCommand<void>;

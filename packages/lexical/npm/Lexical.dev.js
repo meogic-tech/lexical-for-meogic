@@ -457,6 +457,16 @@ function $mergeTextNodes(node1, node2) {
   return writableNode1;
 }
 
+function $mergeMergeableNodes(node1, node2) {
+  const writableNode1 = node1.mergeWithSibling(node2);
+
+  const normalizedNodes = getActiveEditor()._normalizedNodes;
+
+  normalizedNodes.add(node1.__key);
+  normalizedNodes.add(node2.__key);
+  return writableNode1;
+}
+
 function $normalizeTextNode(textNode) {
   let node = textNode;
 
@@ -497,6 +507,22 @@ function $normalizeSelection(selection) {
   $normalizePoint(selection.anchor);
   $normalizePoint(selection.focus);
   return selection;
+}
+function $normalizeMergeableNode(mergeableNode) {
+  let node = mergeableNode; // Backward
+
+  let previousNode;
+
+  if ((previousNode = node.getPreviousSibling()) !== null && $isMergeableNode(previousNode) && previousNode.__type === node.__type) {
+    node = $mergeMergeableNodes(previousNode, node);
+  } // Forward
+
+
+  let nextNode;
+
+  if ((nextNode = node.getNextSibling()) !== null && $isMergeableNode(nextNode) && nextNode.__type === node.__type) {
+    node = $mergeMergeableNodes(node, nextNode);
+  }
 }
 
 function $normalizePoint(point) {
@@ -9027,6 +9053,17 @@ function DEPRECATED_$getNodeTriplet(source) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+function $isMergeableNode(node) {
+  return typeof node === 'object' && node !== null && 'mergeWithSibling' in node && typeof node.mergeWithSibling === 'function';
+}
+
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
 let activeEditorState = null;
 let activeEditor = null;
 let isReadOnlyMode = false;
@@ -9148,6 +9185,10 @@ function $applyAllTransforms(editorState, editor) {
           $normalizeTextNode(node);
         }
 
+        if (node && $isMergeableNode(node) && !$isTextNode(node)) {
+          $normalizeMergeableNode(node);
+        }
+
         if (node !== undefined && $isNodeValidForTransform(node, compositionKey)) {
           $applyTransforms(editor, node, transformsCache);
         }
@@ -9182,6 +9223,10 @@ function $applyAllTransforms(editorState, editor) {
 
       if (node !== undefined && $isNodeValidForTransform(node, compositionKey)) {
         $applyTransforms(editor, node, transformsCache);
+      }
+
+      if (node !== undefined && $isMergeableNode(node)) {
+        $normalizeMergeableNode(node);
       }
 
       dirtyElements.set(nodeKey, intentionallyMarkedAsDirty);
@@ -11752,6 +11797,7 @@ exports.$isElementNode = $isElementNode;
 exports.$isInlineElementOrDecoratorNode = $isInlineElementOrDecoratorNode;
 exports.$isLeafNode = $isLeafNode;
 exports.$isLineBreakNode = $isLineBreakNode;
+exports.$isMergeableNode = $isMergeableNode;
 exports.$isNodeSelection = $isNodeSelection;
 exports.$isParagraphNode = $isParagraphNode;
 exports.$isRangeSelection = $isRangeSelection;

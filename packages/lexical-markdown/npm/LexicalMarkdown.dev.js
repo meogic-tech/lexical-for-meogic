@@ -7,10 +7,10 @@
 'use strict';
 
 var lexical = require('lexical');
-var code = require('@lexical/code');
 var list = require('@lexical/list');
 var richText = require('@lexical/rich-text');
 var utils = require('@lexical/utils');
+var code = require('@lexical/code');
 var link = require('@lexical/link');
 
 /**
@@ -236,7 +236,6 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  *
  */
 const MARKDOWN_EMPTY_LINE_REG_EXP = /^\s{0,3}$/;
-const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
 function createMarkdownImport(transformers) {
   const byType = transformersByType(transformers);
   const textFormatTransformersIndex = createTextFormatTransformersIndex(byType.textFormat);
@@ -247,15 +246,35 @@ function createMarkdownImport(transformers) {
     root.clear();
 
     for (let i = 0; i < linesLength; i++) {
-      const lineText = lines[i]; // Codeblocks are processed first as anything inside such block
-      // is ignored for further processing
-      // TODO:
-      // Abstract it to be dynamic as other transformers (add multiline match option)
+      const lineText = lines[i]; // handle multi line parser like Codeblocks
 
-      const [codeBlockNode, shiftedIndex] = importCodeBlock(lines, i, root);
+      let isMatched = false;
 
-      if (codeBlockNode != null) {
-        i = shiftedIndex;
+      for (const elementTransformer of byType.element) {
+        if (elementTransformer.getNumberOfLines) {
+          const match = lineText.match(elementTransformer.regExp);
+          const numberOfLines = elementTransformer.getNumberOfLines(lines, i);
+
+          if (i + numberOfLines >= lines.length) {
+            continue;
+          }
+
+          const closeMatch = lines[i + numberOfLines].match(elementTransformer.regExp);
+          const textNode = lexical.$createTextNode(lines.slice(i + 1, i + numberOfLines).join('\n'));
+
+          if (match && closeMatch) {
+            const elementNode = lexical.$createParagraphNode();
+            elementNode.append(textNode);
+            root.append(elementNode);
+            elementTransformer.replace(elementNode, [textNode], match, true);
+            i += numberOfLines;
+            isMatched = true;
+            break;
+          }
+        }
+      }
+
+      if (isMatched) {
         continue;
       }
 
@@ -293,6 +312,7 @@ function importBlocks(lineText, rootNode, elementTransformers, textFormatTransfo
   const elementNode = lexical.$createParagraphNode();
   elementNode.append(textNode);
   rootNode.append(elementNode);
+  let isMatched = false;
 
   for (const {
     regExp,
@@ -301,10 +321,15 @@ function importBlocks(lineText, rootNode, elementTransformers, textFormatTransfo
     const match = lineText.match(regExp);
 
     if (match) {
+      isMatched = true;
       textNode.setTextContent(lineText.slice(match[0].length));
       replace(elementNode, [textNode], match, true);
       break;
     }
+  }
+
+  if (!isMatched) {
+    elementNode.select(0, 0);
   }
 
   importTextFormatTransformers(textNode, textFormatTransformersIndex, textMatchTransformers); // If no transformer found and we left with original paragraph node
@@ -333,29 +358,6 @@ function importBlocks(lineText, rootNode, elementTransformers, textFormatTransfo
       }
     }
   }
-}
-
-function importCodeBlock(lines, startLineIndex, rootNode) {
-  const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
-
-  if (openMatch) {
-    let endLineIndex = startLineIndex;
-    const linesLength = lines.length;
-
-    while (++endLineIndex < linesLength) {
-      const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
-
-      if (closeMatch) {
-        const codeBlockNode = code.$createCodeNode(openMatch[1]);
-        const textNode = lexical.$createTextNode(lines.slice(startLineIndex + 1, endLineIndex).join('\n'));
-        codeBlockNode.append(textNode);
-        rootNode.append(codeBlockNode);
-        return [codeBlockNode, endLineIndex];
-      }
-    }
-  }
-
-  return [null, startLineIndex];
 } // Processing text content and replaces text format tags.
 // It takes outermost tag match and its content, creates text node with
 // format based on tag and then recursively executed over node's content
@@ -991,7 +993,22 @@ const CODE = {
     const textContent = node.getTextContent();
     return '```' + (node.getLanguage() || '') + (textContent ? '\n' + textContent : '') + '\n' + '```';
   },
-  regExp: /^```(\w{1,10})?\s/,
+  getNumberOfLines: (lines, startLineIndex) => {
+    const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
+    let endLineIndex = startLineIndex;
+    const linesLength = lines.length;
+
+    while (++endLineIndex < linesLength) {
+      const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
+
+      if (closeMatch) {
+        return endLineIndex - startLineIndex;
+      }
+    }
+
+    return 1;
+  },
+  regExp: /^```(\w{1,10})?\s?$/,
   replace: createBlockNode(match => {
     return code.$createCodeNode(match ? match[1] : undefined);
   }),

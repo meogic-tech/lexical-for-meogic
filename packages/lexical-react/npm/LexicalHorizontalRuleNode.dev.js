@@ -22,7 +22,8 @@ var React = require('react');
 const INSERT_HORIZONTAL_RULE_COMMAND = lexical.createCommand('INSERT_HORIZONTAL_RULE_COMMAND');
 
 function HorizontalRuleComponent({
-  nodeKey
+  nodeKey,
+  count
 }) {
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection.useLexicalNodeSelection(nodeKey);
@@ -61,7 +62,12 @@ function HorizontalRuleComponent({
       hrElem.className = isSelected ? 'selected' : '';
     }
   }, [editor, isSelected, nodeKey]);
-  return null;
+  const hrArray = Array.from({
+    length: count
+  }, (_, index) => index);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, hrArray.map((_, index) => /*#__PURE__*/React.createElement("hr", {
+    key: index
+  })));
 }
 
 class HorizontalRuleNode extends lexical.DecoratorNode {
@@ -70,7 +76,7 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
   }
 
   static clone(node) {
-    return new HorizontalRuleNode(node.__key);
+    return new HorizontalRuleNode(node.__key, node.__count);
   }
 
   static importJSON(serializedNode) {
@@ -84,6 +90,21 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
         priority: 0
       })
     };
+  }
+
+  setCount(count) {
+    const self = this.getWritable();
+    self.__count = count;
+  }
+
+  getCount() {
+    const self = this.getLatest();
+    return self.__count;
+  }
+
+  constructor(key, count) {
+    super(key);
+    this.__count = count !== null && count !== undefined ? count : 1;
   }
 
   exportJSON() {
@@ -100,7 +121,7 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
   }
 
   createDOM() {
-    return document.createElement('hr');
+    return document.createElement('div');
   }
 
   getTextContent() {
@@ -117,8 +138,16 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
 
   decorate() {
     return /*#__PURE__*/React.createElement(HorizontalRuleComponent, {
-      nodeKey: this.__key
+      nodeKey: this.__key,
+      count: this.__count
     });
+  }
+
+  mergeWithSibling(target) {
+    const writableSelf = this.getWritable();
+    writableSelf.__count = this.getCount() + target.getCount();
+    target.remove();
+    return writableSelf;
   }
 
 }

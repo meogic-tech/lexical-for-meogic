@@ -10,6 +10,7 @@ export type Transformer = ElementTransformer | TextFormatTransformer | TextMatch
 export type ElementTransformer = {
     dependencies: Array<Klass<LexicalNode>>;
     export: (node: LexicalNode, traverseChildren: (node: ElementNode) => string) => string | null;
+    getNumberOfLines?: (lines: Array<string>, startLineIndex: number) => number;
     regExp: RegExp;
     replace: (parentNode: ElementNode, children: Array<LexicalNode>, match: Array<string>, isImport: boolean) => void;
     type: 'element';

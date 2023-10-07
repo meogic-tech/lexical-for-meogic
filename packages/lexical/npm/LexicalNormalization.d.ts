@@ -6,5 +6,7 @@
  *
  */
 import type { RangeSelection, TextNode } from '.';
+import { MergeableNode } from './nodes/LexicalMergeableNode';
 export declare function $normalizeTextNode(textNode: TextNode): void;
 export declare function $normalizeSelection(selection: RangeSelection): RangeSelection;
+export declare function $normalizeMergeableNode(mergeableNode: MergeableNode<unknown>): void;
