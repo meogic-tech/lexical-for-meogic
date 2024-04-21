@@ -4,6 +4,7 @@ node_modules
 
 base-build
 build
+dist
 coverage
 !scripts/npm
 .DS_Store

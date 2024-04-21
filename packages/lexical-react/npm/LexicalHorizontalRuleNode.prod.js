@@ -1,0 +1,11 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+'use strict';var b=require("@lexical/react/LexicalComposerContext"),e=require("@lexical/react/useLexicalNodeSelection"),k=require("@lexical/utils"),m=require("lexical"),q=require("react");let r=m.createCommand("INSERT_HORIZONTAL_RULE_COMMAND");
+function t({nodeKey:a,count:d}){let [f]=b.useLexicalComposerContext(),[g,n,p]=e.useLexicalNodeSelection(a),l=q.useCallback(c=>g&&m.$isNodeSelection(m.$getSelection())&&(c.preventDefault(),c=m.$getNodeByKey(a),u(c))?(c.remove(),!0):!1,[g,a]);q.useEffect(()=>k.mergeRegister(f.registerCommand(m.CLICK_COMMAND,c=>{let h=f.getElementByKey(a);return c.target===h?(c.shiftKey||p(),n(!g),!0):!1},m.COMMAND_PRIORITY_LOW),f.registerCommand(m.KEY_DELETE_COMMAND,l,m.COMMAND_PRIORITY_LOW),f.registerCommand(m.KEY_BACKSPACE_COMMAND,
+l,m.COMMAND_PRIORITY_LOW)),[p,f,g,a,l,n]);q.useEffect(()=>{let c=f.getElementByKey(a);null!==c&&(c.className=g?"selected":"")},[f,g,a]);d=Array.from({length:d},(c,h)=>h);return q.createElement(q.Fragment,null,d.map((c,h)=>q.createElement("hr",{key:h})))}
+class v extends m.DecoratorNode{static getType(){return"horizontalrule"}static clone(a){return new v(a.__key,a.__count)}static importJSON(){return w()}static importDOM(){return{hr:()=>({conversion:x,priority:0})}}setCount(a){this.getWritable().__count=a}getCount(){return this.getLatest().__count}constructor(a,d){super(a);this.__count=null!==d&&void 0!==d?d:1}exportJSON(){return{type:"horizontalrule",version:1}}exportDOM(){return{element:document.createElement("hr")}}createDOM(){return document.createElement("div")}getTextContent(){return"\n"}isInline(){return!1}updateDOM(){return!1}decorate(){return q.createElement(t,
+{nodeKey:this.__key,count:this.__count})}mergeWithSibling(a){let d=this.getWritable();d.__count=this.getCount()+a.getCount();a.remove();return d}}function x(){return{node:w()}}function w(){return m.$applyNodeReplacement(new v)}function u(a){return a instanceof v}exports.$createHorizontalRuleNode=w;exports.$isHorizontalRuleNode=u;exports.HorizontalRuleNode=v;exports.INSERT_HORIZONTAL_RULE_COMMAND=r
