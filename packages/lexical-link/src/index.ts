@@ -8,14 +8,13 @@
  */
 
 import type {
+  BaseSelection,
   DOMConversionMap,
   DOMConversionOutput,
   EditorConfig,
-  GridSelection,
   LexicalCommand,
   LexicalNode,
   NodeKey,
-  NodeSelection,
   RangeSelection,
   SerializedElementNode,
 } from 'lexical';
@@ -224,23 +223,16 @@ export class LinkNode extends ElementNode {
   }
 
   insertNewAfter(
-    selection: RangeSelection,
+    _: RangeSelection,
     restoreSelection = true,
   ): null | ElementNode {
-    const element = this.getParentOrThrow().insertNewAfter(
-      selection,
-      restoreSelection,
-    );
-    if ($isElementNode(element)) {
-      const linkNode = $createLinkNode(this.__url, {
-        rel: this.__rel,
-        target: this.__target,
-        title: this.__title,
-      });
-      element.append(linkNode);
-      return linkNode;
-    }
-    return null;
+    const linkNode = $createLinkNode(this.__url, {
+      rel: this.__rel,
+      target: this.__target,
+      title: this.__title,
+    });
+    this.insertAfter(linkNode, restoreSelection);
+    return linkNode;
   }
 
   canInsertTextBefore(): false {
@@ -261,7 +253,7 @@ export class LinkNode extends ElementNode {
 
   extractWithChild(
     child: LexicalNode,
-    selection: RangeSelection | NodeSelection | GridSelection,
+    selection: BaseSelection,
     destination: 'clone' | 'html',
   ): boolean {
     if (!$isRangeSelection(selection)) {
@@ -370,7 +362,7 @@ export class AutoLinkNode extends LinkNode {
     );
     if ($isElementNode(element)) {
       const linkNode = $createAutoLinkNode(this.__url, {
-        rel: this._rel,
+        rel: this.__rel,
         target: this.__target,
         title: this.__title,
       });
@@ -450,9 +442,7 @@ export function toggleLink(
       const firstNode = nodes[0];
       // if the first node is a LinkNode or if its
       // parent is a LinkNode, we update the URL, target and rel.
-      const linkNode = $isLinkNode(firstNode)
-        ? firstNode
-        : $getLinkAncestor(firstNode);
+      const linkNode = $getAncestor(firstNode, $isLinkNode);
       if (linkNode !== null) {
         linkNode.setURL(url);
         if (target !== undefined) {
@@ -499,7 +489,7 @@ export function toggleLink(
 
       if (!parent.is(prevParent)) {
         prevParent = parent;
-        linkNode = $createLinkNode(url, {rel, target});
+        linkNode = $createLinkNode(url, {rel, target, title});
 
         if ($isLinkNode(parent)) {
           if (node.getPreviousSibling() === null) {
@@ -535,19 +525,13 @@ export function toggleLink(
   }
 }
 
-function $getLinkAncestor(node: LexicalNode): null | LexicalNode {
-  return $getAncestor(node, $isLinkNode);
-}
-
 function $getAncestor<NodeType extends LexicalNode = LexicalNode>(
   node: LexicalNode,
   predicate: (ancestor: LexicalNode) => ancestor is NodeType,
-): null | LexicalNode {
-  let parent: null | LexicalNode = node;
-  while (
-    parent !== null &&
-    (parent = parent.getParent()) !== null &&
-    !predicate(parent)
-  );
-  return parent;
+) {
+  let parent = node;
+  while (parent !== null && parent.getParent() !== null && !predicate(parent)) {
+    parent = parent.getParentOrThrow();
+  }
+  return predicate(parent) ? parent : null;
 }

@@ -8,6 +8,7 @@
 
 import type {
   EditorConfig,
+  KlassConstructor,
   LexicalEditor,
   Spread,
   TextNodeThemeClasses,
@@ -19,11 +20,7 @@ import type {
   NodeKey,
   SerializedLexicalNode,
 } from '../LexicalNode';
-import type {
-  GridSelection,
-  NodeSelection,
-  RangeSelection,
-} from '../LexicalSelection';
+import type {BaseSelection, RangeSelection} from '../LexicalSelection';
 
 import {IS_FIREFOX} from 'shared/environment';
 import invariant from 'shared/invariant';
@@ -278,6 +275,7 @@ function wrapElementWith(
 
 /** @noInheritDoc */
 export class TextNode extends LexicalNode {
+  ['constructor']!: KlassConstructor<typeof TextNode>;
   __text: string;
   /** @internal */
   __format: number;
@@ -444,7 +442,7 @@ export class TextNode extends LexicalNode {
 
   // View
 
-  createDOM(config: EditorConfig): HTMLElement {
+  createDOM(config: EditorConfig, editor?: LexicalEditor): HTMLElement {
     const format = this.__format;
     const outerTag = getElementOuterTag(this, format);
     const innerTag = getElementInnerTag(this, format);
@@ -637,7 +635,7 @@ export class TextNode extends LexicalNode {
 
   // Mutators
   selectionTransform(
-    prevSelection: null | RangeSelection | NodeSelection | GridSelection,
+    prevSelection: null | BaseSelection,
     nextSelection: RangeSelection,
   ): void {
     return;
@@ -693,7 +691,8 @@ export class TextNode extends LexicalNode {
   }
 
   /**
-   * Applies the provided format to this TextNode if it's not present. Removes it if it is present.
+   * Applies the provided format to this TextNode if it's not present. Removes it if it's present.
+   * The subscript and superscript formats are mutually exclusive.
    * Prefer using this method to turn specific formats on and off.
    *
    * @param type - TextFormatType to toggle.
@@ -701,8 +700,9 @@ export class TextNode extends LexicalNode {
    * @returns this TextNode.
    */
   toggleFormat(type: TextFormatType): this {
-    const formatFlag = TEXT_TYPE_TO_FORMAT[type];
-    return this.setFormat(this.getFormat() ^ formatFlag);
+    const format = this.getFormat();
+    const newFormat = toggleTextFormatType(format, type, null);
+    return this.setFormat(newFormat);
   }
 
   /**
@@ -805,6 +805,15 @@ export class TextNode extends LexicalNode {
       selection.setTextNodeRange(this, anchorOffset, this, focusOffset);
     }
     return selection;
+  }
+
+  selectStart(): RangeSelection {
+    return this.select(0, 0);
+  }
+
+  selectEnd(): RangeSelection {
+    const size = this.getTextContentSize();
+    return this.select(size, size);
   }
 
   /**
@@ -1138,6 +1147,8 @@ function isNodePre(node: Node): boolean {
   return (
     node.nodeName === 'PRE' ||
     (node.nodeType === DOM_ELEMENT_TYPE &&
+      (node as HTMLElement).style !== undefined &&
+      (node as HTMLElement).style.whiteSpace !== undefined &&
       (node as HTMLElement).style.whiteSpace.startsWith('pre'))
   );
 }

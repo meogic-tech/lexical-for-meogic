@@ -10,23 +10,24 @@ import {
   $createTextNode,
   $getNodeByKey,
   $getPreviousSelection,
+  $INTERNAL_isPointSelection,
   $isElementNode,
   $isRangeSelection,
   $isRootNode,
   $isTextNode,
   $normalizeSelection__EXPERIMENTAL,
   $setSelection,
+  BaseSelection,
   DEPRECATED_$isGridCellNode,
-  DEPRECATED_$isGridSelection,
   ElementNode,
-  GridSelection,
+  INTERNAL_PointSelection,
   LexicalEditor,
   LexicalNode,
-  NodeSelection,
   Point,
   RangeSelection,
   TextNode,
 } from 'lexical';
+import invariant from 'shared/invariant';
 
 import {CSS_TO_STYLES} from './constants';
 import {
@@ -91,14 +92,14 @@ export function $cloneWithProperties<T extends LexicalNode>(node: T): T {
  * @returns The updated TextNode.
  */
 export function $sliceSelectedTextNodeContent(
-  selection: RangeSelection | GridSelection | NodeSelection,
+  selection: BaseSelection,
   textNode: TextNode,
 ): LexicalNode {
   if (
-    textNode.isSelected() &&
+    textNode.isSelected(selection) &&
     !textNode.isSegmented() &&
     !textNode.isToken() &&
-    ($isRangeSelection(selection) || DEPRECATED_$isGridSelection(selection))
+    $INTERNAL_isPointSelection(selection)
   ) {
     const anchorNode = selection.anchor.getNode();
     const focusNode = selection.focus.getNode();
@@ -143,8 +144,13 @@ export function $isAtNodeEnd(point: Point): boolean {
   if (point.type === 'text') {
     return point.offset === point.getNode().getTextContentSize();
   }
+  const node = point.getNode();
+  invariant(
+    $isElementNode(node),
+    'isAtNodeEnd: node must be a TextNode or ElementNode',
+  );
 
-  return point.offset === point.getNode().getChildrenSize();
+  return point.offset === node.getChildrenSize();
 }
 
 /**
@@ -315,13 +321,13 @@ function $patchStyle(
  * @param patch - The patch to apply, which can include multiple styles. { CSSProperty: value }
  */
 export function $patchStyleText(
-  selection: RangeSelection | GridSelection,
+  selection: INTERNAL_PointSelection,
   patch: Record<string, string | null>,
 ): void {
   const selectedNodes = selection.getNodes();
   const selectedNodesLength = selectedNodes.length;
 
-  if (DEPRECATED_$isGridSelection(selection)) {
+  if (!$isRangeSelection(selection)) {
     const cellSelection = $createRangeSelection();
     const cellSelectionAnchor = cellSelection.anchor;
     const cellSelectionFocus = cellSelection.focus;
@@ -348,7 +354,7 @@ export function $patchStyleText(
   let firstNode = selectedNodes[0];
   let lastNode = selectedNodes[lastIndex];
 
-  if (selection.isCollapsed()) {
+  if (selection.isCollapsed() && $isRangeSelection(selection)) {
     $patchStyle(selection, patch);
     return;
   }
@@ -422,6 +428,7 @@ export function $patchStyleText(
         // the entire first node isn't selected, so split it
         firstNode = firstNode.splitText(startOffset)[1];
         startOffset = 0;
+        anchor.set(firstNode.getKey(), startOffset, 'text');
       }
 
       $patchStyle(firstNode as TextNode, patch);

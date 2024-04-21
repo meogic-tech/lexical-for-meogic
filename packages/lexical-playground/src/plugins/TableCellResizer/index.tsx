@@ -16,15 +16,16 @@ import {
   $getTableColumnIndexFromTableCellNode,
   $getTableNodeFromLexicalNodeOrThrow,
   $getTableRowIndexFromTableCellNode,
+  $isGridSelection,
   $isTableCellNode,
   $isTableRowNode,
   getCellFromTarget,
+  TableCellNode,
 } from '@lexical/table';
 import {
   $getNearestNodeFromDOMNode,
   $getSelection,
   COMMAND_PRIORITY_HIGH,
-  DEPRECATED_$isGridSelection,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import * as React from 'react';
@@ -68,7 +69,7 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
       SELECTION_CHANGE_COMMAND,
       (payload) => {
         const selection = $getSelection();
-        const isGridSelection = DEPRECATED_$isGridSelection(selection);
+        const isGridSelection = $isGridSelection(selection);
 
         if (isSelectingGrid !== isGridSelection) {
           updateIsSelectingGrid(isGridSelection);
@@ -206,13 +207,29 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
             throw new Error('Expected table row');
           }
 
-          const tableCells = tableRow.getChildren();
+          const rowCells = tableRow.getChildren<TableCellNode>();
+          const rowCellsSpan = rowCells.map((cell) => cell.getColSpan());
 
-          if (tableColumnIndex >= tableCells.length || tableColumnIndex < 0) {
+          const aggregatedRowSpans = rowCellsSpan.reduce(
+            (rowSpans: number[], cellSpan) => {
+              const previousCell = rowSpans[rowSpans.length - 1] ?? 0;
+              rowSpans.push(previousCell + cellSpan);
+              return rowSpans;
+            },
+            [],
+          );
+          const rowColumnIndexWithSpan = aggregatedRowSpans.findIndex(
+            (cellSpan: number) => cellSpan > tableColumnIndex,
+          );
+
+          if (
+            rowColumnIndexWithSpan >= rowCells.length ||
+            rowColumnIndexWithSpan < 0
+          ) {
             throw new Error('Expected table cell to be inside of table row.');
           }
 
-          const tableCell = tableCells[tableColumnIndex];
+          const tableCell = rowCells[rowColumnIndexWithSpan];
 
           if (!$isTableCellNode(tableCell)) {
             throw new Error('Expected table cell');
@@ -225,9 +242,9 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
     [activeCell, editor],
   );
 
-  const toggleResize = useCallback(
-    (direction: MouseDraggingDirection): MouseEventHandler<HTMLDivElement> =>
-      (event) => {
+  const mouseUpHandler = useCallback(
+    (direction: MouseDraggingDirection) => {
+      const handler = (event: MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
 
@@ -235,16 +252,15 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
           throw new Error('TableCellResizer: Expected active cell.');
         }
 
-        if (draggingDirection === direction && mouseStartPosRef.current) {
+        if (mouseStartPosRef.current) {
           const {x, y} = mouseStartPosRef.current;
 
           if (activeCell === null) {
             return;
           }
 
-          const {height, width} = activeCell.elem.getBoundingClientRect();
-
           if (isHeightChanging(direction)) {
+            const height = activeCell.elem.getBoundingClientRect().height;
             const heightChange = Math.abs(event.clientY - y);
 
             const isShrinking = direction === 'bottom' && y > event.clientY;
@@ -256,6 +272,11 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
               ),
             );
           } else {
+            const computedStyle = getComputedStyle(activeCell.elem);
+            let width = activeCell.elem.clientWidth; // width with padding
+            width -=
+              parseFloat(computedStyle.paddingLeft) +
+              parseFloat(computedStyle.paddingRight);
             const widthChange = Math.abs(event.clientX - x);
 
             const isShrinking = direction === 'right' && x > event.clientX;
@@ -269,22 +290,34 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
           }
 
           resetState();
-        } else {
-          mouseStartPosRef.current = {
-            x: event.clientX,
-            y: event.clientY,
-          };
-          updateMouseCurrentPos(mouseStartPosRef.current);
-          updateDraggingDirection(direction);
+          document.removeEventListener('mouseup', handler);
         }
+      };
+      return handler;
+    },
+    [activeCell, resetState, updateColumnWidth, updateRowHeight],
+  );
+
+  const toggleResize = useCallback(
+    (direction: MouseDraggingDirection): MouseEventHandler<HTMLDivElement> =>
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!activeCell) {
+          throw new Error('TableCellResizer: Expected active cell.');
+        }
+
+        mouseStartPosRef.current = {
+          x: event.clientX,
+          y: event.clientY,
+        };
+        updateMouseCurrentPos(mouseStartPosRef.current);
+        updateDraggingDirection(direction);
+
+        document.addEventListener('mouseup', mouseUpHandler(direction));
       },
-    [
-      activeCell,
-      draggingDirection,
-      resetState,
-      updateColumnWidth,
-      updateRowHeight,
-    ],
+    [activeCell, mouseUpHandler],
   );
 
   const getResizers = useCallback(() => {
@@ -358,13 +391,11 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
             className="TableCellResizer__resizer TableCellResizer__ui"
             style={resizerStyles.right || undefined}
             onMouseDown={toggleResize('right')}
-            onMouseUp={toggleResize('right')}
           />
           <div
             className="TableCellResizer__resizer TableCellResizer__ui"
             style={resizerStyles.bottom || undefined}
             onMouseDown={toggleResize('bottom')}
-            onMouseUp={toggleResize('bottom')}
           />
         </>
       )}

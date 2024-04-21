@@ -7,8 +7,9 @@
  */
 
 import type {
+  DecoratorNode,
   ElementNode,
-  GridSelection,
+  INTERNAL_PointSelection,
   LexicalNode,
   NodeKey,
   Point,
@@ -31,6 +32,7 @@ import {
   $isTextNode,
   $setSelection,
 } from 'lexical';
+import invariant from 'shared/invariant';
 
 import {getStyleObjectFromCSS} from './utils';
 
@@ -40,7 +42,7 @@ import {getStyleObjectFromCSS} from './utils';
  * @param createElement - The function that creates the node. eg. $createParagraphNode.
  */
 export function $setBlocksType(
-  selection: RangeSelection | GridSelection,
+  selection: INTERNAL_PointSelection,
   createElement: () => ElementNode,
 ): void {
   if (selection.anchor.key === 'root') {
@@ -58,47 +60,27 @@ export function $setBlocksType(
   }
 
   const nodes = selection.getNodes();
-  let maybeBlock = selection.anchor.getNode().getParentOrThrow();
-
-  if (nodes.indexOf(maybeBlock) === -1) {
-    nodes.push(maybeBlock);
-  }
-
-  if (maybeBlock.isInline()) {
-    maybeBlock = maybeBlock.getParentOrThrow();
-
-    if (nodes.indexOf(maybeBlock) === -1) {
-      nodes.push(maybeBlock);
-    }
+  const firstSelectedBlock = $getAncestor(
+    selection.anchor.getNode(),
+    INTERNAL_$isBlock,
+  );
+  if (firstSelectedBlock && nodes.indexOf(firstSelectedBlock) === -1) {
+    nodes.push(firstSelectedBlock);
   }
 
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
 
-    if (!isBlock(node)) {
+    if (!INTERNAL_$isBlock(node)) {
       continue;
     }
+    invariant($isElementNode(node), 'Expected block node to be an ElementNode');
 
     const targetElement = createElement();
     targetElement.setFormat(node.getFormatType());
     targetElement.setIndent(node.getIndent());
     node.replace(targetElement, true);
   }
-}
-
-function isBlock(node: LexicalNode): boolean {
-  if (!$isElementNode(node) || $isRootOrShadowRoot(node)) {
-    return false;
-  }
-
-  const firstChild = node.getFirstChild();
-  const isLeafElement =
-    firstChild === null ||
-    $isLineBreakNode(firstChild) ||
-    $isTextNode(firstChild) ||
-    firstChild.isInline();
-
-  return !node.isInline() && node.canBeEmpty() !== false && isLeafElement;
 }
 
 function isPointAttached(point: Point): boolean {
@@ -128,7 +110,7 @@ function $removeParentEmptyElements(startingNode: ElementNode): void {
  * @param wrappingElement - An element to append the wrapped selection and its children to.
  */
 export function $wrapNodes(
-  selection: RangeSelection | GridSelection,
+  selection: INTERNAL_PointSelection,
   createElement: () => ElementNode,
   wrappingElement: null | ElementNode = null,
 ): void {
@@ -214,7 +196,7 @@ export function $wrapNodes(
  * @returns
  */
 export function $wrapNodesImpl(
-  selection: RangeSelection | GridSelection,
+  selection: INTERNAL_PointSelection,
   nodes: LexicalNode[],
   nodesLength: number,
   createElement: () => ElementNode,
@@ -306,6 +288,10 @@ export function $wrapNodesImpl(
         $removeParentEmptyElements(parent);
       }
     } else if (emptyElements.has(node.getKey())) {
+      invariant(
+        $isElementNode(node),
+        'Expected node in emptyElements to be an ElementNode',
+      );
       const targetElement = createElement();
       targetElement.setFormat(node.getFormatType());
       targetElement.setIndent(node.getIndent());
@@ -538,7 +524,7 @@ export function $getSelectionStyleValueForProperty(
   const endOffset = isBackward ? focus.offset : anchor.offset;
   const endNode = isBackward ? focus.getNode() : anchor.getNode();
 
-  if (selection.style !== '') {
+  if (selection.isCollapsed() && selection.style !== '') {
     const css = selection.style;
     const styleObject = getStyleObjectFromCSS(css);
 
@@ -576,4 +562,39 @@ export function $getSelectionStyleValueForProperty(
   }
 
   return styleValue === null ? defaultValue : styleValue;
+}
+
+/**
+ * This function is for internal use of the library.
+ * Please do not use it as it may change in the future.
+ */
+export function INTERNAL_$isBlock(
+  node: LexicalNode,
+): node is ElementNode | DecoratorNode<unknown> {
+  if ($isDecoratorNode(node) && !node.isInline()) {
+    return true;
+  }
+  if (!$isElementNode(node) || $isRootOrShadowRoot(node)) {
+    return false;
+  }
+
+  const firstChild = node.getFirstChild();
+  const isLeafElement =
+    firstChild === null ||
+    $isLineBreakNode(firstChild) ||
+    $isTextNode(firstChild) ||
+    firstChild.isInline();
+
+  return !node.isInline() && node.canBeEmpty() !== false && isLeafElement;
+}
+
+export function $getAncestor<NodeType extends LexicalNode = LexicalNode>(
+  node: LexicalNode,
+  predicate: (ancestor: LexicalNode) => ancestor is NodeType,
+) {
+  let parent = node;
+  while (parent !== null && parent.getParent() !== null && !predicate(parent)) {
+    parent = parent.getParentOrThrow();
+  }
+  return predicate(parent) ? parent : null;
 }

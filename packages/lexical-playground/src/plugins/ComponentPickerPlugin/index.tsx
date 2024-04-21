@@ -42,9 +42,10 @@ import {INSERT_COLLAPSIBLE_COMMAND} from '../CollapsiblePlugin';
 import {InsertEquationDialog} from '../EquationsPlugin';
 import {INSERT_EXCALIDRAW_COMMAND} from '../ExcalidrawPlugin';
 import {INSERT_IMAGE_COMMAND, InsertImageDialog} from '../ImagesPlugin';
+import InsertLayoutDialog from '../LayoutPlugin/InsertLayoutDialog';
 import {INSERT_PAGE_BREAK} from '../PageBreakPlugin';
 import {InsertPollDialog} from '../PollPlugin';
-import {InsertNewTableDialog, InsertTableDialog} from '../TablePlugin';
+import {InsertTableDialog} from '../TablePlugin';
 
 class ComponentPickerOption extends MenuOption {
   // What shows up in the editor
@@ -178,14 +179,6 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
           <InsertTableDialog activeEditor={editor} onClose={onClose} />
         )),
     }),
-    new ComponentPickerOption('Table (Experimental)', {
-      icon: <i className="icon table" />,
-      keywords: ['table', 'grid', 'spreadsheet', 'rows', 'columns'],
-      onSelect: () =>
-        showModal('Insert Table', (onClose) => (
-          <InsertNewTableDialog activeEditor={editor} onClose={onClose} />
-        )),
-    }),
     new ComponentPickerOption('Numbered List', {
       icon: <i className="icon number" />,
       keywords: ['numbered list', 'ordered list', 'ol'],
@@ -299,6 +292,14 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
       keywords: ['collapse', 'collapsible', 'toggle'],
       onSelect: () =>
         editor.dispatchCommand(INSERT_COLLAPSIBLE_COMMAND, undefined),
+    }),
+    new ComponentPickerOption('Columns Layout', {
+      icon: <i className="icon columns" />,
+      keywords: ['columns', 'layout', 'grid'],
+      onSelect: () =>
+        showModal('Insert Columns Layout', (onClose) => (
+          <InsertLayoutDialog activeEditor={editor} onClose={onClose} />
+        )),
     }),
     ...(['left', 'center', 'right', 'justify'] as const).map(
       (alignment) =>

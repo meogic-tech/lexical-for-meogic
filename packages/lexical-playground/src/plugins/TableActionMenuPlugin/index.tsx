@@ -23,13 +23,16 @@ import {
   $getTableRowIndexFromTableCellNode,
   $insertTableColumn__EXPERIMENTAL,
   $insertTableRow__EXPERIMENTAL,
+  $isGridSelection,
   $isTableCellNode,
   $isTableRowNode,
   $unmergeCell,
   getTableSelectionFromTableElement,
+  GridSelection,
   HTMLTableElementWithWithTableSelectionState,
   TableCellHeaderStates,
   TableCellNode,
+  TableRowNode,
 } from '@lexical/table';
 import {
   $createParagraphNode,
@@ -41,8 +44,6 @@ import {
   $isTextNode,
   DEPRECATED_$getNodeTriplet,
   DEPRECATED_$isGridCellNode,
-  DEPRECATED_$isGridSelection,
-  GridSelection,
 } from 'lexical';
 import * as React from 'react';
 import {ReactPortal, useCallback, useEffect, useRef, useState} from 'react';
@@ -109,9 +110,8 @@ function $canUnmerge(): boolean {
   const selection = $getSelection();
   if (
     ($isRangeSelection(selection) && !selection.isCollapsed()) ||
-    (DEPRECATED_$isGridSelection(selection) &&
-      !selection.anchor.is(selection.focus)) ||
-    (!$isRangeSelection(selection) && !DEPRECATED_$isGridSelection(selection))
+    ($isGridSelection(selection) && !selection.anchor.is(selection.focus)) ||
+    (!$isRangeSelection(selection) && !$isGridSelection(selection))
   ) {
     return false;
   }
@@ -144,10 +144,7 @@ function $selectLastDescendant(node: ElementNode): void {
 function currentCellBackgroundColor(editor: LexicalEditor): null | string {
   return editor.getEditorState().read(() => {
     const selection = $getSelection();
-    if (
-      $isRangeSelection(selection) ||
-      DEPRECATED_$isGridSelection(selection)
-    ) {
+    if ($isRangeSelection(selection) || $isGridSelection(selection)) {
       const [cell] = DEPRECATED_$getNodeTriplet(selection.anchor);
       if ($isTableCellNode(cell)) {
         return cell.getBackgroundColor();
@@ -208,7 +205,7 @@ function TableActionMenu({
     editor.getEditorState().read(() => {
       const selection = $getSelection();
       // Merge cells
-      if (DEPRECATED_$isGridSelection(selection)) {
+      if ($isGridSelection(selection)) {
         const currentSelectionCounts = computeSelectionCount(selection);
         updateSelectionCounts(computeSelectionCount(selection));
         setCanMergeCells(
@@ -303,7 +300,7 @@ function TableActionMenu({
   const mergeTableCellsAtSelection = () => {
     editor.update(() => {
       const selection = $getSelection();
-      if (DEPRECATED_$isGridSelection(selection)) {
+      if ($isGridSelection(selection)) {
         const {columns, rows} = computeSelectionCount(selection);
         const nodes = selection.getNodes();
         let firstCell: null | DEPRECATED_GridCellNode = null;
@@ -431,7 +428,14 @@ function TableActionMenu({
       const tableColumnIndex =
         $getTableColumnIndexFromTableCellNode(tableCellNode);
 
-      const tableRows = tableNode.getChildren();
+      const tableRows = tableNode.getChildren<TableRowNode>();
+      const maxRowsLength = Math.max(
+        ...tableRows.map((row) => row.getChildren().length),
+      );
+
+      if (tableColumnIndex >= maxRowsLength || tableColumnIndex < 0) {
+        throw new Error('Expected table cell to be inside of table row.');
+      }
 
       for (let r = 0; r < tableRows.length; r++) {
         const tableRow = tableRows[r];
@@ -441,9 +445,9 @@ function TableActionMenu({
         }
 
         const tableCells = tableRow.getChildren();
-
-        if (tableColumnIndex >= tableCells.length || tableColumnIndex < 0) {
-          throw new Error('Expected table cell to be inside of table row.');
+        if (tableColumnIndex >= tableCells.length) {
+          // if cell is outside of bounds for the current row (for example various merge cell cases) we shouldn't highlight it
+          continue;
         }
 
         const tableCell = tableCells[tableColumnIndex];
@@ -464,13 +468,21 @@ function TableActionMenu({
     (value: string) => {
       editor.update(() => {
         const selection = $getSelection();
-        if (
-          $isRangeSelection(selection) ||
-          DEPRECATED_$isGridSelection(selection)
-        ) {
+        if ($isRangeSelection(selection) || $isGridSelection(selection)) {
           const [cell] = DEPRECATED_$getNodeTriplet(selection.anchor);
           if ($isTableCellNode(cell)) {
             cell.setBackgroundColor(value);
+          }
+
+          if ($isGridSelection(selection)) {
+            const nodes = selection.getNodes();
+
+            for (let i = 0; i < nodes.length; i++) {
+              const node = nodes[i];
+              if ($isTableCellNode(node)) {
+                node.setBackgroundColor(value);
+              }
+            }
           }
         }
       });
@@ -598,7 +610,10 @@ function TableActionMenu({
           row header
         </span>
       </button>
-      <button className="item" onClick={() => toggleTableColumnIsHeader()}>
+      <button
+        className="item"
+        onClick={() => toggleTableColumnIsHeader()}
+        data-test-id="table-column-header">
         <span className="text">
           {(tableCellNode.__headerState & TableCellHeaderStates.COLUMN) ===
           TableCellHeaderStates.COLUMN

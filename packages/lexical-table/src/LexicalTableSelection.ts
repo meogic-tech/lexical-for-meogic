@@ -6,12 +6,7 @@
  *
  */
 
-import type {
-  GridSelection,
-  LexicalEditor,
-  NodeKey,
-  TextFormatType,
-} from 'lexical';
+import type {LexicalEditor, NodeKey, TextFormatType} from 'lexical';
 
 import {
   addClassNamesToElement,
@@ -27,13 +22,16 @@ import {
   $getSelection,
   $isElementNode,
   $setSelection,
-  DEPRECATED_$createGridSelection,
-  DEPRECATED_$isGridSelection,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import {CAN_USE_DOM} from 'shared/canUseDOM';
 import invariant from 'shared/invariant';
 
+import {
+  type GridSelection,
+  $createGridSelection,
+  $isGridSelection,
+} from './LexicalGridSelection';
 import {$isTableCellNode} from './LexicalTableCellNode';
 import {$isTableNode} from './LexicalTableNode';
 import {
@@ -222,7 +220,7 @@ export class TableSelection {
     });
   }
 
-  updateTableGridSelection(selection: GridSelection | null) {
+  updateTableGridSelection(selection: GridSelection | null): void {
     if (selection != null && selection.gridKey === this.tableNodeKey) {
       const editor = this.editor;
       this.gridSelection = selection;
@@ -231,6 +229,9 @@ export class TableSelection {
       $updateDOMForSelection(editor, this.grid, this.gridSelection);
     } else if (selection == null) {
       this.clearHighlight();
+    } else {
+      this.tableNodeKey = selection.gridKey;
+      this.updateTableGridSelection(selection);
     }
   }
 
@@ -290,7 +291,7 @@ export class TableSelection {
           const focusNodeKey = focusTableCellNode.getKey();
 
           this.gridSelection =
-            this.gridSelection.clone() || DEPRECATED_$createGridSelection();
+            this.gridSelection.clone() || $createGridSelection();
 
           this.focusCellNodeKey = focusNodeKey;
           this.gridSelection.set(
@@ -320,7 +321,10 @@ export class TableSelection {
 
       if ($isTableCellNode(anchorTableCellNode)) {
         const anchorNodeKey = anchorTableCellNode.getKey();
-        this.gridSelection = DEPRECATED_$createGridSelection();
+        this.gridSelection =
+          this.gridSelection != null
+            ? this.gridSelection.clone()
+            : $createGridSelection();
         this.anchorCellNodeKey = anchorNodeKey;
       }
     });
@@ -330,7 +334,7 @@ export class TableSelection {
     this.editor.update(() => {
       const selection = $getSelection();
 
-      if (!DEPRECATED_$isGridSelection(selection)) {
+      if (!$isGridSelection(selection)) {
         invariant(false, 'Expected grid selection');
       }
 
@@ -364,7 +368,7 @@ export class TableSelection {
 
       const selection = $getSelection();
 
-      if (!DEPRECATED_$isGridSelection(selection)) {
+      if (!$isGridSelection(selection)) {
         invariant(false, 'Expected grid selection');
       }
 

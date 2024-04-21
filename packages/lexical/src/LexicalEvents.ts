@@ -13,11 +13,13 @@ import type {TextNode} from './nodes/LexicalTextNode';
 
 import {
   CAN_USE_BEFORE_INPUT,
+  IS_ANDROID,
   IS_APPLE_WEBKIT,
   IS_FIREFOX,
   IS_IOS,
   IS_SAFARI,
 } from 'shared/environment';
+import invariant from 'shared/invariant';
 
 import {
   $getPreviousSelection,
@@ -322,6 +324,10 @@ function onSelectionChange(
         const [lastFormat, lastStyle, lastOffset, lastKey, timeStamp] =
           collapsedSelectionFormat;
 
+        const root = $getRoot();
+        const isRootTextContentEmpty =
+          editor.isComposing() === false && root.getTextContent() === '';
+
         if (
           currentTimeStamp < timeStamp + 200 &&
           anchor.offset === lastOffset &&
@@ -331,9 +337,13 @@ function onSelectionChange(
           selection.style = lastStyle;
         } else {
           if (anchor.type === 'text') {
+            invariant(
+              $isTextNode(anchorNode),
+              'Point.getNode() must return TextNode when type is text',
+            );
             selection.format = anchorNode.getFormat();
             selection.style = anchorNode.getStyle();
-          } else if (anchor.type === 'element') {
+          } else if (anchor.type === 'element' && !isRootTextContentEmpty) {
             selection.format = 0;
             selection.style = '';
           }
@@ -422,6 +432,7 @@ function onClick(event: PointerEvent, editor: LexicalEditor): void {
               lastSelection,
               domSelection,
               editor,
+              event,
             );
             $setSelection(newSelection);
           }
@@ -515,6 +526,10 @@ function onBeforeInput(event: InputEvent, editor: LexicalEditor): void {
 
       if ($isRangeSelection(selection)) {
         // Used for handling backspace in Android.
+        if (IS_ANDROID) {
+          $setCompositionKey(selection.anchor.key);
+        }
+
         if (
           isPossiblyAndroidKeyPress(event.timeStamp) &&
           editor.isComposing() &&
@@ -532,9 +547,19 @@ function onBeforeInput(event: InputEvent, editor: LexicalEditor): void {
             const anchorNode = selection.anchor.getNode();
             anchorNode.markDirty();
             selection.format = anchorNode.getFormat();
+            invariant(
+              $isTextNode(anchorNode),
+              'Anchor node must be a TextNode',
+            );
             selection.style = anchorNode.getStyle();
           }
+          const selectedText = selection.anchor.getNode().getTextContent();
+          if (selectedText.length <= 1) {
+            event.preventDefault();
+            dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
+          }
         } else {
+          $setCompositionKey(null);
           event.preventDefault();
           dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
         }
@@ -842,7 +867,7 @@ function onCompositionStart(
         anchor.type === 'element' ||
         !selection.isCollapsed() ||
         node.getFormat() !== selection.format ||
-        node.getStyle() !== selection.style
+        ($isTextNode(node) && node.getStyle() !== selection.style)
       ) {
         // We insert a zero width character, ready for the composition
         // to get inserted into the new node we create. If
@@ -1087,6 +1112,7 @@ function onDocumentSelectionChange(event: Event): void {
         lastSelection,
         domSelection,
         nextActiveEditor,
+        event,
       );
       $setSelection(newSelection);
     });

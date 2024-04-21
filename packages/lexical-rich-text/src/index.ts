@@ -52,6 +52,7 @@ import {
   $getRoot,
   $getSelection,
   $insertNodes,
+  $INTERNAL_isPointSelection,
   $isDecoratorNode,
   $isElementNode,
   $isNodeSelection,
@@ -70,7 +71,6 @@ import {
   DELETE_CHARACTER_COMMAND,
   DELETE_LINE_COMMAND,
   DELETE_WORD_COMMAND,
-  DEPRECATED_$isGridSelection,
   DRAGOVER_COMMAND,
   DRAGSTART_COMMAND,
   DROP_COMMAND,
@@ -354,12 +354,17 @@ export class HeadingNode extends ElementNode {
   ): ParagraphNode | HeadingNode {
     const anchorOffet = selection ? selection.anchor.offset : 0;
     const newElement =
-      anchorOffet > 0 && anchorOffet < this.getTextContentSize()
-        ? $createHeadingNode(this.getTag())
-        : $createParagraphNode();
+      anchorOffet === this.getTextContentSize() || !selection
+        ? $createParagraphNode()
+        : $createHeadingNode(this.getTag());
     const direction = this.getDirection();
     newElement.setDirection(direction);
     this.insertAfter(newElement, restoreSelection);
+    if (anchorOffet === 0 && !this.isEmpty() && selection) {
+      const paragraph = $createParagraphNode();
+      paragraph.select();
+      this.replace(paragraph, true);
+    }
     return newElement;
   }
 
@@ -434,10 +439,7 @@ function onPasteForRichText(
         event instanceof InputEvent || event instanceof KeyboardEvent
           ? null
           : event.clipboardData;
-      if (
-        clipboardData != null &&
-        ($isRangeSelection(selection) || DEPRECATED_$isGridSelection(selection))
-      ) {
+      if (clipboardData != null && $INTERNAL_isPointSelection(selection)) {
         $insertDataTransferForRichText(clipboardData, selection, editor);
       }
     },
@@ -466,7 +468,7 @@ async function onCutForRichText(
 }
 
 // Clipboard may contain files that we aren't allowed to read. While the event is arguably useless,
-// in certain ocassions, we want to know whether it was a file transfer, as opposed to text. We
+// in certain occasions, we want to know whether it was a file transfer, as opposed to text. We
 // control this with the first boolean flag.
 export function eventFiles(
   event: DragEvent | PasteCommandType,
@@ -580,16 +582,11 @@ export function registerRichText(editor: LexicalEditor): () => void {
         const selection = $getSelection();
 
         if (typeof eventOrText === 'string') {
-          if ($isRangeSelection(selection)) {
+          if ($INTERNAL_isPointSelection(selection)) {
             selection.insertText(eventOrText);
-          } else if (DEPRECATED_$isGridSelection(selection)) {
-            // TODO: Insert into the first cell & clear selection.
           }
         } else {
-          if (
-            !$isRangeSelection(selection) &&
-            !DEPRECATED_$isGridSelection(selection)
-          ) {
+          if (!$INTERNAL_isPointSelection(selection)) {
             return false;
           }
 
@@ -643,7 +640,7 @@ export function registerRichText(editor: LexicalEditor): () => void {
         for (const node of nodes) {
           const element = $findMatchingParent(
             node,
-            (parentNode) =>
+            (parentNode): parentNode is ElementNode =>
               $isElementNode(parentNode) && !parentNode.isInline(),
           );
           if (element !== null) {
@@ -1036,10 +1033,7 @@ export function registerRichText(editor: LexicalEditor): () => void {
         }
 
         const selection = $getSelection();
-        if (
-          $isRangeSelection(selection) ||
-          DEPRECATED_$isGridSelection(selection)
-        ) {
+        if ($INTERNAL_isPointSelection(selection)) {
           onPasteForRichText(event, editor);
           return true;
         }

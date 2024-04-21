@@ -481,12 +481,16 @@ export async function focusEditor(page, parentSelector = '.editor-shell') {
   if (IS_COLLAB) {
     await page.waitForSelector('iframe[name="left"]');
     const leftFrame = page.frame('left');
-    if ((await leftFrame.$$('.loading').length) !== 0) {
+    if ((await leftFrame.$$('.loading')).length !== 0) {
       await leftFrame.waitForSelector('.loading', {
         state: 'detached',
       });
-      await sleep(500);
     }
+    // This sleep used to be "conditional" based on a broken version of
+    // the above test (undefined !== 0 is always true). It turns out there
+    // were tests that needed this sleep even when the left frame was not
+    // in a loading state.
+    await sleep(500);
     await leftFrame.focus(selector);
   } else {
     await page.focus(selector);
@@ -721,6 +725,8 @@ export function prettifyHTML(string, {ignoreClasses, ignoreInlineStyles} = {}) {
     output = output.replace(/\sstyle="([^"]*)"/g, '');
   }
 
+  output = output.replace(/\s__playwright_target__="[^"]+"/, '');
+
   return prettier
     .format(output, {
       attributeGroups: ['$DEFAULT', '^data-'],
@@ -879,6 +885,11 @@ export async function mergeTableCells(page) {
 export async function unmergeTableCell(page) {
   await click(page, '.table-cell-action-button-container');
   await click(page, '.item[data-test-id="table-unmerge-cells"]');
+}
+
+export async function toggleColumnHeader(page) {
+  await click(page, '.table-cell-action-button-container');
+  await click(page, '.item[data-test-id="table-column-header"]');
 }
 
 export async function deleteTableRows(page) {

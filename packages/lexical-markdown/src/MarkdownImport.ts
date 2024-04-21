@@ -14,7 +14,8 @@ import type {
 } from '@lexical/markdown';
 import type {LexicalNode, TextNode} from 'lexical';
 
-import {$isListItemNode, $isListNode} from '@lexical/list';
+import {$createCodeNode} from '@lexical/code';
+import {$isListItemNode, $isListNode, ListItemNode} from '@lexical/list';
 import {$isQuoteNode} from '@lexical/rich-text';
 import {$findMatchingParent} from '@lexical/utils';
 import {
@@ -168,7 +169,7 @@ function importBlocks(
       $isQuoteNode(previousNode) ||
       $isListNode(previousNode)
     ) {
-      let targetNode: LexicalNode | null = previousNode;
+      let targetNode: typeof previousNode | ListItemNode | null = previousNode;
 
       if ($isListNode(previousNode)) {
         const lastDescendant = previousNode.getLastDescendant();
@@ -287,21 +288,16 @@ function importTextMatchTransformers(
 
       const startIndex = match.index || 0;
       const endIndex = startIndex + match[0].length;
-      let replaceNode, leftTextNode, rightTextNode;
+      let replaceNode, newTextNode;
 
       if (startIndex === 0) {
         [replaceNode, textNode] = textNode.splitText(endIndex);
       } else {
-        [leftTextNode, replaceNode, rightTextNode] = textNode.splitText(
-          startIndex,
-          endIndex,
-        );
+        [, replaceNode, newTextNode] = textNode.splitText(startIndex, endIndex);
       }
-      if (leftTextNode) {
-        importTextMatchTransformers(leftTextNode, textMatchTransformers);
-      }
-      if (rightTextNode) {
-        textNode = rightTextNode;
+
+      if (newTextNode) {
+        importTextMatchTransformers(newTextNode, textMatchTransformers);
       }
       transformer.replace(replaceNode, match);
       continue mainLoop;

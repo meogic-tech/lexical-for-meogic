@@ -17,6 +17,7 @@ dist
 .docusaurus
 e2e-screenshots
 test-results
+playwright-report
 
 npm-debug.log*
 

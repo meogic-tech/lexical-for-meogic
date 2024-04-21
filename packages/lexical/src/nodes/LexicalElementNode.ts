@@ -9,11 +9,11 @@
 import type {Spread} from '../';
 import type {NodeKey, SerializedLexicalNode} from '../LexicalNode';
 import type {
-  GridSelection,
-  NodeSelection,
+  BaseSelection,
   PointType,
   RangeSelection,
 } from '../LexicalSelection';
+import type {KlassConstructor, Spread} from 'lexical';
 
 import invariant from 'shared/invariant';
 
@@ -60,6 +60,7 @@ export type ElementFormatType =
 
 /** @noInheritDoc */
 export class ElementNode extends LexicalNode {
+  ['constructor']!: KlassConstructor<typeof ElementNode>;
   /** @internal */
   __first: null | NodeKey;
   /** @internal */
@@ -339,25 +340,11 @@ export class ElementNode extends LexicalNode {
   }
   selectStart(): RangeSelection {
     const firstNode = this.getFirstDescendant();
-    if ($isElementNode(firstNode) || $isTextNode(firstNode)) {
-      return firstNode.select(0, 0);
-    }
-    // Decorator or LineBreak
-    if (firstNode !== null) {
-      return firstNode.selectPrevious();
-    }
-    return this.select(0, 0);
+    return firstNode ? firstNode.selectStart() : this.select();
   }
   selectEnd(): RangeSelection {
     const lastNode = this.getLastDescendant();
-    if ($isElementNode(lastNode) || $isTextNode(lastNode)) {
-      return lastNode.select();
-    }
-    // Decorator or LineBreak
-    if (lastNode !== null) {
-      return lastNode.selectNext();
-    }
-    return this.select();
+    return lastNode ? lastNode.selectEnd() : this.select();
   }
   clear(): this {
     const writableSelf = this.getWritable();
@@ -579,7 +566,7 @@ export class ElementNode extends LexicalNode {
   }
   extractWithChild(
     child: LexicalNode,
-    selection: RangeSelection | NodeSelection | GridSelection | null,
+    selection: BaseSelection | null,
     destination: 'clone' | 'html',
   ): boolean {
     return false;
