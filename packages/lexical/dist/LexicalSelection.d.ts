@@ -10,10 +10,10 @@ import type { EditorState } from './LexicalEditorState';
 import type { NodeKey } from './LexicalNode';
 import type { ElementNode } from './nodes/LexicalElementNode';
 import type { TextFormatType } from './nodes/LexicalTextNode';
-import { DEPRECATED_GridCellNode, DEPRECATED_GridNode, DEPRECATED_GridRowNode, TextNode } from '.';
+import { TextNode } from '.';
 import { LexicalNode } from './LexicalNode';
 export type TextPointType = {
-    _selection: INTERNAL_PointSelection;
+    _selection: BaseSelection;
     getNode: () => TextNode;
     is: (point: PointType) => boolean;
     isBefore: (point: PointType) => boolean;
@@ -23,7 +23,7 @@ export type TextPointType = {
     type: 'text';
 };
 export type ElementPointType = {
-    _selection: INTERNAL_PointSelection;
+    _selection: BaseSelection;
     getNode: () => ElementNode;
     is: (point: PointType) => boolean;
     isBefore: (point: PointType) => boolean;
@@ -33,17 +33,11 @@ export type ElementPointType = {
     type: 'element';
 };
 export type PointType = TextPointType | ElementPointType;
-export type GridMapValueType = {
-    cell: DEPRECATED_GridCellNode;
-    startRow: number;
-    startColumn: number;
-};
-export type GridMapType = Array<Array<GridMapValueType>>;
 export declare class Point {
     key: NodeKey;
     offset: number;
     type: 'text' | 'element';
-    _selection: INTERNAL_PointSelection | null;
+    _selection: BaseSelection | null;
     constructor(key: NodeKey, offset: number, type: 'text' | 'element');
     is(point: PointType): boolean;
     isBefore(b: PointType): boolean;
@@ -53,8 +47,9 @@ export declare class Point {
 export declare function $createPoint(key: NodeKey, offset: number, type: 'text' | 'element'): PointType;
 export declare function $moveSelectionPointToEnd(point: PointType, node: LexicalNode): void;
 export interface BaseSelection {
-    clone(): BaseSelection;
+    _cachedNodes: Array<LexicalNode> | null;
     dirty: boolean;
+    clone(): BaseSelection;
     extract(): Array<LexicalNode>;
     getNodes(): Array<LexicalNode>;
     getTextContent(): string;
@@ -62,52 +57,23 @@ export interface BaseSelection {
     insertRawText(text: string): void;
     is(selection: null | BaseSelection): boolean;
     insertNodes(nodes: Array<LexicalNode>): void;
-    getCachedNodes(): null | Array<LexicalNode>;
-    setCachedNodes(nodes: null | Array<LexicalNode>): void;
-}
-/**
- * This class is being used only for internal use case of migration GridSelection outside of core package.
- * DO NOT USE THIS CLASS DIRECTLY.
- */
-export declare abstract class INTERNAL_PointSelection implements BaseSelection {
-    anchor: PointType;
-    focus: PointType;
-    dirty: boolean;
-    _cachedNodes: Array<LexicalNode> | null;
-    constructor(anchor: PointType, focus: PointType);
+    getStartEndPoints(): null | [PointType, PointType];
+    isCollapsed(): boolean;
+    isBackward(): boolean;
     getCachedNodes(): LexicalNode[] | null;
     setCachedNodes(nodes: LexicalNode[] | null): void;
-    is(selection: null | BaseSelection): boolean;
-    isCollapsed(): boolean;
-    extract(): Array<LexicalNode>;
-    abstract clone(): INTERNAL_PointSelection;
-    abstract getNodes(): Array<LexicalNode>;
-    abstract getTextContent(): string;
-    abstract insertText(text: string): void;
-    abstract insertRawText(text: string): void;
-    abstract insertNodes(nodes: Array<LexicalNode>): void;
-    /**
-     * Returns whether the Selection is "backwards", meaning the focus
-     * logically precedes the anchor in the EditorState.
-     * @returns true if the Selection is backwards, false otherwise.
-     */
-    isBackward(): boolean;
-    /**
-     * Returns the character-based offsets of the Selection, accounting for non-text Points
-     * by using the children size or text content.
-     *
-     * @returns the character offsets for the Selection
-     */
-    getCharacterOffsets(): [number, number];
 }
 export declare class NodeSelection implements BaseSelection {
     _nodes: Set<NodeKey>;
+    _cachedNodes: Array<LexicalNode> | null;
     dirty: boolean;
-    _cachedNodes: null | Array<LexicalNode>;
     constructor(objects: Set<NodeKey>);
     getCachedNodes(): LexicalNode[] | null;
     setCachedNodes(nodes: LexicalNode[] | null): void;
     is(selection: null | BaseSelection): boolean;
+    isCollapsed(): boolean;
+    isBackward(): boolean;
+    getStartEndPoints(): null;
     add(key: NodeKey): void;
     delete(key: NodeKey): void;
     clear(): void;
@@ -121,17 +87,16 @@ export declare class NodeSelection implements BaseSelection {
     getTextContent(): string;
 }
 export declare function $isRangeSelection(x: unknown): x is RangeSelection;
-export declare function $INTERNAL_isPointSelection(x: unknown): x is INTERNAL_PointSelection;
-export declare function DEPRECATED_$getGridCellNodeRect(GridCellNode: DEPRECATED_GridCellNode): {
-    rowIndex: number;
-    columnIndex: number;
-    rowSpan: number;
-    colSpan: number;
-} | null;
-export declare class RangeSelection extends INTERNAL_PointSelection {
+export declare class RangeSelection implements BaseSelection {
     format: number;
     style: string;
+    anchor: PointType;
+    focus: PointType;
+    _cachedNodes: Array<LexicalNode> | null;
+    dirty: boolean;
     constructor(anchor: PointType, focus: PointType, format: number, style: string);
+    getCachedNodes(): LexicalNode[] | null;
+    setCachedNodes(nodes: LexicalNode[] | null): void;
     /**
      * Used to check if the provided selections is equal to this one by value,
      * inluding anchor, focus, format, and style properties.
@@ -263,6 +228,15 @@ export declare class RangeSelection extends INTERNAL_PointSelection {
      */
     modify(alter: 'move' | 'extend', isBackward: boolean, granularity: 'character' | 'word' | 'lineboundary'): void;
     /**
+     * Helper for handling forward character and word deletion that prevents element nodes
+     * like a table, columns layout being destroyed
+     *
+     * @param anchor the anchor
+     * @param anchorNode the anchor node in the selection
+     * @param isBackward whether or not selection is backwards
+     */
+    forwardDeletion(anchor: PointType, anchorNode: TextNode | ElementNode, isBackward: boolean): boolean;
+    /**
      * Performs one logical character deletion operation on the EditorState based on the current Selection.
      * Handles different node types.
      *
@@ -283,13 +257,22 @@ export declare class RangeSelection extends INTERNAL_PointSelection {
      * @param isBackward whether or not the selection is backwards.
      */
     deleteWord(isBackward: boolean): void;
+    /**
+     * Returns whether the Selection is "backwards", meaning the focus
+     * logically precedes the anchor in the EditorState.
+     * @returns true if the Selection is backwards, false otherwise.
+     */
+    isBackward(): boolean;
+    getStartEndPoints(): null | [PointType, PointType];
 }
 export declare function $isNodeSelection(x: unknown): x is NodeSelection;
+export declare function $getCharacterOffsets(selection: BaseSelection): [number, number];
 export declare function $isBlockElementNode(node: LexicalNode | null | undefined): node is ElementNode;
 export declare function internalMakeRangeSelection(anchorKey: NodeKey, anchorOffset: number, focusKey: NodeKey, focusOffset: number, anchorType: 'text' | 'element', focusType: 'text' | 'element'): RangeSelection;
 export declare function $createRangeSelection(): RangeSelection;
 export declare function $createNodeSelection(): NodeSelection;
 export declare function internalCreateSelection(editor: LexicalEditor): null | BaseSelection;
+export declare function $createRangeSelectionFromDom(domSelection: Selection | null, editor: LexicalEditor): null | RangeSelection;
 export declare function internalCreateRangeSelection(lastSelection: null | BaseSelection, domSelection: Selection | null, editor: LexicalEditor, event: UIEvent | Event | null): null | RangeSelection;
 export declare function $getSelection(): null | BaseSelection;
 export declare function $getPreviousSelection(): null | BaseSelection;
@@ -300,5 +283,3 @@ export declare function adjustPointOffsetForMergedSibling(point: PointType, isBe
 export declare function updateDOMSelection(prevSelection: BaseSelection | null, nextSelection: BaseSelection | null, editor: LexicalEditor, domSelection: Selection, tags: Set<string>, rootElement: HTMLElement, nodeCount: number): void;
 export declare function $insertNodes(nodes: Array<LexicalNode>): void;
 export declare function $getTextContent(): string;
-export declare function DEPRECATED_$computeGridMap(grid: DEPRECATED_GridNode, cellA: DEPRECATED_GridCellNode, cellB: DEPRECATED_GridCellNode): [GridMapType, GridMapValueType, GridMapValueType];
-export declare function DEPRECATED_$getNodeTriplet(source: PointType | LexicalNode | DEPRECATED_GridCellNode): [DEPRECATED_GridCellNode, DEPRECATED_GridRowNode, DEPRECATED_GridNode];

@@ -18,6 +18,7 @@ export type NodeMenuPluginProps<TOption extends MenuOption> = {
     menuRenderFn: MenuRenderFn<TOption>;
     anchorClassName?: string;
     commandPriority?: CommandListenerPriority;
+    parent?: HTMLElement;
 };
-export declare function LexicalNodeMenuPlugin<TOption extends MenuOption>({ options, nodeKey, onClose, onOpen, onSelectOption, menuRenderFn, anchorClassName, commandPriority, }: NodeMenuPluginProps<TOption>): JSX.Element | null;
+export declare function LexicalNodeMenuPlugin<TOption extends MenuOption>({ options, nodeKey, onClose, onOpen, onSelectOption, menuRenderFn, anchorClassName, commandPriority, parent, }: NodeMenuPluginProps<TOption>): JSX.Element | null;
 export { MenuOption, MenuRenderFn, MenuResolution };

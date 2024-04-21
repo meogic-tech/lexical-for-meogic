@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { DOMConversionMap, DOMConversionOutput, DOMExportOutput, EditorConfig, LexicalEditor, LexicalNode, NodeKey, SerializedGridCellNode, Spread } from 'lexical';
-import { DEPRECATED_GridCellNode } from 'lexical';
+import type { DOMConversionMap, DOMConversionOutput, DOMExportOutput, EditorConfig, LexicalEditor, LexicalNode, NodeKey, SerializedElementNode, Spread } from 'lexical';
+import { ElementNode } from 'lexical';
 export declare const TableCellHeaderStates: {
     BOTH: number;
     COLUMN: number;
@@ -15,12 +15,18 @@ export declare const TableCellHeaderStates: {
 };
 export type TableCellHeaderState = typeof TableCellHeaderStates[keyof typeof TableCellHeaderStates];
 export type SerializedTableCellNode = Spread<{
+    colSpan?: number;
+    rowSpan?: number;
     headerState: TableCellHeaderState;
     width?: number;
     backgroundColor?: null | string;
-}, SerializedGridCellNode>;
+}, SerializedElementNode>;
 /** @noInheritDoc */
-export declare class TableCellNode extends DEPRECATED_GridCellNode {
+export declare class TableCellNode extends ElementNode {
+    /** @internal */
+    __colSpan: number;
+    /** @internal */
+    __rowSpan: number;
     /** @internal */
     __headerState: TableCellHeaderState;
     /** @internal */
@@ -35,6 +41,10 @@ export declare class TableCellNode extends DEPRECATED_GridCellNode {
     createDOM(config: EditorConfig): HTMLElement;
     exportDOM(editor: LexicalEditor): DOMExportOutput;
     exportJSON(): SerializedTableCellNode;
+    getColSpan(): number;
+    setColSpan(colSpan: number): this;
+    getRowSpan(): number;
+    setRowSpan(rowSpan: number): this;
     getTag(): string;
     setHeaderStyles(headerState: TableCellHeaderState): TableCellHeaderState;
     getHeaderStyles(): TableCellHeaderState;

@@ -1,4 +1,3 @@
-/** @module @lexical/utils */
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -11,6 +10,8 @@ export { default as markSelection } from './markSelection';
 export { default as mergeRegister } from './mergeRegister';
 export { default as positionNodeOnRange } from './positionNodeOnRange';
 export { $splitNode, isHTMLAnchorElement, isHTMLElement } from 'lexical';
+export { CAN_USE_DOM } from 'shared/canUseDOM';
+export { CAN_USE_BEFORE_INPUT, IS_ANDROID, IS_ANDROID_CHROME, IS_APPLE, IS_APPLE_WEBKIT, IS_CHROME, IS_FIREFOX, IS_IOS, IS_SAFARI, } from 'shared/environment';
 export type DFSNode = Readonly<{
     depth: number;
     node: LexicalNode;
@@ -149,3 +150,9 @@ export declare function $filter<T>(nodes: Array<LexicalNode>, filterFn: (node: L
  * @param node Node that needs to be appended
  */
 export declare function $insertFirst(parent: ElementNode, node: LexicalNode): void;
+/**
+ * Calculates the zoom level of an element as a result of using
+ * css zoom property.
+ * @param element
+ */
+export declare function calculateZoomLevel(element: Element | null): number;

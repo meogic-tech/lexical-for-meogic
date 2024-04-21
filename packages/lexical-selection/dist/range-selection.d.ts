@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { DecoratorNode, ElementNode, INTERNAL_PointSelection, LexicalNode, RangeSelection } from 'lexical';
+import type { BaseSelection, ElementNode, LexicalNode, RangeSelection } from 'lexical';
 /**
  * Converts all nodes in the selection that are of one block type to another.
  * @param selection - The selected blocks to be converted.
  * @param createElement - The function that creates the node. eg. $createParagraphNode.
  */
-export declare function $setBlocksType(selection: INTERNAL_PointSelection, createElement: () => ElementNode): void;
+export declare function $setBlocksType(selection: BaseSelection | null, createElement: () => ElementNode): void;
 /**
  * @deprecated
  * Wraps all nodes in the selection into another node of the type returned by createElement.
@@ -19,7 +19,7 @@ export declare function $setBlocksType(selection: INTERNAL_PointSelection, creat
  * @param createElement - A function that creates the wrapping ElementNode. eg. $createParagraphNode.
  * @param wrappingElement - An element to append the wrapped selection and its children to.
  */
-export declare function $wrapNodes(selection: INTERNAL_PointSelection, createElement: () => ElementNode, wrappingElement?: null | ElementNode): void;
+export declare function $wrapNodes(selection: BaseSelection, createElement: () => ElementNode, wrappingElement?: null | ElementNode): void;
 /**
  * Wraps each node into a new ElementNode.
  * @param selection - The selection of nodes to wrap.
@@ -29,7 +29,7 @@ export declare function $wrapNodes(selection: INTERNAL_PointSelection, createEle
  * @param wrappingElement - An element to wrap all the nodes into.
  * @returns
  */
-export declare function $wrapNodesImpl(selection: INTERNAL_PointSelection, nodes: LexicalNode[], nodesLength: number, createElement: () => ElementNode, wrappingElement?: null | ElementNode): void;
+export declare function $wrapNodesImpl(selection: BaseSelection, nodes: LexicalNode[], nodesLength: number, createElement: () => ElementNode, wrappingElement?: null | ElementNode): void;
 /**
  * Determines if the default character selection should be overridden. Used with DecoratorNodes
  * @param selection - The selection whose default character selection may need to be overridden.
@@ -76,5 +76,5 @@ export declare function $getSelectionStyleValueForProperty(selection: RangeSelec
  * This function is for internal use of the library.
  * Please do not use it as it may change in the future.
  */
-export declare function INTERNAL_$isBlock(node: LexicalNode): node is ElementNode | DecoratorNode<unknown>;
+export declare function INTERNAL_$isBlock(node: LexicalNode): node is ElementNode;
 export declare function $getAncestor<NodeType extends LexicalNode = LexicalNode>(node: LexicalNode, predicate: (ancestor: LexicalNode) => ancestor is NodeType): NodeType | null;

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import { LexicalEditor, LexicalNode } from 'lexical';
+import { LexicalEditor } from 'lexical';
 import { ListItemNode, ListNode } from './';
 import { ListType } from './LexicalListNode';
 /**
@@ -36,12 +36,17 @@ export declare function mergeLists(list1: ListNode, list2: ListNode): void;
 export declare function removeList(editor: LexicalEditor): void;
 /**
  * Takes the value of a child ListItemNode and makes it the value the ListItemNode
- * should be if it isn't already. If only certain children should be updated, they
- * can be passed optionally in an array.
+ * should be if it isn't already. Also ensures that checked is undefined if the
+ * parent does not have a list type of 'check'.
  * @param list - The list whose children are updated.
- * @param children - An array of the children to be updated.
  */
-export declare function updateChildrenListItemValue(list: ListNode, children?: Array<LexicalNode>): void;
+export declare function updateChildrenListItemValue(list: ListNode): void;
+/**
+ * Merge the next sibling list if same type.
+ * <ul> will merge with <ul>, but NOT <ul> with <ol>.
+ * @param list - The list whose next sibling should be potentially merged
+ */
+export declare function mergeNextSiblingListIfSameType(list: ListNode): void;
 /**
  * Adds an empty ListNode/ListItemNode chain at listItemNode, so as to
  * create an indent effect. Won't indent ListItemNodes that have a ListNode as

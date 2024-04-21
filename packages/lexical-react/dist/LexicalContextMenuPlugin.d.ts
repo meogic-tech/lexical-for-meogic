@@ -21,10 +21,12 @@ export type LexicalContextMenuPluginProps<TOption extends MenuOption> = {
     onSelectOption: (option: TOption, textNodeContainingQuery: LexicalNode | null, closeMenu: () => void, matchingString: string) => void;
     options: Array<TOption>;
     onClose?: () => void;
+    onWillOpen?: (event: MouseEvent) => void;
     onOpen?: (resolution: MenuResolution) => void;
     menuRenderFn: ContextMenuRenderFn<TOption>;
     anchorClassName?: string;
     commandPriority?: CommandListenerPriority;
+    parent?: HTMLElement;
 };
-export declare function LexicalContextMenuPlugin<TOption extends MenuOption>({ options, onClose, onOpen, onSelectOption, menuRenderFn: contextMenuRenderFn, anchorClassName, commandPriority, }: LexicalContextMenuPluginProps<TOption>): JSX.Element | null;
+export declare function LexicalContextMenuPlugin<TOption extends MenuOption>({ options, onWillOpen, onClose, onOpen, onSelectOption, menuRenderFn: contextMenuRenderFn, anchorClassName, commandPriority, parent, }: LexicalContextMenuPluginProps<TOption>): JSX.Element | null;
 export { MenuOption, MenuRenderFn, MenuResolution };

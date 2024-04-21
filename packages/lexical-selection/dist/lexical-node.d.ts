@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import { BaseSelection, INTERNAL_PointSelection, LexicalEditor, LexicalNode, Point, TextNode } from 'lexical';
+import { BaseSelection, LexicalEditor, LexicalNode, Point, TextNode } from 'lexical';
 /**
  * Returns a copy of a node, but generates a new key for the copy.
  * @param node - The node to be cloned.
@@ -45,6 +45,6 @@ export declare function $addNodeStyle(node: TextNode): void;
  * Will update partially selected TextNodes by splitting the TextNode and applying
  * the styles to the appropriate one.
  * @param selection - The selected node(s) to update.
- * @param patch - The patch to apply, which can include multiple styles. { CSSProperty: value }
+ * @param patch - The patch to apply, which can include multiple styles. { CSSProperty: value }. Can also accept a function that returns the new property value.
  */
-export declare function $patchStyleText(selection: INTERNAL_PointSelection, patch: Record<string, string | null>): void;
+export declare function $patchStyleText(selection: BaseSelection, patch: Record<string, string | null | ((currentStyleValue: string | null) => string)>): void;

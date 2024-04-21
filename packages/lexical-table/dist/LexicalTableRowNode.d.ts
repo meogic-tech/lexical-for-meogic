@@ -6,12 +6,12 @@
  *
  */
 import type { Spread } from 'lexical';
-import { DEPRECATED_GridRowNode, DOMConversionMap, DOMConversionOutput, EditorConfig, LexicalNode, NodeKey, SerializedElementNode } from 'lexical';
+import { DOMConversionMap, DOMConversionOutput, EditorConfig, ElementNode, LexicalNode, NodeKey, SerializedElementNode } from 'lexical';
 export type SerializedTableRowNode = Spread<{
-    height: number;
+    height?: number;
 }, SerializedElementNode>;
 /** @noInheritDoc */
-export declare class TableRowNode extends DEPRECATED_GridRowNode {
+export declare class TableRowNode extends ElementNode {
     /** @internal */
     __height?: number;
     static getType(): string;
@@ -19,11 +19,11 @@ export declare class TableRowNode extends DEPRECATED_GridRowNode {
     static importDOM(): DOMConversionMap | null;
     static importJSON(serializedNode: SerializedTableRowNode): TableRowNode;
     constructor(height?: number, key?: NodeKey);
-    exportJSON(): SerializedElementNode;
+    exportJSON(): SerializedTableRowNode;
     createDOM(config: EditorConfig): HTMLElement;
     isShadowRoot(): boolean;
     setHeight(height: number): number | null | undefined;
-    getHeight(): number | null | undefined;
+    getHeight(): number | undefined;
     updateDOM(prevNode: TableRowNode): boolean;
     canBeEmpty(): false;
     canIndent(): false;

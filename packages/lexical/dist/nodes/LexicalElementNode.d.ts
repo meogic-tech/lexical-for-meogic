@@ -8,7 +8,7 @@
 import type { NodeKey, SerializedLexicalNode } from '../LexicalNode';
 import type { BaseSelection, RangeSelection } from '../LexicalSelection';
 import type { KlassConstructor, Spread } from '../';
-import { TextNode } from '../';
+import { TextNode } from '../index';
 import { LexicalNode } from '../LexicalNode';
 export type SerializedElementNode<T extends SerializedLexicalNode = SerializedLexicalNode> = Spread<{
     children: Array<T>;
@@ -69,7 +69,6 @@ export declare class ElementNode extends LexicalNode {
     canIndent(): boolean;
     collapseAtStart(selection: RangeSelection): boolean;
     excludeFromCopy(destination?: 'clone' | 'html'): boolean;
-    canExtractContents(): boolean;
     canReplaceWith(replacement: LexicalNode): boolean;
     canInsertAfter(node: LexicalNode): boolean;
     canBeEmpty(): boolean;

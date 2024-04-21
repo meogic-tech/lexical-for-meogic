@@ -30,6 +30,7 @@ export type TypeaheadMenuPluginProps<TOption extends MenuOption> = {
     onClose?: () => void;
     anchorClassName?: string;
     commandPriority?: CommandListenerPriority;
+    parent?: HTMLElement;
 };
-export declare function LexicalTypeaheadMenuPlugin<TOption extends MenuOption>({ options, onQueryChange, onSelectOption, onOpen, onClose, menuRenderFn, triggerFn, anchorClassName, commandPriority, }: TypeaheadMenuPluginProps<TOption>): JSX.Element | null;
+export declare function LexicalTypeaheadMenuPlugin<TOption extends MenuOption>({ options, onQueryChange, onSelectOption, onOpen, onClose, menuRenderFn, triggerFn, anchorClassName, commandPriority, parent, }: TypeaheadMenuPluginProps<TOption>): JSX.Element | null;
 export { MenuOption, MenuRenderFn, MenuResolution, MenuTextMatch, TriggerFn };

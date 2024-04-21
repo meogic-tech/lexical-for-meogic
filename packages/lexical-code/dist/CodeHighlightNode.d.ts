@@ -6,20 +6,7 @@
  *
  */
 import type { EditorConfig, LexicalNode, LineBreakNode, NodeKey, SerializedTextNode, Spread, TabNode } from 'lexical';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-objectivec';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-swift';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-cpp';
+import './CodeHighlighterPrism';
 import { ElementNode, TextNode } from 'lexical';
 export declare const DEFAULT_CODE_LANGUAGE = "javascript";
 type SerializedCodeHighlightNode = Spread<{
@@ -39,6 +26,7 @@ export declare class CodeHighlightNode extends TextNode {
     static getType(): string;
     static clone(node: CodeHighlightNode): CodeHighlightNode;
     getHighlightType(): string | null | undefined;
+    canHaveFormat(): boolean;
     createDOM(config: EditorConfig): HTMLElement;
     updateDOM(prevNode: CodeHighlightNode, dom: HTMLElement, config: EditorConfig): boolean;
     static importJSON(serializedNode: SerializedCodeHighlightNode): CodeHighlightNode;

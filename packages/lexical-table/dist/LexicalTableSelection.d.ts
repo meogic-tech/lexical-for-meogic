@@ -5,47 +5,48 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { LexicalEditor, NodeKey, TextFormatType } from 'lexical';
-import { type GridSelection } from './LexicalGridSelection';
-export type Cell = {
-    elem: HTMLElement;
-    highlighted: boolean;
-    hasBackgroundColor: boolean;
-    x: number;
-    y: number;
+import { BaseSelection, LexicalNode, NodeKey, PointType } from 'lexical';
+import { TableCellNode } from './LexicalTableCellNode';
+export type TableSelectionShape = {
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
 };
-export type Cells = Array<Array<Cell | undefined> | undefined>;
-export type Grid = {
-    cells: Cells;
-    columns: number;
-    rows: number;
+export type TableMapValueType = {
+    cell: TableCellNode;
+    startRow: number;
+    startColumn: number;
 };
-export declare class TableSelection {
-    focusX: number;
-    focusY: number;
-    listenersToRemove: Set<() => void>;
-    grid: Grid;
-    isHighlightingCells: boolean;
-    anchorX: number;
-    anchorY: number;
-    tableNodeKey: NodeKey;
-    anchorCell: Cell | null;
-    focusCell: Cell | null;
-    anchorCellNodeKey: NodeKey | null;
-    focusCellNodeKey: NodeKey | null;
-    editor: LexicalEditor;
-    gridSelection: GridSelection | null;
-    hasHijackedSelectionStyles: boolean;
-    constructor(editor: LexicalEditor, tableNodeKey: string);
-    getGrid(): Grid;
-    removeListeners(): void;
-    trackTableGrid(): void;
-    clearHighlight(): void;
-    enableHighlightStyle(): void;
-    disableHighlightStyle(): void;
-    updateTableGridSelection(selection: GridSelection | null): void;
-    setFocusCellForSelection(cell: Cell, ignoreStart?: boolean): void;
-    setAnchorCellForSelection(cell: Cell): void;
-    formatCells(type: TextFormatType): void;
-    clearText(): void;
+export type TableMapType = Array<Array<TableMapValueType>>;
+export declare class TableSelection implements BaseSelection {
+    tableKey: NodeKey;
+    anchor: PointType;
+    focus: PointType;
+    _cachedNodes: Array<LexicalNode> | null;
+    dirty: boolean;
+    constructor(tableKey: NodeKey, anchor: PointType, focus: PointType);
+    getStartEndPoints(): [PointType, PointType];
+    /**
+     * Returns whether the Selection is "backwards", meaning the focus
+     * logically precedes the anchor in the EditorState.
+     * @returns true if the Selection is backwards, false otherwise.
+     */
+    isBackward(): boolean;
+    getCachedNodes(): LexicalNode[] | null;
+    setCachedNodes(nodes: LexicalNode[] | null): void;
+    is(selection: null | BaseSelection): boolean;
+    set(tableKey: NodeKey, anchorCellKey: NodeKey, focusCellKey: NodeKey): void;
+    clone(): TableSelection;
+    isCollapsed(): boolean;
+    extract(): Array<LexicalNode>;
+    insertRawText(text: string): void;
+    insertText(): void;
+    insertNodes(nodes: Array<LexicalNode>): void;
+    getShape(): TableSelectionShape;
+    getNodes(): Array<LexicalNode>;
+    getTextContent(): string;
 }
+export declare function $isTableSelection(x: unknown): x is TableSelection;
+export declare function $createTableSelection(): TableSelection;
+export declare function $getChildrenRecursively(node: LexicalNode): Array<LexicalNode>;

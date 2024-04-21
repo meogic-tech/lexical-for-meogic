@@ -1,4 +1,3 @@
-/** @module @lexical/table */
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -6,27 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { LexicalCommand } from 'lexical';
-export type { GridSelection, GridSelectionShape } from './LexicalGridSelection';
-export { $createGridSelection, $isGridSelection } from './LexicalGridSelection';
 export type { SerializedTableCellNode } from './LexicalTableCellNode';
 export { $createTableCellNode, $isTableCellNode, TableCellHeaderStates, TableCellNode, } from './LexicalTableCellNode';
+export type { InsertTableCommandPayload, InsertTableCommandPayloadHeaders, } from './LexicalTableCommands';
+export { INSERT_TABLE_COMMAND } from './LexicalTableCommands';
 export type { SerializedTableNode } from './LexicalTableNode';
-export { $createTableNode, $getElementGridForTableNode, $isTableNode, TableNode, } from './LexicalTableNode';
+export { $createTableNode, $getElementForTableNode, $isTableNode, TableNode, } from './LexicalTableNode';
+export type { TableDOMCell } from './LexicalTableObserver';
+export { TableObserver } from './LexicalTableObserver';
 export type { SerializedTableRowNode } from './LexicalTableRowNode';
 export { $createTableRowNode, $isTableRowNode, TableRowNode, } from './LexicalTableRowNode';
-export type { Cell } from './LexicalTableSelection';
-export { TableSelection } from './LexicalTableSelection';
+export type { TableSelection, TableSelectionShape, } from './LexicalTableSelection';
+export { $createTableSelection, $isTableSelection, } from './LexicalTableSelection';
 export type { HTMLTableElementWithWithTableSelectionState } from './LexicalTableSelectionHelpers';
-export { applyTableHandlers, getCellFromTarget, getTableSelectionFromTableElement, } from './LexicalTableSelectionHelpers';
-export { $createTableNodeWithDimensions, $deleteTableColumn, $deleteTableColumn__EXPERIMENTAL, $deleteTableRow__EXPERIMENTAL, $getTableCellNodeFromLexicalNode, $getTableColumnIndexFromTableCellNode, $getTableNodeFromLexicalNodeOrThrow, $getTableRowIndexFromTableCellNode, $getTableRowNodeFromTableCellNodeOrThrow, $insertTableColumn, $insertTableColumn__EXPERIMENTAL, $insertTableRow, $insertTableRow__EXPERIMENTAL, $removeTableRowAtIndex, $unmergeCell, } from './LexicalTableUtils';
-export type InsertTableCommandPayloadHeaders = Readonly<{
-    rows: boolean;
-    columns: boolean;
-}> | boolean;
-export type InsertTableCommandPayload = Readonly<{
-    columns: string;
-    rows: string;
-    includeHeaders?: InsertTableCommandPayloadHeaders;
-}>;
-export declare const INSERT_TABLE_COMMAND: LexicalCommand<InsertTableCommandPayload>;
+export { applyTableHandlers, getDOMCellFromTarget, getTableObserverFromTableElement, } from './LexicalTableSelectionHelpers';
+export { $computeTableMap, $createTableNodeWithDimensions, $deleteTableColumn, $deleteTableColumn__EXPERIMENTAL, $deleteTableRow__EXPERIMENTAL, $getNodeTriplet, $getTableCellNodeFromLexicalNode, $getTableCellNodeRect, $getTableColumnIndexFromTableCellNode, $getTableNodeFromLexicalNodeOrThrow, $getTableRowIndexFromTableCellNode, $getTableRowNodeFromTableCellNodeOrThrow, $insertTableColumn, $insertTableColumn__EXPERIMENTAL, $insertTableRow, $insertTableRow__EXPERIMENTAL, $removeTableRowAtIndex, $unmergeCell, } from './LexicalTableUtils';

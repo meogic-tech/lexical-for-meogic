@@ -1,0 +1,7 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+import{createLexicalComposerContext as e,LexicalComposerContext as t}from"@lexical/react/LexicalComposerContext";import{createEditor as o,$getRoot as n,$createParagraphNode as i,$getSelection as r}from"lexical";import*as a from"react";import{useLayoutEffect as l,useEffect as c,useMemo as s}from"react";const d="undefined"!=typeof window&&void 0!==window.document&&void 0!==window.document.createElement;var m=d?l:c;const u={tag:"history-merge"};function f({initialConfig:l,children:c}){const f=s((()=>{const{theme:t,namespace:a,editor__DEPRECATED:c,nodes:s,onError:m,editorState:f,html:p}=l,E=e(null,t);let v=c||null;if(null===v){const e=o({editable:l.editable,html:p,namespace:a,nodes:s,onError:t=>m(t,e),theme:t});!function(e,t){if(null===t)return;if(void 0===t)e.update((()=>{const t=n();if(t.isEmpty()){const o=i();t.append(o);const n=d?document.activeElement:null;(null!==r()||null!==n&&n===e.getRootElement())&&o.select()}}),u);else if(null!==t)switch(typeof t){case"string":{const o=e.parseEditorState(t);e.setEditorState(o,u);break}case"object":e.setEditorState(t,u);break;case"function":e.update((()=>{n().isEmpty()&&t(e)}),u)}}(e,f),v=e}return[v,E]}),[]);return m((()=>{const e=l.editable,[t]=f;t.setEditable(void 0===e||e)}),[]),a.createElement(t.Provider,{value:f},c)}export{f as LexicalComposer};

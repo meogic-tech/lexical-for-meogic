@@ -46,5 +46,5 @@ export declare function LexicalMenu<TOption extends MenuOption>({ close, editor,
     onSelectOption: (option: TOption, textNodeContainingQuery: TextNode | null, closeMenu: () => void, matchingString: string) => void;
     commandPriority?: CommandListenerPriority;
 }): JSX.Element | null;
-export declare function useMenuAnchorRef(resolution: MenuResolution | null, setResolution: (r: MenuResolution | null) => void, className?: string): MutableRefObject<HTMLElement>;
+export declare function useMenuAnchorRef(resolution: MenuResolution | null, setResolution: (r: MenuResolution | null) => void, className?: string, parent?: HTMLElement): MutableRefObject<HTMLElement>;
 export type TriggerFn = (text: string, editor: LexicalEditor) => MenuTextMatch | null;

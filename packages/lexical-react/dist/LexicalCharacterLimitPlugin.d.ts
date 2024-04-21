@@ -6,7 +6,10 @@
  *
  */
 /// <reference types="react" />
-export declare function CharacterLimitPlugin({ charset, maxLength, }: {
+export declare function CharacterLimitPlugin({ charset, maxLength, renderer, }: {
     charset: 'UTF-8' | 'UTF-16';
     maxLength: number;
+    renderer?: ({ remainingCharacters, }: {
+        remainingCharacters: number;
+    }) => JSX.Element;
 }): JSX.Element;

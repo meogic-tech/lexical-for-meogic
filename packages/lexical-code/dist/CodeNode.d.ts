@@ -5,22 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { DOMConversionMap, DOMExportOutput, EditorConfig, LexicalNode, NodeKey, ParagraphNode, RangeSelection, SerializedElementNode, Spread, TabNode } from 'lexical';
 import type { CodeHighlightNode } from '@lexical/code';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-objectivec';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-swift';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-cpp';
+import type { DOMConversionMap, DOMExportOutput, EditorConfig, LexicalEditor, LexicalNode, NodeKey, ParagraphNode, RangeSelection, SerializedElementNode, Spread, TabNode } from 'lexical';
+import './CodeHighlighterPrism';
 import { ElementNode } from 'lexical';
 export type SerializedCodeNode = Spread<{
     language: string | null | undefined;
@@ -34,7 +21,7 @@ export declare class CodeNode extends ElementNode {
     constructor(language?: string | null | undefined, key?: NodeKey);
     createDOM(config: EditorConfig): HTMLElement;
     updateDOM(prevNode: CodeNode, dom: HTMLElement, config: EditorConfig): boolean;
-    exportDOM(): DOMExportOutput;
+    exportDOM(editor: LexicalEditor): DOMExportOutput;
     static importDOM(): DOMConversionMap | null;
     static importJSON(serializedNode: SerializedCodeNode): CodeNode;
     exportJSON(): SerializedCodeNode;

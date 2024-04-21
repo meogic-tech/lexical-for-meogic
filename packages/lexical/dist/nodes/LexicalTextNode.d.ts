@@ -128,6 +128,11 @@ export declare class TextNode extends LexicalNode {
      * @returns a number representing the TextFormatTypes applied to the node.
      */
     getFormatFlags(type: TextFormatType, alignWithFormat: null | number): number;
+    /**
+     *
+     * @returns true if the text node supports font styling, false otherwise.
+     */
+    canHaveFormat(): boolean;
     createDOM(config: EditorConfig, editor?: LexicalEditor): HTMLElement;
     updateDOM(prevNode: TextNode, dom: HTMLElement, config: EditorConfig): boolean;
     static importDOM(): DOMConversionMap | null;
@@ -150,7 +155,7 @@ export declare class TextNode extends LexicalNode {
      * Sets the node detail to the provided TextDetailType or 32-bit integer. Note that the TextDetailType
      * version of the argument can only specify one detail value and doing so will remove all other detail values that
      * may be applied to the node. For toggling behavior, consider using {@link TextNode.toggleDirectionless}
-     * or {@link TextNode.togglerUnmergeable}
+     * or {@link TextNode.toggleUnmergeable}
      *
      * @param detail - TextDetailType or 32-bit integer representing the node detail.
      *

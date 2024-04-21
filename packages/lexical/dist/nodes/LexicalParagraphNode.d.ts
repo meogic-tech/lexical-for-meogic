@@ -5,23 +5,33 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import type { RangeSelection } from '../';
-import type { EditorConfig, LexicalEditor } from '../LexicalEditor';
-import type { DOMConversionMap, DOMExportOutput, LexicalNode } from '../LexicalNode';
+import type { EditorConfig, KlassConstructor, LexicalEditor, Spread } from '../LexicalEditor';
+import type { DOMConversionMap, DOMExportOutput, LexicalNode, NodeKey } from '../LexicalNode';
 import type { SerializedElementNode } from './LexicalElementNode';
+import type { RangeSelection } from '../';
 import { ElementNode } from './LexicalElementNode';
-export type SerializedParagraphNode = SerializedElementNode;
+import { TextFormatType } from './LexicalTextNode';
+export type SerializedParagraphNode = Spread<{
+    textFormat: number;
+}, SerializedElementNode>;
 /** @noInheritDoc */
 export declare class ParagraphNode extends ElementNode {
+    ['constructor']: KlassConstructor<typeof ParagraphNode>;
+    /** @internal */
+    __textFormat: number;
+    constructor(key?: NodeKey);
     static getType(): string;
+    getTextFormat(): number;
+    setTextFormat(type: number): this;
+    hasTextFormat(type: TextFormatType): boolean;
     static clone(node: ParagraphNode): ParagraphNode;
     createDOM(config: EditorConfig): HTMLElement;
     updateDOM(prevNode: ParagraphNode, dom: HTMLElement, config: EditorConfig): boolean;
     static importDOM(): DOMConversionMap | null;
     exportDOM(editor: LexicalEditor): DOMExportOutput;
     static importJSON(serializedNode: SerializedParagraphNode): ParagraphNode;
-    exportJSON(): SerializedElementNode;
-    insertNewAfter(_: RangeSelection, restoreSelection: boolean): ParagraphNode;
+    exportJSON(): SerializedParagraphNode;
+    insertNewAfter(rangeSelection: RangeSelection, restoreSelection: boolean): ParagraphNode;
     collapseAtStart(): boolean;
 }
 export declare function $createParagraphNode(): ParagraphNode;

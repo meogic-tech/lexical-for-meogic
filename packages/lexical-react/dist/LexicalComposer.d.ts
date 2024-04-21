@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-/// <reference types="react" />
 import { EditorState, EditorThemeClasses, HTMLConfig, Klass, LexicalEditor, LexicalNode, LexicalNodeReplacement } from 'lexical';
+import * as React from 'react';
 export type InitialEditorStateType = null | string | EditorState | ((editor: LexicalEditor) => void);
 export type InitialConfigType = Readonly<{
     editor__DEPRECATED?: LexicalEditor | null;
@@ -18,9 +18,8 @@ export type InitialConfigType = Readonly<{
     editorState?: InitialEditorStateType;
     html?: HTMLConfig;
 }>;
-type Props = {
-    children: JSX.Element | string | (JSX.Element | string)[];
+type Props = React.PropsWithChildren<{
     initialConfig: InitialConfigType;
-};
+}>;
 export declare function LexicalComposer({ initialConfig, children }: Props): JSX.Element;
 export {};

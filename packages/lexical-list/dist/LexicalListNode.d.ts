@@ -30,6 +30,7 @@ export declare class ListNode extends ElementNode {
     getStart(): number;
     createDOM(config: EditorConfig, _editor?: LexicalEditor): HTMLElement;
     updateDOM(prevNode: ListNode, dom: HTMLElement, config: EditorConfig): boolean;
+    static transform(): (node: LexicalNode) => void;
     static importDOM(): DOMConversionMap | null;
     static importJSON(serializedNode: SerializedListNode): ListNode;
     exportDOM(editor: LexicalEditor): DOMExportOutput;

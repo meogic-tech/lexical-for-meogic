@@ -134,4 +134,9 @@ export declare function isHTMLElement(x: Node | EventTarget): x is HTMLElement;
  */
 export declare function INTERNAL_$isBlock(node: LexicalNode): node is ElementNode | DecoratorNode<unknown>;
 export declare function $getAncestor<NodeType extends LexicalNode = LexicalNode>(node: LexicalNode, predicate: (ancestor: LexicalNode) => ancestor is NodeType): NodeType | null;
+/**
+ * Utility function for accessing current active editor instance.
+ * @returns Current active editor
+ */
+export declare function $getEditor(): LexicalEditor;
 export {};
