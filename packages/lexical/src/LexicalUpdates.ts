@@ -877,7 +877,7 @@ function beginUpdate(
   try {
     if (editorStateWasCloned) {
       if (editor._headless) {
-        if (currentEditorState._selection != null) {
+        if (currentEditorState._selection !== null) {
           pendingEditorState._selection = currentEditorState._selection.clone();
         }
       } else {

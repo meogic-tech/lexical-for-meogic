@@ -6,58 +6,43 @@
  *
  */
 
-// eslint-disable-next-line simple-import-sort/imports
 import type {
+  BaseSelection,
   LexicalCommand,
   LexicalEditor,
   LexicalNode,
-  RangeSelection,
   LineBreakNode,
   NodeKey,
-  BaseSelection,
+  RangeSelection,
 } from 'lexical';
 
-import * as Prism from 'prismjs';
-
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-objectivec';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-swift';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-cpp';
+import './CodeHighlighterPrism';
 
 import {mergeRegister} from '@lexical/utils';
 import {
   $createLineBreakNode,
+  $createTabNode,
   $createTextNode,
   $getNodeByKey,
   $getSelection,
+  $insertNodes,
   $isLineBreakNode,
-  $createTabNode,
   $isRangeSelection,
+  $isTabNode,
   $isTextNode,
   COMMAND_PRIORITY_LOW,
-  INSERT_TAB_COMMAND,
   INDENT_CONTENT_COMMAND,
+  INSERT_TAB_COMMAND,
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
+  KEY_TAB_COMMAND,
   MOVE_TO_END,
   MOVE_TO_START,
-  $insertNodes,
   OUTDENT_CONTENT_COMMAND,
-  KEY_TAB_COMMAND,
-  TextNode,
-  $isTabNode,
   TabNode,
+  TextNode,
 } from 'lexical';
+import invariant from 'shared/invariant';
 
 import {
   $createCodeHighlightNode,
@@ -67,9 +52,7 @@ import {
   getFirstCodeNodeOfLine,
   getLastCodeNodeOfLine,
 } from './CodeHighlightNode';
-
 import {$isCodeNode, CodeNode} from './CodeNode';
-import invariant from 'shared/invariant';
 
 type TokenContent = string | Token | (string | Token)[];
 
@@ -86,9 +69,10 @@ export interface Tokenizer {
 export const PrismTokenizer: Tokenizer = {
   defaultLanguage: DEFAULT_CODE_LANGUAGE,
   tokenize(code: string, language?: string): (string | Token)[] {
-    return Prism.tokenize(
+    return window.Prism.tokenize(
       code,
-      Prism.languages[language || ''] || Prism.languages[this.defaultLanguage],
+      window.Prism.languages[language || ''] ||
+        window.Prism.languages[this.defaultLanguage],
     );
   },
 };

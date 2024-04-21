@@ -6,10 +6,10 @@
  *
  */
 
-import {useLexicalComposerContext} from '@lexical/react/src/LexicalComposerContext';
-import {ContentEditable} from '@lexical/react/src/LexicalContentEditable';
-import LexicalErrorBoundary from '@lexical/react/src/LexicalErrorBoundary';
-import {RichTextPlugin} from '@lexical/react/src/LexicalRichTextPlugin';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {ContentEditable} from '@lexical/react/LexicalContentEditable';
+import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
+import {RichTextPlugin} from '@lexical/react/LexicalRichTextPlugin';
 import {
   $createTableCellNode,
   $createTableNode,
@@ -1003,7 +1003,7 @@ describe('LexicalEditor tests', () => {
         reactRoot.render(<Test divKey={1} />);
       });
 
-      expect(listener).toHaveBeenCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(3);
       expect(container.innerHTML).toBe(
         '<div contenteditable="true" style="user-select: text; white-space: pre-wrap; word-break: break-word;" data-lexical-editor="true"><p><br></p></div>',
       );
@@ -1039,6 +1039,7 @@ describe('LexicalEditor tests', () => {
           __parent: 'root',
           __prev: null,
           __size: 0,
+          __textFormat: 0,
           __type: 'paragraph',
         });
       });
@@ -1122,6 +1123,7 @@ describe('LexicalEditor tests', () => {
           __parent: 'root',
           __prev: null,
           __size: 1,
+          __textFormat: 0,
           __type: 'paragraph',
         });
         expect(parsedText).toEqual({
@@ -1200,6 +1202,7 @@ describe('LexicalEditor tests', () => {
           __parent: 'root',
           __prev: null,
           __size: 1,
+          __textFormat: 0,
           __type: 'paragraph',
         });
         expect(parsedText).toEqual({
@@ -2185,5 +2188,31 @@ describe('LexicalEditor tests', () => {
     expect(onError).toBeCalledWith(updateError);
     expect(textListener).toBeCalledWith('Hello\n\nworld');
     expect(updateListener.mock.lastCall[0].prevEditorState).toBe(editorState);
+  });
+
+  it('should call importDOM methods only once', async () => {
+    jest.spyOn(ParagraphNode, 'importDOM');
+
+    class CustomParagraphNode extends ParagraphNode {
+      static getType() {
+        return 'custom-paragraph';
+      }
+
+      static clone(node: CustomParagraphNode) {
+        return new CustomParagraphNode(node.__key);
+      }
+
+      static importJSON() {
+        return new CustomParagraphNode();
+      }
+
+      exportJSON() {
+        return {...super.exportJSON(), type: 'custom-paragraph'};
+      }
+    }
+
+    createTestEditor({nodes: [CustomParagraphNode]});
+
+    expect(ParagraphNode.importDOM).toHaveBeenCalledTimes(1);
   });
 });

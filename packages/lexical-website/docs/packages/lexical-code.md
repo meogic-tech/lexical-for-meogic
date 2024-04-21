@@ -1,6 +1,5 @@
 ---
 title: ''
-sidebar_position: 13
 sidebar_label: '@lexical/code'
 ---
 

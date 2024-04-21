@@ -8,7 +8,7 @@
 
 import type {Binding} from '.';
 import type {ElementNode, NodeKey, NodeMap} from 'lexical';
-import type {AbstractType, XmlElement, XmlText} from 'yjs';
+import type {AbstractType, Map as YMap, XmlElement, XmlText} from 'yjs';
 
 import {
   $getNodeByKey,
@@ -17,7 +17,6 @@ import {
   $isTextNode,
 } from 'lexical';
 import invariant from 'shared/invariant';
-import {YMap} from 'yjs/dist/src/internals';
 
 import {CollabDecoratorNode} from './CollabDecoratorNode';
 import {CollabLineBreakNode} from './CollabLineBreakNode';
@@ -99,7 +98,7 @@ export class CollabElementNode {
     const collabElementNode = this._parent;
     invariant(
       collabElementNode !== null,
-      'getOffset: cound not find collab element node',
+      'getOffset: could not find collab element node',
     );
 
     return collabElementNode.getChildOffset(this);
@@ -112,7 +111,7 @@ export class CollabElementNode {
     const lexicalNode = this.getNode();
     invariant(
       lexicalNode !== null,
-      'syncPropertiesFromYjs: cound not find element node',
+      'syncPropertiesFromYjs: could not find element node',
     );
     syncPropertiesFromYjs(binding, this._xmlText, lexicalNode, keysChanged);
   }
@@ -232,7 +231,7 @@ export class CollabElementNode {
     const lexicalNode = this.getNode();
     invariant(
       lexicalNode !== null,
-      'syncChildrenFromYjs: cound not find element node',
+      'syncChildrenFromYjs: could not find element node',
     );
 
     const key = lexicalNode.__key;

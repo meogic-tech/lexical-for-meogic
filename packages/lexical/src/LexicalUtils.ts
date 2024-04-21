@@ -32,6 +32,7 @@ import type {TextFormatType, TextNode} from './nodes/LexicalTextNode';
 import {CAN_USE_DOM} from 'shared/canUseDOM';
 import {IS_APPLE, IS_APPLE_WEBKIT, IS_IOS, IS_SAFARI} from 'shared/environment';
 import invariant from 'shared/invariant';
+import normalizeClassNames from 'shared/normalizeClassNames';
 
 import {
   $createTextNode,
@@ -712,13 +713,15 @@ export function $shouldInsertTextAfterOrBeforeTextNode(
   if (offset === 0) {
     return (
       !node.canInsertTextBefore() ||
-      !parent.canInsertTextBefore() ||
+      (!parent.canInsertTextBefore() && !node.isComposing()) ||
       isToken ||
       $previousSiblingDoesNotAcceptText(node)
     );
   } else if (offset === node.getTextContentSize()) {
     return (
-      !node.canInsertTextAfter() || !parent.canInsertTextAfter() || isToken
+      !node.canInsertTextAfter() ||
+      (!parent.canInsertTextAfter() && !node.isComposing()) ||
+      isToken
     );
   } else {
     return false;
@@ -1035,7 +1038,7 @@ export function getCachedClassNameArray(
   // className tokens to an array that can be
   // applied to classList.add()/remove().
   if (typeof classNames === 'string') {
-    const classNamesArr = classNames.split(' ');
+    const classNamesArr = normalizeClassNames(classNames);
     classNamesCache[classNameThemeType] = classNamesArr;
     return classNamesArr;
   }
@@ -1404,7 +1407,7 @@ function createBlockCursorElement(editorConfig: EditorConfig): HTMLDivElement {
   let blockCursorTheme = theme.blockCursor;
   if (blockCursorTheme !== undefined) {
     if (typeof blockCursorTheme === 'string') {
-      const classNamesArr = blockCursorTheme.split(' ');
+      const classNamesArr = normalizeClassNames(blockCursorTheme);
       // @ts-expect-error: intentional
       blockCursorTheme = theme.blockCursor = classNamesArr;
     }
@@ -1614,4 +1617,12 @@ export function $getAncestor<NodeType extends LexicalNode = LexicalNode>(
     parent = parent.getParentOrThrow();
   }
   return predicate(parent) ? parent : null;
+}
+
+/**
+ * Utility function for accessing current active editor instance.
+ * @returns Current active editor
+ */
+export function $getEditor(): LexicalEditor {
+  return getActiveEditor();
 }

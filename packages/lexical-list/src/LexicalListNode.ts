@@ -27,9 +27,14 @@ import {
   SerializedElementNode,
   Spread,
 } from 'lexical';
+import invariant from 'shared/invariant';
+import normalizeClassNames from 'shared/normalizeClassNames';
 
 import {$createListItemNode, $isListItemNode, ListItemNode} from '.';
-import {updateChildrenListItemValue} from './formatList';
+import {
+  mergeNextSiblingListIfSameType,
+  updateChildrenListItemValue,
+} from './formatList';
 import {$getListDepth, wrapInListItem} from './utils';
 
 export type SerializedListNode = Spread<
@@ -120,6 +125,14 @@ export class ListNode extends ElementNode {
     return false;
   }
 
+  static transform(): (node: LexicalNode) => void {
+    return (node: LexicalNode) => {
+      invariant($isListNode(node), 'node is not a ListNode');
+      mergeNextSiblingListIfSameType(node);
+      updateChildrenListItemValue(node);
+    };
+  }
+
   static importDOM(): DOMConversionMap | null {
     return {
       ol: (node: Node) => ({
@@ -195,7 +208,6 @@ export class ListNode extends ElementNode {
         super.append(listItemNode);
       }
     }
-    updateChildrenListItemValue(this);
     return this;
   }
 
@@ -221,6 +233,7 @@ function setListThemeClassNames(
     const listClassName = listTheme[node.__tag];
     let nestedListClassName;
     const nestedListTheme = listTheme.nested;
+    const checklistClassName = listTheme.checklist;
 
     if (nestedListTheme !== undefined && nestedListTheme.list) {
       nestedListClassName = nestedListTheme.list;
@@ -230,9 +243,12 @@ function setListThemeClassNames(
       classesToAdd.push(listClassName);
     }
 
+    if (checklistClassName !== undefined && node.__listType === 'check') {
+      classesToAdd.push(checklistClassName);
+    }
+
     if (listLevelClassName !== undefined) {
-      const listItemClasses = listLevelClassName.split(' ');
-      classesToAdd.push(...listItemClasses);
+      classesToAdd.push(...normalizeClassNames(listLevelClassName));
       for (let i = 0; i < listLevelsClassNames.length; i++) {
         if (i !== normalizedListDepth) {
           classesToRemove.push(node.__tag + i);
@@ -241,7 +257,7 @@ function setListThemeClassNames(
     }
 
     if (nestedListClassName !== undefined) {
-      const nestedListItemClasses = nestedListClassName.split(' ');
+      const nestedListItemClasses = normalizeClassNames(nestedListClassName);
 
       if (listDepth > 1) {
         classesToAdd.push(...nestedListItemClasses);

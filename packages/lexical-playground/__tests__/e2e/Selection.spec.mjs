@@ -16,6 +16,7 @@ import {
   moveToPrevWord,
   pressShiftEnter,
   selectAll,
+  selectPrevWord,
 } from '../keyboardShortcuts/index.mjs';
 import {
   assertHTML,
@@ -27,6 +28,7 @@ import {
   html,
   initialize,
   insertCollapsible,
+  insertHorizontalRule,
   insertImageCaption,
   insertSampleImage,
   insertTable,
@@ -36,6 +38,8 @@ import {
   keyDownCtrlOrMeta,
   keyUpCtrlOrMeta,
   pasteFromClipboard,
+  pressToggleBold,
+  pressToggleItalic,
   selectFromFormatDropdown,
   sleep,
   test,
@@ -518,6 +522,196 @@ test.describe('Selection', () => {
       page,
       html`
         <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+      `,
+    );
+  });
+
+  test('Can use block controls on selections including decorator nodes #5371', async ({
+    page,
+    isPlainText,
+    isCollab,
+  }) => {
+    test.skip(isPlainText || isCollab);
+
+    await page.keyboard.type('Some text');
+    await insertHorizontalRule(page);
+    await page.keyboard.type('More text');
+    await selectAll(page);
+
+    await click(page, '.block-controls');
+    await click(page, '.dropdown .icon.h1');
+
+    await assertHTML(
+      page,
+      html`
+        <h1
+          class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">Some text</span>
+        </h1>
+        <hr
+          class="selected"
+          contenteditable="false"
+          data-lexical-decorator="true" />
+        <h1
+          class="PlaygroundEditorTheme__h1 PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">More text</span>
+        </h1>
+      `,
+    );
+  });
+
+  test('Can delete table node present at the end #5543', async ({
+    page,
+    isPlainText,
+    isCollab,
+  }) => {
+    test.skip(isPlainText);
+
+    await focusEditor(page);
+    await insertTable(page, 1, 2);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.up('Shift');
+    await page.keyboard.press('Backspace');
+    await assertHTML(
+      page,
+      html`
+        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+      `,
+    );
+  });
+
+  test('Can persist the text format from the paragraph', async ({
+    page,
+    isPlainText,
+  }) => {
+    test.skip(isPlainText);
+    await focusEditor(page);
+    await pressToggleBold(page);
+    await page.keyboard.type('Line1');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Line2');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.type('Line3');
+    await assertHTML(
+      page,
+      html`
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold"
+            data-lexical-text="true">
+            Line1
+          </strong>
+        </p>
+        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold"
+            data-lexical-text="true">
+            Line3
+          </strong>
+        </p>
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold"
+            data-lexical-text="true">
+            Line2
+          </strong>
+        </p>
+      `,
+    );
+  });
+
+  test('toggle format at the start of paragraph to a different format persists the format', async ({
+    page,
+    isPlainText,
+  }) => {
+    test.skip(isPlainText);
+    await focusEditor(page);
+    await pressToggleBold(page);
+    await page.keyboard.type('Line1');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await pressToggleItalic(page);
+    await page.keyboard.type('Line2');
+    await page.keyboard.press('ArrowUp');
+    await pressToggleBold(page);
+    await page.keyboard.type('Line3');
+    await assertHTML(
+      page,
+      html`
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold"
+            data-lexical-text="true">
+            Line1
+          </strong>
+        </p>
+        <p class="PlaygroundEditorTheme__paragraph"><br /></p>
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">Line3</span>
+        </p>
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold PlaygroundEditorTheme__textItalic"
+            data-lexical-text="true">
+            Line2
+          </strong>
+        </p>
+      `,
+    );
+  });
+
+  test('formatting is persisted after deleting all nodes from the paragraph node', async ({
+    page,
+    isPlainText,
+  }) => {
+    test.skip(isPlainText);
+    await focusEditor(page);
+    await pressToggleBold(page);
+    await page.keyboard.type('Line1');
+    await page.keyboard.press('Enter');
+    await pressToggleBold(page);
+    await page.keyboard.type('Line2');
+    await selectPrevWord(page);
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('Line3');
+    await assertHTML(
+      page,
+      html`
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <strong
+            class="PlaygroundEditorTheme__textBold"
+            data-lexical-text="true">
+            Line1
+          </strong>
+        </p>
+        <p
+          class="PlaygroundEditorTheme__paragraph PlaygroundEditorTheme__ltr"
+          dir="ltr">
+          <span data-lexical-text="true">Line3</span>
+        </p>
       `,
     );
   });

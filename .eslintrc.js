@@ -77,10 +77,10 @@ module.exports = {
       },
     },
     {
-      // don't lint headers in entrypoint files so we can add TypeDoc module comments
-      files: ['packages/**/src/index.ts'],
-      rules: {
-        'header/header': OFF,
+      // These aren't compiled, but they're written in module JS
+      files: ['packages/lexical-playground/esm/*.mjs'],
+      parserOptions: {
+        sourceType: 'module',
       },
     },
     {
@@ -126,8 +126,8 @@ module.exports = {
   rules: {
     'accessor-pairs': OFF,
 
-    'brace-style': [ERROR, '1tbs'],
     'consistent-return': OFF,
+    curly: [ERROR, 'all'],
     'dot-location': [ERROR, 'property'],
     // We use console['error']() as a signal to not transform it:
     'dot-notation': [ERROR, {allowPattern: '^(error|warn)$'}],

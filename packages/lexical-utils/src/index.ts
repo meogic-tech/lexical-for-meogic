@@ -1,4 +1,3 @@
-/** @module @lexical/utils */
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -25,12 +24,26 @@ import {
   LexicalEditor,
   LexicalNode,
 } from 'lexical';
+import {IS_FIREFOX} from 'shared/environment';
 import invariant from 'shared/invariant';
+import normalizeClassNames from 'shared/normalizeClassNames';
 
 export {default as markSelection} from './markSelection';
 export {default as mergeRegister} from './mergeRegister';
 export {default as positionNodeOnRange} from './positionNodeOnRange';
 export {$splitNode, isHTMLAnchorElement, isHTMLElement} from 'lexical';
+export {CAN_USE_DOM} from 'shared/canUseDOM';
+export {
+  CAN_USE_BEFORE_INPUT,
+  IS_ANDROID,
+  IS_ANDROID_CHROME,
+  IS_APPLE,
+  IS_APPLE_WEBKIT,
+  IS_CHROME,
+  IS_FIREFOX,
+  IS_IOS,
+  IS_SAFARI,
+} from 'shared/environment';
 
 export type DFSNode = Readonly<{
   depth: number;
@@ -49,12 +62,10 @@ export function addClassNamesToElement(
   element: HTMLElement,
   ...classNames: Array<typeof undefined | boolean | null | string>
 ): void {
-  classNames.forEach((className) => {
-    if (typeof className === 'string') {
-      const classesToAdd = className.split(' ').filter((n) => n !== '');
-      element.classList.add(...classesToAdd);
-    }
-  });
+  const classesToAdd = normalizeClassNames(...classNames);
+  if (classesToAdd.length > 0) {
+    element.classList.add(...classesToAdd);
+  }
 }
 
 /**
@@ -69,11 +80,10 @@ export function removeClassNamesFromElement(
   element: HTMLElement,
   ...classNames: Array<typeof undefined | boolean | null | string>
 ): void {
-  classNames.forEach((className) => {
-    if (typeof className === 'string') {
-      element.classList.remove(...className.split(' '));
-    }
-  });
+  const classesToRemove = normalizeClassNames(...classNames);
+  if (classesToRemove.length > 0) {
+    element.classList.remove(...classesToRemove);
+  }
 }
 
 /**
@@ -525,4 +535,21 @@ export function $insertFirst(parent: ElementNode, node: LexicalNode): void {
   } else {
     parent.append(node);
   }
+}
+
+/**
+ * Calculates the zoom level of an element as a result of using
+ * css zoom property.
+ * @param element
+ */
+export function calculateZoomLevel(element: Element | null): number {
+  if (IS_FIREFOX) {
+    return 1;
+  }
+  let zoom = 1;
+  while (element) {
+    zoom *= Number(window.getComputedStyle(element).getPropertyValue('zoom'));
+    element = element.parentElement;
+  }
+  return zoom;
 }

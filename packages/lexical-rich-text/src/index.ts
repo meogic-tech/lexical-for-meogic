@@ -1,4 +1,3 @@
-/** @module @lexical/rich-text */
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -52,7 +51,6 @@ import {
   $getRoot,
   $getSelection,
   $insertNodes,
-  $INTERNAL_isPointSelection,
   $isDecoratorNode,
   $isElementNode,
   $isNodeSelection,
@@ -154,7 +152,9 @@ export class QuoteNode extends ElementNode {
     const {element} = super.exportDOM(editor);
 
     if (element && isHTMLElement(element)) {
-      if (this.isEmpty()) element.append(document.createElement('br'));
+      if (this.isEmpty()) {
+        element.append(document.createElement('br'));
+      }
 
       const formatType = this.getFormatType();
       element.style.textAlign = formatType;
@@ -314,7 +314,9 @@ export class HeadingNode extends ElementNode {
     const {element} = super.exportDOM(editor);
 
     if (element && isHTMLElement(element)) {
-      if (this.isEmpty()) element.append(document.createElement('br'));
+      if (this.isEmpty()) {
+        element.append(document.createElement('br'));
+      }
 
       const formatType = this.getFormatType();
       element.style.textAlign = formatType;
@@ -436,10 +438,11 @@ function onPasteForRichText(
     () => {
       const selection = $getSelection();
       const clipboardData =
-        event instanceof InputEvent || event instanceof KeyboardEvent
+        objectKlassEquals(event, InputEvent) ||
+        objectKlassEquals(event, KeyboardEvent)
           ? null
-          : event.clipboardData;
-      if (clipboardData != null && $INTERNAL_isPointSelection(selection)) {
+          : (event as ClipboardEvent).clipboardData;
+      if (clipboardData != null && selection !== null) {
         $insertDataTransferForRichText(clipboardData, selection, editor);
       }
     },
@@ -474,10 +477,10 @@ export function eventFiles(
   event: DragEvent | PasteCommandType,
 ): [boolean, Array<File>, boolean] {
   let dataTransfer: null | DataTransfer = null;
-  if (event instanceof DragEvent) {
-    dataTransfer = event.dataTransfer;
-  } else if (event instanceof ClipboardEvent) {
-    dataTransfer = event.clipboardData;
+  if (objectKlassEquals(event, DragEvent)) {
+    dataTransfer = (event as DragEvent).dataTransfer;
+  } else if (objectKlassEquals(event, ClipboardEvent)) {
+    dataTransfer = (event as ClipboardEvent).clipboardData;
   }
 
   if (dataTransfer === null) {
@@ -582,11 +585,11 @@ export function registerRichText(editor: LexicalEditor): () => void {
         const selection = $getSelection();
 
         if (typeof eventOrText === 'string') {
-          if ($INTERNAL_isPointSelection(selection)) {
+          if (selection !== null) {
             selection.insertText(eventOrText);
           }
         } else {
-          if (!$INTERNAL_isPointSelection(selection)) {
+          if (selection === null) {
             return false;
           }
 
@@ -1033,7 +1036,7 @@ export function registerRichText(editor: LexicalEditor): () => void {
         }
 
         const selection = $getSelection();
-        if ($INTERNAL_isPointSelection(selection)) {
+        if (selection !== null) {
           onPasteForRichText(event, editor);
           return true;
         }

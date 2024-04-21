@@ -20,7 +20,6 @@ import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
   ListNode,
-  REMOVE_LIST_COMMAND,
 } from '@lexical/list';
 import {INSERT_EMBED_COMMAND} from '@lexical/react/LexicalAutoEmbedPlugin';
 import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
@@ -39,7 +38,7 @@ import {
   $patchStyleText,
   $setBlocksType,
 } from '@lexical/selection';
-import {$isTableNode} from '@lexical/table';
+import {$isTableNode, $isTableSelection} from '@lexical/table';
 import {
   $findMatchingParent,
   $getNearestBlockElementAncestorOrThrow,
@@ -51,7 +50,6 @@ import {
   $getNodeByKey,
   $getRoot,
   $getSelection,
-  $INTERNAL_isPointSelection,
   $isElementNode,
   $isRangeSelection,
   $isRootOrShadowRoot,
@@ -97,6 +95,7 @@ import InsertLayoutDialog from '../LayoutPlugin/InsertLayoutDialog';
 import {INSERT_PAGE_BREAK} from '../PageBreakPlugin';
 import {InsertPollDialog} from '../PollPlugin';
 import {InsertTableDialog} from '../TablePlugin';
+import FontSize from './fontSize';
 
 const blockTypeToBlockName = {
   bullet: 'Bulleted List',
@@ -184,7 +183,7 @@ const ELEMENT_FORMAT_OPTIONS: {
   },
   right: {
     icon: 'right-align',
-    iconRTL: 'left-align',
+    iconRTL: 'right-align',
     name: 'Right Align',
   },
   start: {
@@ -195,8 +194,11 @@ const ELEMENT_FORMAT_OPTIONS: {
 };
 
 function dropDownActiveClass(active: boolean) {
-  if (active) return 'active dropdown-item-active';
-  else return '';
+  if (active) {
+    return 'active dropdown-item-active';
+  } else {
+    return '';
+  }
 }
 
 function BlockFormatDropDown({
@@ -213,7 +215,7 @@ function BlockFormatDropDown({
   const formatParagraph = () => {
     editor.update(() => {
       const selection = $getSelection();
-      if ($INTERNAL_isPointSelection(selection)) {
+      if ($isRangeSelection(selection)) {
         $setBlocksType(selection, () => $createParagraphNode());
       }
     });
@@ -223,9 +225,7 @@ function BlockFormatDropDown({
     if (blockType !== headingSize) {
       editor.update(() => {
         const selection = $getSelection();
-        if ($INTERNAL_isPointSelection(selection)) {
-          $setBlocksType(selection, () => $createHeadingNode(headingSize));
-        }
+        $setBlocksType(selection, () => $createHeadingNode(headingSize));
       });
     }
   };
@@ -234,7 +234,7 @@ function BlockFormatDropDown({
     if (blockType !== 'bullet') {
       editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      formatParagraph();
     }
   };
 
@@ -242,7 +242,7 @@ function BlockFormatDropDown({
     if (blockType !== 'check') {
       editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      formatParagraph();
     }
   };
 
@@ -250,7 +250,7 @@ function BlockFormatDropDown({
     if (blockType !== 'number') {
       editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      formatParagraph();
     }
   };
 
@@ -258,9 +258,7 @@ function BlockFormatDropDown({
     if (blockType !== 'quote') {
       editor.update(() => {
         const selection = $getSelection();
-        if ($INTERNAL_isPointSelection(selection)) {
-          $setBlocksType(selection, () => $createQuoteNode());
-        }
+        $setBlocksType(selection, () => $createQuoteNode());
       });
     }
   };
@@ -270,7 +268,7 @@ function BlockFormatDropDown({
       editor.update(() => {
         let selection = $getSelection();
 
-        if ($INTERNAL_isPointSelection(selection)) {
+        if (selection !== null) {
           if (selection.isCollapsed()) {
             $setBlocksType(selection, () => $createCodeNode());
           } else {
@@ -278,8 +276,9 @@ function BlockFormatDropDown({
             const codeNode = $createCodeNode();
             selection.insertNodes([codeNode]);
             selection = $getSelection();
-            if ($isRangeSelection(selection))
+            if ($isRangeSelection(selection)) {
               selection.insertRawText(textContent);
+            }
           }
         }
       });
@@ -370,7 +369,7 @@ function FontDropDown({
     (option: string) => {
       editor.update(() => {
         const selection = $getSelection();
-        if ($INTERNAL_isPointSelection(selection)) {
+        if (selection !== null) {
           $patchStyleText(selection, {
             [style]: option,
           });
@@ -728,7 +727,7 @@ export default function ToolbarPlugin({
       activeEditor.update(
         () => {
           const selection = $getSelection();
-          if ($INTERNAL_isPointSelection(selection)) {
+          if (selection !== null) {
             $patchStyleText(selection, styles);
           }
         },
@@ -741,7 +740,7 @@ export default function ToolbarPlugin({
   const clearFormatting = useCallback(() => {
     activeEditor.update(() => {
       const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
+      if ($isRangeSelection(selection) || $isTableSelection(selection)) {
         const anchor = selection.anchor;
         const focus = selection.focus;
         const nodes = selection.getNodes();
@@ -761,6 +760,18 @@ export default function ToolbarPlugin({
             }
             if (idx === nodes.length - 1) {
               textNode = textNode.splitText(focus.offset)[0] || textNode;
+            }
+            /**
+             * If the selected text has one format applied
+             * selecting a portion of the text, could
+             * clear the format to the wrong portion of the text.
+             *
+             * The cleared text is based on the length of the selected text.
+             */
+            // We need this in case the selected text only has one format
+            const extractedTextNode = selection.extract()[0];
+            if (nodes.length === 1 && $isTextNode(extractedTextNode)) {
+              textNode = extractedTextNode;
             }
 
             if (textNode.__style !== '') {
@@ -797,11 +808,13 @@ export default function ToolbarPlugin({
 
   const insertLink = useCallback(() => {
     if (!isLink) {
+      setIsLinkEditMode(true);
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, sanitizeUrl('https://'));
     } else {
+      setIsLinkEditMode(false);
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
-  }, [editor, isLink]);
+  }, [editor, isLink, setIsLinkEditMode]);
 
   const onCodeLanguageSelect = useCallback(
     (value: string) => {
@@ -883,11 +896,11 @@ export default function ToolbarPlugin({
             value={fontFamily}
             editor={editor}
           />
-          <FontDropDown
-            disabled={!isEditable}
-            style={'font-size'}
-            value={fontSize}
+          <Divider />
+          <FontSize
+            selectionFontSize={fontSize.slice(0, -2)}
             editor={editor}
+            disabled={!isEditable}
           />
           <Divider />
           <button
@@ -1019,25 +1032,6 @@ export default function ToolbarPlugin({
             </DropDownItem>
           </DropDown>
           <Divider />
-          {rootType === 'table' && (
-            <>
-              <DropDown
-                disabled={!isEditable}
-                buttonClassName="toolbar-item spaced"
-                buttonLabel="Table"
-                buttonAriaLabel="Open table toolkit"
-                buttonIconClassName="icon table secondary">
-                <DropDownItem
-                  onClick={() => {
-                    /**/
-                  }}
-                  className="item">
-                  <span className="text">TODO</span>
-                </DropDownItem>
-              </DropDown>
-              <Divider />
-            </>
-          )}
           <DropDown
             disabled={!isEditable}
             buttonClassName="toolbar-item spaced"

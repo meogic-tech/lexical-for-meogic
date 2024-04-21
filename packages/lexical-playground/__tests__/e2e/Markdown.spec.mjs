@@ -19,7 +19,6 @@ import {
   assertSelection,
   clearEditor,
   click,
-  E2E_BROWSER,
   focusEditor,
   getHTML,
   html,
@@ -378,7 +377,7 @@ async function assertMarkdownImportExport(
 test.describe('Markdown', () => {
   test.beforeEach(({isCollab, isPlainText, page}) => {
     test.skip(isPlainText);
-    initialize({isCollab, page});
+    return initialize({isCollab, page});
   });
 
   const BASE_BLOCK_SHORTCUTS = [
@@ -1047,25 +1046,12 @@ test.describe('Markdown', () => {
     );
     // Selection starts after newly created link element
 
-    if (E2E_BROWSER === 'webkit') {
-      // TODO: safari keeps dom selection on newly inserted link although Lexical's selection
-      // is correctly adjusted to start on [ world] text node. #updateDomSelection calls
-      // selection.setBaseAndExtent correctly, but safari does not seem to sync dom selection
-      // to newly passed values of anchor/focus/offset
-      await assertSelection(page, {
-        anchorOffset: 4,
-        anchorPath: [0, 1, 0, 0],
-        focusOffset: 4,
-        focusPath: [0, 1, 0, 0],
-      });
-    } else {
-      await assertSelection(page, {
-        anchorOffset: 0,
-        anchorPath: [0, 2, 0],
-        focusOffset: 0,
-        focusPath: [0, 2, 0],
-      });
-    }
+    await assertSelection(page, {
+      anchorOffset: 0,
+      anchorPath: [0, 2, 0],
+      focusOffset: 0,
+      focusPath: [0, 2, 0],
+    });
   });
 });
 
@@ -1258,6 +1244,7 @@ line after
     1. And can be nested
     and multiline as well
 
+.
 31. Have any starting number
 ### Inline code
 Inline \`code\` format which also \`preserves **_~~any markdown-like~~_** text\` within
@@ -1494,6 +1481,9 @@ const IMPORTED_MARKDOWN_HTML = html`
       </ol>
     </li>
   </ol>
+  <p class="PlaygroundEditorTheme__paragraph">
+    <span data-lexical-text="true">.</span>
+  </p>
   <ol start="31" class="PlaygroundEditorTheme__ol1">
     <li
       value="31"

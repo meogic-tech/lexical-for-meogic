@@ -4,7 +4,7 @@
     "lib": ["esnext", "dom", "dom.iterable"],
     "module": "esnext",
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "downlevelIteration": true,
     "noEmit": true,
     "strict": true,
@@ -35,6 +35,7 @@
       "@lexical/overflow": ["./packages/lexical-overflow/src/"],
       "@lexical/markdown": ["./packages/lexical-markdown/src/"],
       "@lexical/mark": ["./packages/lexical-mark/src/"],
+      "@lexical/devtools-core": ["./packages/lexical-devtools-core/src/"],
 
       "@lexical/react/LexicalComposer": [
         "./packages/lexical-react/src/LexicalComposer.tsx"
@@ -186,9 +187,21 @@
         "packages/shared/src/simpleDiffWithCursor.ts"
       ],
       "shared/invariant": ["./packages/shared/src/invariant.ts"],
+      "shared/normalizeClassNames": [
+        "./packages/shared/src/normalizeClassNames.ts"
+      ],
       "shared/warnOnlyOnce": ["./packages/shared/src/warnOnlyOnce.ts"],
       "shared/environment": ["./packages/shared/src/environment.ts"],
-      "shared/useLayoutEffect": ["./packages/shared/src/useLayoutEffect.ts"]
+      "shared/useLayoutEffect": ["./packages/shared/src/useLayoutEffect.ts"],
+
+      "lexical/src": ["./packages/lexical/src/"],
+      "lexical/src/__tests__/utils": [
+        "./packages/lexical/src/__tests__/utils/index.tsx"
+      ],
+      "@lexical/selection/src/__tests__/utils": [
+        "./packages/lexical-selection/src/__tests__/utils/index.ts"
+      ],
+      "@lexical/yjs/src/index": ["./packages/lexical-yjs/src/index.ts"]
     }
   },
   "include": ["./libdefs", "./packages"],
@@ -197,7 +210,8 @@
     "**/dist/**",
     "**/npm/**",
     "**/node_modules/**",
-    "./packages/playwright-core/**"
+    "./packages/playwright-core/**",
+    "./packages/lexical-devtools/**"
   ],
   "typedocOptions": {
     "logLevel": "Verbose"

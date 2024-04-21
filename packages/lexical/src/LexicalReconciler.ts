@@ -17,11 +17,13 @@ import type {NodeKey, NodeMap} from './LexicalNode';
 import type {ElementNode} from './nodes/LexicalElementNode';
 
 import invariant from 'shared/invariant';
+import normalizeClassNames from 'shared/normalizeClassNames';
 
 import {
   $isDecoratorNode,
   $isElementNode,
   $isLineBreakNode,
+  $isParagraphNode,
   $isRootNode,
   $isTextNode,
 } from '.';
@@ -48,6 +50,7 @@ type IntentionallyMarkedAsDirtyElement = boolean;
 
 let subTreeTextContent = '';
 let subTreeDirectionedTextContent = '';
+let subTreeTextFormat: number | null = null;
 let editorTextContent = '';
 let activeEditorConfig: EditorConfig;
 let activeEditor: LexicalEditor;
@@ -284,6 +287,10 @@ function createChildren(
 
   for (; startIndex <= endIndex; ++startIndex) {
     createNode(children[startIndex], dom, insertDOM);
+    const node = activeNextNodeMap.get(children[startIndex]);
+    if (node !== null && subTreeTextFormat === null && $isTextNode(node)) {
+      subTreeTextFormat = node.getFormat();
+    }
   }
   if ($textContentRequiresDoubleLinebreakAtEnd(element)) {
     subTreeTextContent += DOUBLE_LINE_BREAK;
@@ -341,6 +348,16 @@ function reconcileElementTerminatingLineBreak(
   }
 }
 
+function reconcileParagraphFormat(element: ElementNode): void {
+  if (
+    $isParagraphNode(element) &&
+    subTreeTextFormat != null &&
+    subTreeTextFormat !== element.__textFormat
+  ) {
+    element.setTextFormat(subTreeTextFormat);
+  }
+}
+
 function reconcileBlockDirection(element: ElementNode, dom: HTMLElement): void {
   const previousSubTreeDirectionTextContent: string =
     // @ts-expect-error: internal field
@@ -368,7 +385,7 @@ function reconcileBlockDirection(element: ElementNode, dom: HTMLElement): void {
       // Remove the old theme classes if they exist
       if (previousDirectionTheme !== undefined) {
         if (typeof previousDirectionTheme === 'string') {
-          const classNamesArr = previousDirectionTheme.split(' ');
+          const classNamesArr = normalizeClassNames(previousDirectionTheme);
           previousDirectionTheme = theme[previousDirection] = classNamesArr;
         }
 
@@ -386,7 +403,7 @@ function reconcileBlockDirection(element: ElementNode, dom: HTMLElement): void {
         // Apply the new theme classes if they exist
         if (nextDirectionTheme !== undefined) {
           if (typeof nextDirectionTheme === 'string') {
-            const classNamesArr = nextDirectionTheme.split(' ');
+            const classNamesArr = normalizeClassNames(nextDirectionTheme);
             // @ts-expect-error: intentional
             nextDirectionTheme = theme[direction] = classNamesArr;
           }
@@ -421,9 +438,12 @@ function reconcileChildrenWithDirection(
 ): void {
   const previousSubTreeDirectionTextContent = subTreeDirectionedTextContent;
   subTreeDirectionedTextContent = '';
+  subTreeTextFormat = null;
   reconcileChildren(prevElement, nextElement, dom);
   reconcileBlockDirection(nextElement, dom);
+  reconcileParagraphFormat(nextElement);
   subTreeDirectionedTextContent = previousSubTreeDirectionTextContent;
+  subTreeTextFormat = null;
 }
 
 function createChildrenArray(
@@ -463,6 +483,10 @@ function reconcileChildren(
       const replacementDOM = createNode(nextFrstChildKey, null, null);
       dom.replaceChild(replacementDOM, lastDOM);
       destroyNode(prevFirstChildKey, null);
+    }
+    const nextChildNode = activeNextNodeMap.get(nextFrstChildKey);
+    if (subTreeTextFormat === null && $isTextNode(nextChildNode)) {
+      subTreeTextFormat = nextChildNode.getFormat();
     }
   } else {
     const prevChildren = createChildrenArray(prevElement, activePrevNodeMap);
@@ -609,7 +633,6 @@ function reconcileNode(
     }
     if (isDirty) {
       reconcileChildrenWithDirection(prevNode, nextNode, dom);
-
       if (!$isRootNode(nextNode) && !nextNode.isInline()) {
         reconcileElementTerminatingLineBreak(prevNode, nextNode, dom);
       }
@@ -750,6 +773,11 @@ function reconcileNodeChildren(
         prevIndex++;
         nextIndex++;
       }
+    }
+
+    const node = activeNextNodeMap.get(nextKey);
+    if (node !== null && subTreeTextFormat === null && $isTextNode(node)) {
+      subTreeTextFormat = node.getFormat();
     }
   }
 

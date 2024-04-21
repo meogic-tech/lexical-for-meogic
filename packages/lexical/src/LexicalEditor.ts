@@ -110,6 +110,7 @@ export type EditorThemeClasses = {
     ulDepth?: Array<EditorThemeClassName>;
     ol?: EditorThemeClassName;
     olDepth?: Array<EditorThemeClassName>;
+    checklist?: EditorThemeClassName;
     listitem?: EditorThemeClassName;
     listitemChecked?: EditorThemeClassName;
     listitemUnchecked?: EditorThemeClassName;
@@ -376,17 +377,14 @@ function initializeConversionCache(
     });
   };
   nodes.forEach((node) => {
-    const importDOM =
-      node.klass.importDOM != null
-        ? node.klass.importDOM.bind(node.klass)
-        : null;
+    const importDOM = node.klass.importDOM;
 
     if (importDOM == null || handledConversions.has(importDOM)) {
       return;
     }
 
     handledConversions.add(importDOM);
-    const map = importDOM();
+    const map = importDOM.call(node.klass);
 
     if (map !== null) {
       addConversionsToCache(map);
@@ -435,8 +433,8 @@ export function createEditor(editorConfig?: CreateEditorArgs): LexicalEditor {
     registeredNodes = new Map();
     for (let i = 0; i < nodes.length; i++) {
       let klass = nodes[i];
-      let replace = null;
-      let replaceWithKlass = null;
+      let replace: RegisteredNode['replace'] = null;
+      let replaceWithKlass: RegisteredNode['replaceWithKlass'] = null;
 
       if (typeof klass !== 'function') {
         const options = klass;

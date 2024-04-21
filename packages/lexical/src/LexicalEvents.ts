@@ -13,7 +13,7 @@ import type {TextNode} from './nodes/LexicalTextNode';
 
 import {
   CAN_USE_BEFORE_INPUT,
-  IS_ANDROID,
+  IS_ANDROID_CHROME,
   IS_APPLE_WEBKIT,
   IS_FIREFOX,
   IS_IOS,
@@ -60,6 +60,7 @@ import {
   KEY_TAB_COMMAND,
   MOVE_TO_END,
   MOVE_TO_START,
+  ParagraphNode,
   PASTE_COMMAND,
   REDO_COMMAND,
   REMOVE_TEXT_COMMAND,
@@ -164,7 +165,7 @@ let lastKeyDownTimeStamp = 0;
 let lastKeyCode = 0;
 let lastBeforeInputInsertTextTimeStamp = 0;
 let unprocessedBeforeInputData: null | string = null;
-let rootElementsRegistered = 0;
+const rootElementsRegistered = new WeakMap<Document, number>();
 let isSelectionChangeFromDOMUpdate = false;
 let isSelectionChangeFromMouseDown = false;
 let isInsertLineBreak = false;
@@ -285,7 +286,6 @@ function onSelectionChange(
       return;
     }
   }
-
   updateEditor(editor, () => {
     // Non-active editor don't need any extra logic for selection, it only needs update
     // to reconcile selection (set it to null) to ensure that only one editor has non-null selection.
@@ -344,19 +344,47 @@ function onSelectionChange(
             selection.format = anchorNode.getFormat();
             selection.style = anchorNode.getStyle();
           } else if (anchor.type === 'element' && !isRootTextContentEmpty) {
-            selection.format = 0;
+            const lastNode = anchor.getNode();
+            if (
+              lastNode instanceof ParagraphNode &&
+              lastNode.getChildrenSize() === 0
+            ) {
+              selection.format = lastNode.getTextFormat();
+            } else {
+              selection.format = 0;
+            }
             selection.style = '';
           }
         }
       } else {
-        let combinedFormat = IS_ALL_FORMATTING;
-        let hasTextNodes = false;
-
+        const anchorKey = anchor.key;
+        const focus = selection.focus;
+        const focusKey = focus.key;
         const nodes = selection.getNodes();
         const nodesLength = nodes.length;
+        const isBackward = selection.isBackward();
+        const startOffset = isBackward ? focusOffset : anchorOffset;
+        const endOffset = isBackward ? anchorOffset : focusOffset;
+        const startKey = isBackward ? focusKey : anchorKey;
+        const endKey = isBackward ? anchorKey : focusKey;
+        let combinedFormat = IS_ALL_FORMATTING;
+        let hasTextNodes = false;
         for (let i = 0; i < nodesLength; i++) {
           const node = nodes[i];
-          if ($isTextNode(node)) {
+          const textContentSize = node.getTextContentSize();
+          if (
+            $isTextNode(node) &&
+            textContentSize !== 0 &&
+            // Exclude empty text nodes at boundaries resulting from user's selection
+            !(
+              (i === 0 &&
+                node.__key === startKey &&
+                startOffset === textContentSize) ||
+              (i === nodesLength - 1 &&
+                node.__key === endKey &&
+                endOffset === 0)
+            )
+          ) {
             // TODO: what about style?
             hasTextNodes = true;
             combinedFormat &= node.getFormat();
@@ -525,15 +553,13 @@ function onBeforeInput(event: InputEvent, editor: LexicalEditor): void {
       }
 
       if ($isRangeSelection(selection)) {
-        // Used for handling backspace in Android.
-        if (IS_ANDROID) {
-          $setCompositionKey(selection.anchor.key);
-        }
+        const isSelectionAnchorSameAsFocus =
+          selection.anchor.key === selection.focus.key;
 
         if (
           isPossiblyAndroidKeyPress(event.timeStamp) &&
           editor.isComposing() &&
-          selection.anchor.key === selection.focus.key
+          isSelectionAnchorSameAsFocus
         ) {
           $setCompositionKey(null);
           lastKeyDownTimeStamp = 0;
@@ -553,15 +579,23 @@ function onBeforeInput(event: InputEvent, editor: LexicalEditor): void {
             );
             selection.style = anchorNode.getStyle();
           }
-          const selectedText = selection.anchor.getNode().getTextContent();
-          if (selectedText.length <= 1) {
-            event.preventDefault();
-            dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
-          }
         } else {
           $setCompositionKey(null);
           event.preventDefault();
-          dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
+          // Chromium Android at the moment seems to ignore the preventDefault
+          // on 'deleteContentBackward' and still deletes the content. Which leads
+          // to multiple deletions. So we let the browser handle the deletion in this case.
+          const selectedNodeText = selection.anchor.getNode().getTextContent();
+          const hasSelectedAllTextInNode =
+            selection.anchor.offset === 0 &&
+            selection.focus.offset === selectedNodeText.length;
+          const shouldLetBrowserHandleDelete =
+            IS_ANDROID_CHROME &&
+            isSelectionAnchorSameAsFocus &&
+            !hasSelectedAllTextInNode;
+          if (!shouldLetBrowserHandleDelete) {
+            dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
+          }
         }
         return;
       }
@@ -1162,12 +1196,16 @@ export function addRootElementEvents(
 ): void {
   // We only want to have a single global selectionchange event handler, shared
   // between all editor instances.
-  if (rootElementsRegistered === 0) {
-    const doc = rootElement.ownerDocument;
+  const doc = rootElement.ownerDocument;
+  const documentRootElementsCount = rootElementsRegistered.get(doc);
+  if (
+    documentRootElementsCount === undefined ||
+    documentRootElementsCount < 1
+  ) {
     doc.addEventListener('selectionchange', onDocumentSelectionChange);
   }
+  rootElementsRegistered.set(doc, documentRootElementsCount || 0 + 1);
 
-  rootElementsRegistered++;
   // @ts-expect-error: internal field
   rootElement.__lexicalEditor = editor;
   const removeHandles = getRootElementRemoveHandles(rootElement);
@@ -1181,7 +1219,7 @@ export function addRootElementEvents(
               return;
             }
             stopLexicalPropagation(event);
-            if (editor.isEditable()) {
+            if (editor.isEditable() || eventName === 'click') {
               onEvent(event, editor);
             }
           }
@@ -1266,15 +1304,18 @@ export function addRootElementEvents(
 }
 
 export function removeRootElementEvents(rootElement: HTMLElement): void {
-  if (rootElementsRegistered !== 0) {
-    rootElementsRegistered--;
+  const doc = rootElement.ownerDocument;
+  const documentRootElementsCount = rootElementsRegistered.get(doc);
+  invariant(
+    documentRootElementsCount !== undefined,
+    'Root element not registered',
+  );
 
-    // We only want to have a single global selectionchange event handler, shared
-    // between all editor instances.
-    if (rootElementsRegistered === 0) {
-      const doc = rootElement.ownerDocument;
-      doc.removeEventListener('selectionchange', onDocumentSelectionChange);
-    }
+  // We only want to have a single global selectionchange event handler, shared
+  // between all editor instances.
+  rootElementsRegistered.set(doc, documentRootElementsCount - 1);
+  if (rootElementsRegistered.get(doc) === 0) {
+    doc.removeEventListener('selectionchange', onDocumentSelectionChange);
   }
 
   // @ts-expect-error: internal field
