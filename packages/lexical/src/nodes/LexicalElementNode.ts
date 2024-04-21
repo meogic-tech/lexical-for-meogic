@@ -6,14 +6,13 @@
  *
  */
 
-import type {Spread} from '../';
 import type {NodeKey, SerializedLexicalNode} from '../LexicalNode';
 import type {
   BaseSelection,
   PointType,
   RangeSelection,
 } from '../LexicalSelection';
-import type {KlassConstructor, Spread} from 'lexical';
+import type {KlassConstructor, Spread} from '../';
 
 import invariant from 'shared/invariant';
 

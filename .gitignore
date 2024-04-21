@@ -4,9 +4,7 @@ node_modules
 
 base-build
 build
-build
 coverage
-dist
 !scripts/npm
 .DS_Store
 .env.local
