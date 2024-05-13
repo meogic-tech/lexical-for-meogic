@@ -23,7 +23,7 @@ import {
   Klass,
   LexicalEditor,
   LexicalNode,
-  LexicalNodeReplacement,
+  LexicalNodeReplacement, type PointType,
 } from 'lexical';
 import {useMemo} from 'react';
 import * as React from 'react';
@@ -47,6 +47,10 @@ export type InitialConfigType = Readonly<{
   theme?: EditorThemeClasses;
   editorState?: InitialEditorStateType;
   html?: HTMLConfig;
+  customGetAdjacentNode?: (
+    focus: PointType,
+    isBackward: boolean,
+  ) => null | LexicalNode;
 }>;
 
 type Props = React.PropsWithChildren<{
@@ -75,6 +79,7 @@ export function LexicalComposer({initialConfig, children}: Props): JSX.Element {
 
       if (editor === null) {
         const newEditor = createEditor({
+          customGetAdjacentNode: initialConfig.customGetAdjacentNode,
           editable: initialConfig.editable,
           html,
           namespace,
