@@ -1255,6 +1255,13 @@ function resolveElement(element, isBackward, focusOffset) {
   return block.getChildAtIndex(isBackward ? offset - 1 : offset);
 }
 function $getAdjacentNode(focus, isBackward) {
+  const customGetAdjacentNode = getActiveEditor()._config.customGetAdjacentNode;
+  if (customGetAdjacentNode) {
+    const result = customGetAdjacentNode(focus, isBackward);
+    if (result) {
+      return result;
+    }
+  }
   const focusOffset = focus.offset;
   if (focus.type === 'element') {
     const block = focus.getNode();
@@ -9129,6 +9136,7 @@ function createEditor(editorConfig) {
     }
   }
   const editor = new LexicalEditor(editorState, parentEditor, registeredNodes, {
+    customGetAdjacentNode: config.customGetAdjacentNode,
     disableEvents,
     namespace,
     theme

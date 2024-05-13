@@ -7,6 +7,7 @@
  */
 import type { EditorState, SerializedEditorState } from './LexicalEditorState';
 import type { DOMConversion, DOMConversionMap, DOMExportOutput, NodeKey } from './LexicalNode';
+import { type PointType } from '.';
 import { LexicalNode } from './LexicalNode';
 export type Spread<T1, T2> = Omit<T2, keyof T1> & T1;
 export type KlassConstructor<Cls extends GenericConstructor<any>> = GenericConstructor<InstanceType<Cls>> & {
@@ -104,6 +105,7 @@ export type EditorConfig = {
     disableEvents?: boolean;
     namespace: string;
     theme: EditorThemeClasses;
+    customGetAdjacentNode?: (focus: PointType, isBackward: boolean) => null | LexicalNode;
 };
 export type LexicalNodeReplacement = {
     replace: Klass<LexicalNode>;
@@ -126,6 +128,7 @@ export type CreateEditorArgs = {
     editable?: boolean;
     theme?: EditorThemeClasses;
     html?: HTMLConfig;
+    customGetAdjacentNode?: (focus: PointType, isBackward: boolean) => null | LexicalNode;
 };
 export type RegisteredNodes = Map<string, RegisteredNode>;
 export type RegisteredNode = {

@@ -57,6 +57,7 @@ function LexicalComposer({
     let editor = initialEditor || null;
     if (editor === null) {
       const newEditor = createEditor({
+        customGetAdjacentNode: initialConfig.customGetAdjacentNode,
         editable: initialConfig.editable,
         html,
         namespace,
