@@ -1120,6 +1120,14 @@ export function $getAdjacentNode(
   focus: PointType,
   isBackward: boolean,
 ): null | LexicalNode {
+  const customGetAdjacentNode = getActiveEditor()._config.customGetAdjacentNode
+  if (customGetAdjacentNode) {
+    const result = customGetAdjacentNode(focus, isBackward)
+    if (result) {
+      return result
+    }
+  }
+
   const focusOffset = focus.offset;
   if (focus.type === 'element') {
     const block = focus.getNode();

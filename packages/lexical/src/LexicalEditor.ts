@@ -16,7 +16,7 @@ import type {
 
 import invariant from 'shared/invariant';
 
-import {$getRoot, $getSelection, TextNode} from '.';
+import {type PointType, $getRoot, $getSelection, TextNode} from '.';
 import {FULL_RECONCILE, NO_DIRTY_NODES} from './LexicalConstants';
 import {createEmptyEditorState} from './LexicalEditorState';
 import {addRootElementEvents, removeRootElementEvents} from './LexicalEvents';
@@ -155,6 +155,10 @@ export type EditorConfig = {
   disableEvents?: boolean;
   namespace: string;
   theme: EditorThemeClasses;
+  customGetAdjacentNode?: (
+    focus: PointType,
+    isBackward: boolean,
+  ) => null | LexicalNode;
 };
 
 export type LexicalNodeReplacement = {
@@ -184,6 +188,10 @@ export type CreateEditorArgs = {
   editable?: boolean;
   theme?: EditorThemeClasses;
   html?: HTMLConfig;
+  customGetAdjacentNode?: (
+    focus: PointType,
+    isBackward: boolean,
+  ) => null | LexicalNode
 };
 
 export type RegisteredNodes = Map<string, RegisteredNode>;
@@ -509,6 +517,7 @@ export function createEditor(editorConfig?: CreateEditorArgs): LexicalEditor {
     parentEditor,
     registeredNodes,
     {
+      customGetAdjacentNode: config.customGetAdjacentNode,
       disableEvents,
       namespace,
       theme,
