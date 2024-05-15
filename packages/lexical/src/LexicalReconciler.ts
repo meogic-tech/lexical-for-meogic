@@ -605,6 +605,8 @@ function reconcileNode(
     );
   }
 
+  // Only update node properties, not replace them
+  nextNode.updateDOMProperties(prevNode, dom, activeEditorConfig)
   // Update node. If it returns true, we need to unmount and re-create the node
   if (nextNode.updateDOM(prevNode, dom, activeEditorConfig)) {
     const replacementDOM = createNode(key, null, null);

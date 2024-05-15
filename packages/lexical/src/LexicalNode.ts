@@ -783,6 +783,21 @@ export class LexicalNode {
   }
 
   /**
+   * Called when a node changes and should update the DOM properties
+   * will not call createDOM.
+   * @param _prevNode
+   * @param _dom
+   * @param _config
+   */
+  updateDOMProperties(
+    _prevNode: unknown,
+    _dom: HTMLElement,
+    _config: EditorConfig,
+  ) {
+    //
+  }
+
+  /**
    * Controls how the this node is serialized to HTML. This is important for
    * copy and paste between Lexical and non-Lexical editors, or Lexical editors with different namespaces,
    * in which case the primary transfer format is HTML. It's also important if you're serializing
