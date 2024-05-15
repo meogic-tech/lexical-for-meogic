@@ -2083,6 +2083,8 @@ function reconcileNode(key, parentDOM) {
     setMutatedNode(mutatedNodes, activeEditorNodes, activeMutationListeners, nextNode, 'updated');
   }
 
+  // Only update node properties, not replace them
+  nextNode.updateDOMProperties(prevNode, dom, activeEditorConfig);
   // Update node. If it returns true, we need to unmount and re-create the node
   if (nextNode.updateDOM(prevNode, dom, activeEditorConfig)) {
     const replacementDOM = createNode(key, null, null);
@@ -3841,6 +3843,17 @@ class LexicalNode {
     {
       throw Error(`updateDOM: base method not extended`);
     }
+  }
+
+  /**
+   * Called when a node changes and should update the DOM properties
+   * will not call createDOM.
+   * @param _prevNode
+   * @param _dom
+   * @param _config
+   */
+  updateDOMProperties(_prevNode, _dom, _config) {
+    //
   }
 
   /**
