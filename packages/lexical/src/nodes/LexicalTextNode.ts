@@ -49,10 +49,10 @@ import {
 import {LexicalNode} from '../LexicalNode';
 import {
   $getSelection,
+  $internalMakeRangeSelection,
   $isRangeSelection,
   $updateElementSelectionOnCreateDeleteNode,
   adjustPointOffsetForMergedSibling,
-  internalMakeRangeSelection,
 } from '../LexicalSelection';
 import {errorOnReadOnly} from '../LexicalUpdates';
 import {
@@ -62,6 +62,7 @@ import {
   getCachedClassNameArray,
   internalMarkSiblingsAsDirty,
   isHTMLElement,
+  isInlineDomNode,
   toggleTextFormatType,
 } from '../LexicalUtils';
 import {$createLineBreakNode} from './LexicalLineBreakNode';
@@ -543,7 +544,7 @@ export class TextNode extends LexicalNode {
   static importDOM(): DOMConversionMap | null {
     return {
       '#text': () => ({
-        conversion: convertTextDOMNode,
+        conversion: $convertTextDOMNode,
         priority: 0,
       }),
       b: () => ({
@@ -794,7 +795,7 @@ export class TextNode extends LexicalNode {
       focusOffset = 0;
     }
     if (!$isRangeSelection(selection)) {
-      return internalMakeRangeSelection(
+      return $internalMakeRangeSelection(
         key,
         anchorOffset,
         key,
@@ -1092,14 +1093,15 @@ function convertSpanElement(domNode: Node): DOMConversionOutput {
   const span = domNode as HTMLSpanElement;
   const style = span.style;
   const fontWeight = style.fontWeight;
+  const textDecoration = style.textDecoration.split(' ');
   // Google Docs uses span tags + font-weight for bold text
   const hasBoldFontWeight = fontWeight === '700' || fontWeight === 'bold';
   // Google Docs uses span tags + text-decoration: line-through for strikethrough text
-  const hasLinethroughTextDecoration = style.textDecoration === 'line-through';
+  const hasLinethroughTextDecoration = textDecoration.includes('line-through');
   // Google Docs uses span tags + font-style for italic text
   const hasItalicFontStyle = style.fontStyle === 'italic';
   // Google Docs uses span tags + text-decoration: underline for underline text
-  const hasUnderlineTextDecoration = style.textDecoration === 'underline';
+  const hasUnderlineTextDecoration = textDecoration.includes('underline');
   // Google Docs uses span tags + vertical-align to specify subscript and superscript
   const verticalAlign = style.verticalAlign;
 
@@ -1181,7 +1183,7 @@ export function findParentPreDOMNode(node: Node) {
   return resultNode;
 }
 
-function convertTextDOMNode(domNode: Node): DOMConversionOutput {
+function $convertTextDOMNode(domNode: Node): DOMConversionOutput {
   const domNode_ = domNode as Text;
   const parentDom = domNode.parentElement;
   invariant(
@@ -1260,11 +1262,6 @@ function convertTextDOMNode(domNode: Node): DOMConversionOutput {
   return {node: $createTextNode(textContent)};
 }
 
-const inlineParents = new RegExp(
-  /^(a|abbr|acronym|b|cite|code|del|em|i|ins|kbd|label|output|q|ruby|s|samp|span|strong|sub|sup|time|u|tt|var)$/,
-  'i',
-);
-
 function findTextInLine(text: Text, forward: boolean): null | Text {
   let node: Node = text;
   // eslint-disable-next-line no-constant-condition
@@ -1283,7 +1280,7 @@ function findTextInLine(text: Text, forward: boolean): null | Text {
     if (node.nodeType === DOM_ELEMENT_TYPE) {
       const display = (node as HTMLElement).style.display;
       if (
-        (display === '' && node.nodeName.match(inlineParents) === null) ||
+        (display === '' && !isInlineDomNode(node)) ||
         (display !== '' && !display.startsWith('inline'))
       ) {
         return null;

@@ -15,13 +15,12 @@ import {
   INDENT_CONTENT_COMMAND,
   LexicalEditor,
   OUTDENT_CONTENT_COMMAND,
-} from 'lexical/src';
+} from 'lexical';
 import {
   expectHtmlToBeEqual,
   html,
   TestComposer,
 } from 'lexical/src/__tests__/utils';
-import * as React from 'react';
 import {createRoot, Root} from 'react-dom/client';
 import * as ReactTestUtils from 'react-dom/test-utils';
 

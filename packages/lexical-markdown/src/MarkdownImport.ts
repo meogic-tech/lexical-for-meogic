@@ -33,6 +33,7 @@ import {IS_APPLE_WEBKIT, IS_IOS, IS_SAFARI} from 'shared/environment';
 import {PUNCTUATION_OR_SPACE, transformersByType} from './utils';
 
 const MARKDOWN_EMPTY_LINE_REG_EXP = /^\s{0,3}$/;
+const CODE_BLOCK_REG_EXP = /^[ \t]*```(\w{1,10})?\s?$/;
 type TextFormatTransformersIndex = Readonly<{
   fullMatchRegExpByTag: Readonly<Record<string, RegExp>>;
   openTagsRegExp: RegExp;
@@ -85,7 +86,7 @@ export function createMarkdownImport(
         continue;
       }
 
-      importBlocks(
+      $importBlocks(
         lineText,
         root,
         byType.element,
@@ -123,7 +124,7 @@ function isEmptyParagraph(node: LexicalNode): boolean {
   );
 }
 
-function importBlocks(
+function $importBlocks(
   lineText: string,
   rootNode: ElementNode,
   elementTransformers: Array<ElementTransformer>,
@@ -189,6 +190,35 @@ function importBlocks(
       }
     }
   }
+}
+
+function $importCodeBlock(
+  lines: Array<string>,
+  startLineIndex: number,
+  rootNode: ElementNode,
+): [CodeNode | null, number] {
+  const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
+
+  if (openMatch) {
+    let endLineIndex = startLineIndex;
+    const linesLength = lines.length;
+
+    while (++endLineIndex < linesLength) {
+      const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
+
+      if (closeMatch) {
+        const codeBlockNode = $createCodeNode(openMatch[1]);
+        const textNode = $createTextNode(
+          lines.slice(startLineIndex + 1, endLineIndex).join('\n'),
+        );
+        codeBlockNode.append(textNode);
+        rootNode.append(codeBlockNode);
+        return [codeBlockNode, endLineIndex];
+      }
+    }
+  }
+
+  return [null, startLineIndex];
 }
 
 // Processing text content and replaces text format tags.

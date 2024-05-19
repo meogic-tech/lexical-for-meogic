@@ -270,7 +270,7 @@ export const CODE: ElementTransformer = {
     }
     return 1;
   },
-  regExp: /^```(\w{1,10})?\s?$/,
+  regExp: /^[ \t]*```(\w{1,10})?\s/,
   replace: createBlockNode((match) => {
     return $createCodeNode(match ? match[1] : undefined);
   }),

@@ -4,8 +4,8 @@ node_modules
 
 base-build
 build
-dist
 coverage
+dist
 !scripts/npm
 .DS_Store
 .env.local
@@ -17,6 +17,7 @@ coverage
 e2e-screenshots
 test-results
 playwright-report
+/SOURCE_CODE_REVIEW.md
 
 npm-debug.log*
 

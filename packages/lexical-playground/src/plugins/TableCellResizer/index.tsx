@@ -18,17 +18,11 @@ import {
   $getTableRowIndexFromTableCellNode,
   $isTableCellNode,
   $isTableRowNode,
-  $isTableSelection,
   getDOMCellFromTarget,
   TableCellNode,
 } from '@lexical/table';
 import {calculateZoomLevel} from '@lexical/utils';
-import {
-  $getNearestNodeFromDOMNode,
-  $getSelection,
-  COMMAND_PRIORITY_HIGH,
-  SELECTION_CHANGE_COMMAND,
-} from 'lexical';
+import {$getNearestNodeFromDOMNode} from 'lexical';
 import * as React from 'react';
 import {
   MouseEventHandler,
@@ -61,26 +55,9 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
     useState<MousePosition | null>(null);
 
   const [activeCell, updateActiveCell] = useState<TableDOMCell | null>(null);
-  const [isSelectingGrid, updateIsSelectingGrid] = useState<boolean>(false);
+  const [isMouseDown, updateIsMouseDown] = useState<boolean>(false);
   const [draggingDirection, updateDraggingDirection] =
     useState<MouseDraggingDirection | null>(null);
-
-  useEffect(() => {
-    return editor.registerCommand(
-      SELECTION_CHANGE_COMMAND,
-      (payload) => {
-        const selection = $getSelection();
-        const isTableSelection = $isTableSelection(selection);
-
-        if (isSelectingGrid !== isTableSelection) {
-          updateIsSelectingGrid(isTableSelection);
-        }
-
-        return false;
-      },
-      COMMAND_PRIORITY_HIGH,
-    );
-  });
 
   const resetState = useCallback(() => {
     updateActiveCell(null);
@@ -89,6 +66,10 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
     mouseStartPosRef.current = null;
     tableRectRef.current = null;
   }, []);
+
+  const isMouseDownOnEvent = (event: MouseEvent) => {
+    return (event.buttons & 1) === 1;
+  };
 
   useEffect(() => {
     const onMouseMove = (event: MouseEvent) => {
@@ -102,7 +83,7 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
           });
           return;
         }
-
+        updateIsMouseDown(isMouseDownOnEvent(event));
         if (resizerRef.current && resizerRef.current.contains(target as Node)) {
           return;
         }
@@ -137,10 +118,26 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
       }, 0);
     };
 
+    const onMouseDown = (event: MouseEvent) => {
+      setTimeout(() => {
+        updateIsMouseDown(true);
+      }, 0);
+    };
+
+    const onMouseUp = (event: MouseEvent) => {
+      setTimeout(() => {
+        updateIsMouseDown(false);
+      }, 0);
+    };
+
     document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mouseup', onMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('mouseup', onMouseUp);
     };
   }, [activeCell, draggingDirection, editor, resetState]);
 
@@ -157,30 +154,34 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
         throw new Error('TableCellResizer: Expected active cell.');
       }
 
-      editor.update(() => {
-        const tableCellNode = $getNearestNodeFromDOMNode(activeCell.elem);
-        if (!$isTableCellNode(tableCellNode)) {
-          throw new Error('TableCellResizer: Table cell node not found.');
-        }
+      editor.update(
+        () => {
+          const tableCellNode = $getNearestNodeFromDOMNode(activeCell.elem);
+          if (!$isTableCellNode(tableCellNode)) {
+            throw new Error('TableCellResizer: Table cell node not found.');
+          }
 
-        const tableNode = $getTableNodeFromLexicalNodeOrThrow(tableCellNode);
+          const tableNode = $getTableNodeFromLexicalNodeOrThrow(tableCellNode);
 
-        const tableRowIndex = $getTableRowIndexFromTableCellNode(tableCellNode);
+          const tableRowIndex =
+            $getTableRowIndexFromTableCellNode(tableCellNode);
 
-        const tableRows = tableNode.getChildren();
+          const tableRows = tableNode.getChildren();
 
-        if (tableRowIndex >= tableRows.length || tableRowIndex < 0) {
-          throw new Error('Expected table cell to be inside of table row.');
-        }
+          if (tableRowIndex >= tableRows.length || tableRowIndex < 0) {
+            throw new Error('Expected table cell to be inside of table row.');
+          }
 
-        const tableRow = tableRows[tableRowIndex];
+          const tableRow = tableRows[tableRowIndex];
 
-        if (!$isTableRowNode(tableRow)) {
-          throw new Error('Expected table row');
-        }
+          if (!$isTableRowNode(tableRow)) {
+            throw new Error('Expected table row');
+          }
 
-        tableRow.setHeight(newHeight);
-      });
+          tableRow.setHeight(newHeight);
+        },
+        {tag: 'skip-scroll-into-view'},
+      );
     },
     [activeCell, editor],
   );
@@ -190,57 +191,60 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
       if (!activeCell) {
         throw new Error('TableCellResizer: Expected active cell.');
       }
-      editor.update(() => {
-        const tableCellNode = $getNearestNodeFromDOMNode(activeCell.elem);
-        if (!$isTableCellNode(tableCellNode)) {
-          throw new Error('TableCellResizer: Table cell node not found.');
-        }
-
-        const tableNode = $getTableNodeFromLexicalNodeOrThrow(tableCellNode);
-
-        const tableColumnIndex =
-          $getTableColumnIndexFromTableCellNode(tableCellNode);
-
-        const tableRows = tableNode.getChildren();
-
-        for (let r = 0; r < tableRows.length; r++) {
-          const tableRow = tableRows[r];
-
-          if (!$isTableRowNode(tableRow)) {
-            throw new Error('Expected table row');
+      editor.update(
+        () => {
+          const tableCellNode = $getNearestNodeFromDOMNode(activeCell.elem);
+          if (!$isTableCellNode(tableCellNode)) {
+            throw new Error('TableCellResizer: Table cell node not found.');
           }
 
-          const rowCells = tableRow.getChildren<TableCellNode>();
-          const rowCellsSpan = rowCells.map((cell) => cell.getColSpan());
+          const tableNode = $getTableNodeFromLexicalNodeOrThrow(tableCellNode);
 
-          const aggregatedRowSpans = rowCellsSpan.reduce(
-            (rowSpans: number[], cellSpan) => {
-              const previousCell = rowSpans[rowSpans.length - 1] ?? 0;
-              rowSpans.push(previousCell + cellSpan);
-              return rowSpans;
-            },
-            [],
-          );
-          const rowColumnIndexWithSpan = aggregatedRowSpans.findIndex(
-            (cellSpan: number) => cellSpan > tableColumnIndex,
-          );
+          const tableColumnIndex =
+            $getTableColumnIndexFromTableCellNode(tableCellNode);
 
-          if (
-            rowColumnIndexWithSpan >= rowCells.length ||
-            rowColumnIndexWithSpan < 0
-          ) {
-            throw new Error('Expected table cell to be inside of table row.');
+          const tableRows = tableNode.getChildren();
+
+          for (let r = 0; r < tableRows.length; r++) {
+            const tableRow = tableRows[r];
+
+            if (!$isTableRowNode(tableRow)) {
+              throw new Error('Expected table row');
+            }
+
+            const rowCells = tableRow.getChildren<TableCellNode>();
+            const rowCellsSpan = rowCells.map((cell) => cell.getColSpan());
+
+            const aggregatedRowSpans = rowCellsSpan.reduce(
+              (rowSpans: number[], cellSpan) => {
+                const previousCell = rowSpans[rowSpans.length - 1] ?? 0;
+                rowSpans.push(previousCell + cellSpan);
+                return rowSpans;
+              },
+              [],
+            );
+            const rowColumnIndexWithSpan = aggregatedRowSpans.findIndex(
+              (cellSpan: number) => cellSpan > tableColumnIndex,
+            );
+
+            if (
+              rowColumnIndexWithSpan >= rowCells.length ||
+              rowColumnIndexWithSpan < 0
+            ) {
+              throw new Error('Expected table cell to be inside of table row.');
+            }
+
+            const tableCell = rowCells[rowColumnIndexWithSpan];
+
+            if (!$isTableCellNode(tableCell)) {
+              throw new Error('Expected table cell');
+            }
+
+            tableCell.setWidth(newWidth);
           }
-
-          const tableCell = rowCells[rowColumnIndexWithSpan];
-
-          if (!$isTableCellNode(tableCell)) {
-            throw new Error('Expected table cell');
-          }
-
-          tableCell.setWidth(newWidth);
-        }
-      });
+        },
+        {tag: 'skip-scroll-into-view'},
+      );
     },
     [activeCell, editor],
   );
@@ -390,7 +394,7 @@ function TableCellResizer({editor}: {editor: LexicalEditor}): JSX.Element {
 
   return (
     <div ref={resizerRef}>
-      {activeCell != null && !isSelectingGrid && (
+      {activeCell != null && !isMouseDown && (
         <>
           <div
             className="TableCellResizer__resizer TableCellResizer__ui"

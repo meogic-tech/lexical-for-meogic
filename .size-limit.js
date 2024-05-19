@@ -8,14 +8,13 @@
 'use strict';
 
 /**
- * We use this file to configure the size-lmit tool, rather than their simpler
+ * We use this file to configure the size-limit tool, rather than their simpler
  * yaml package.json configuration, because we need to override the resolution
  * of modules to ensure we are pulling in monorepo build products as
  * dependencies rather than trying to use something stale from node_modules.
  */
 const glob = require('glob');
 const path = require('node:path');
-const fs = require('fs-extra');
 
 /**
  * Build a alias map so that we can be sure that we are resolving monorepo
@@ -32,24 +31,15 @@ const fs = require('fs-extra');
  * Currently this alias map points at the cjs version of the build product,
  * as that is what was measured previously in #3600.
  */
+const {packagesManager} = require('./scripts/shared/packagesManager');
 const alias = Object.fromEntries(
-  glob('./packages/*/package.json', {sync: true}).flatMap((fn) => {
-    const pkg = fs.readJsonSync(fn);
-    if (!pkg.private) {
-      return Object.entries(pkg.exports).flatMap(([k, v]) => {
-        if (k.endsWith('.js')) {
-          return [];
-        }
-        return [
-          [
-            `${pkg.name}${k.replace(/^\.(\/$)?/, '')}`,
-            path.resolve(path.dirname(fn), 'dist', v.require.default),
-          ],
-        ];
-      });
-    }
-    return [];
-  }),
+  packagesManager
+    .getPublicPackages()
+    .flatMap((pkg) =>
+      pkg
+        .getNormalizedNpmModuleExportEntries()
+        .map(([k, v]) => [k, pkg.resolve('dist', v.require.default)]),
+    ),
 );
 
 const extendConfig = {resolve: {alias}};

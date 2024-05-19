@@ -77,6 +77,10 @@ export const getDOMSelection = (
 ): Selection | null =>
   CAN_USE_DOM ? (targetWindow || window).getSelection() : null;
 
+const isMouseDownOnEvent = (event: MouseEvent) => {
+  return (event.buttons & 1) === 1;
+};
+
 export function applyTableHandlers(
   tableNode: TableNode,
   tableElement: HTMLTableElementWithWithTableSelectionState,
@@ -102,15 +106,24 @@ export function applyTableHandlers(
     };
 
     const onMouseMove = (moveEvent: MouseEvent) => {
-      const focusCell = getDOMCellFromTarget(moveEvent.target as Node);
-      if (
-        focusCell !== null &&
-        (tableObserver.anchorX !== focusCell.x ||
-          tableObserver.anchorY !== focusCell.y)
-      ) {
-        moveEvent.preventDefault();
-        tableObserver.setFocusCellForSelection(focusCell);
-      }
+      // delaying mousemove handler to allow selectionchange handler from LexicalEvents.ts to be executed first
+      setTimeout(() => {
+        if (!isMouseDownOnEvent(moveEvent) && tableObserver.isSelecting) {
+          tableObserver.isSelecting = false;
+          editorWindow.removeEventListener('mouseup', onMouseUp);
+          editorWindow.removeEventListener('mousemove', onMouseMove);
+          return;
+        }
+        const focusCell = getDOMCellFromTarget(moveEvent.target as Node);
+        if (
+          focusCell !== null &&
+          (tableObserver.anchorX !== focusCell.x ||
+            tableObserver.anchorY !== focusCell.y)
+        ) {
+          moveEvent.preventDefault();
+          tableObserver.setFocusCellForSelection(focusCell);
+        }
+      }, 0);
     };
     return {onMouseMove: onMouseMove, onMouseUp: onMouseUp};
   };
@@ -299,7 +312,7 @@ export function applyTableHandlers(
     },
   );
 
-  const deleteCellHandler = (event: KeyboardEvent): boolean => {
+  const $deleteCellHandler = (event: KeyboardEvent): boolean => {
     const selection = $getSelection();
 
     if (!$isSelectionInTable(selection, tableNode)) {
@@ -329,7 +342,7 @@ export function applyTableHandlers(
   tableObserver.listenersToRemove.add(
     editor.registerCommand<KeyboardEvent>(
       KEY_BACKSPACE_COMMAND,
-      deleteCellHandler,
+      $deleteCellHandler,
       COMMAND_PRIORITY_CRITICAL,
     ),
   );
@@ -337,7 +350,7 @@ export function applyTableHandlers(
   tableObserver.listenersToRemove.add(
     editor.registerCommand<KeyboardEvent>(
       KEY_DELETE_COMMAND,
-      deleteCellHandler,
+      $deleteCellHandler,
       COMMAND_PRIORITY_CRITICAL,
     ),
   );
@@ -704,9 +717,7 @@ export function applyTableHandlers(
             if (isFocusInside) {
               newSelection.focus.set(
                 tableNode.getParentOrThrow().getKey(),
-                isBackward
-                  ? tableNode.getIndexWithinParent()
-                  : tableNode.getIndexWithinParent() + 1,
+                tableNode.getIndexWithinParent(),
                 'element',
               );
             } else {
@@ -1262,6 +1273,13 @@ function $handleArrowKey(
   tableNode: TableNode,
   tableObserver: TableObserver,
 ): boolean {
+  if (
+    (direction === 'up' || direction === 'down') &&
+    isTypeaheadMenuInView(editor)
+  ) {
+    return false;
+  }
+
   const selection = $getSelection();
 
   if (!$isSelectionInTable(selection, tableNode)) {
@@ -1478,6 +1496,19 @@ function stopEvent(event: Event) {
   event.stopPropagation();
 }
 
+function isTypeaheadMenuInView(editor: LexicalEditor) {
+  // There is no inbuilt way to check if the component picker is in view
+  // but we can check if the root DOM element has the aria-controls attribute "typeahead-menu".
+  const root = editor.getRootElement();
+  if (!root) {
+    return false;
+  }
+  return (
+    root.hasAttribute('aria-controls') &&
+    root.getAttribute('aria-controls') === 'typeahead-menu'
+  );
+}
+
 function isExitingTableAnchor(
   type: string,
   offset: number,
@@ -1486,7 +1517,7 @@ function isExitingTableAnchor(
 ) {
   return (
     isExitingTableElementAnchor(type, anchorNode, direction) ||
-    isExitingTableTextAnchor(type, offset, anchorNode, direction)
+    $isExitingTableTextAnchor(type, offset, anchorNode, direction)
   );
 }
 
@@ -1503,7 +1534,7 @@ function isExitingTableElementAnchor(
   );
 }
 
-function isExitingTableTextAnchor(
+function $isExitingTableTextAnchor(
   type: string,
   offset: number,
   anchorNode: LexicalNode,
@@ -1548,7 +1579,7 @@ function $handleTableExit(
     return false;
   }
 
-  const toNode = getExitingToNode(anchorNode, direction, tableNode);
+  const toNode = $getExitingToNode(anchorNode, direction, tableNode);
   if (!toNode || $isTableNode(toNode)) {
     return false;
   }
@@ -1575,7 +1606,7 @@ function isExitingCell(
     : startColumn === lastCell.startColumn && startRow === lastCell.startRow;
 }
 
-function getExitingToNode(
+function $getExitingToNode(
   anchorNode: LexicalNode,
   direction: 'backward' | 'forward',
   tableNode: TableNode,

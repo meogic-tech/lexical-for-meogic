@@ -6,21 +6,26 @@
  *
  */
 
-import type {IInjectedPegasusService} from '../injected/InjectedPegasusService';
-import type {EditorState} from 'lexical';
-
 import './App.css';
 
-import {TreeView} from '@lexical/devtools-core';
-import {getRPCService} from '@webext-pegasus/rpc';
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  ButtonGroup,
+  Flex,
+  Spacer,
+  Text,
+} from '@chakra-ui/react';
 import * as React from 'react';
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import lexicalLogo from '@/public/lexical.svg';
 
 import EditorsRefreshCTA from '../../components/EditorsRefreshCTA';
 import {useExtensionStore} from '../../store';
-import {SerializedRawEditorState} from '../../types';
+import {EditorInspectorButton} from './components/EditorInspectorButton';
+import {EditorsList} from './components/EditorsList';
 
 interface Props {
   tabID: number;
@@ -30,75 +35,79 @@ function App({tabID}: Props) {
   const [errorMessage, setErrorMessage] = useState('');
 
   const {lexicalState} = useExtensionStore();
-  const states = lexicalState[tabID] ?? {};
+  const states = lexicalState[tabID];
   const lexicalCount = Object.keys(states ?? {}).length;
 
-  const injectedPegasusService = useMemo(
-    () =>
-      getRPCService<IInjectedPegasusService>('InjectedPegasusService', {
-        context: 'window',
-        tabId: tabID,
-      }),
-    [tabID],
-  );
-
-  return (
+  return lexicalState[tabID] === null ? (
+    <Alert status="warning">
+      <AlertIcon />
+      This is a restricted browser page. Lexical DevTools cannot access this
+      page.
+    </Alert>
+  ) : (
     <>
-      <div>
-        <a href="https://lexical.dev" target="_blank">
-          <img
-            src={lexicalLogo}
-            className="logo"
-            width={150}
-            alt="Lexical logo"
-          />
-        </a>
-      </div>
-      {errorMessage !== '' ? (
-        <div className="card error">{errorMessage}</div>
-      ) : null}
-      <div className="card">
-        {states === undefined ? (
-          <span>Loading...</span>
-        ) : (
-          <span>
-            Found <b>{lexicalCount}</b> editor{lexicalCount > 1 ? 's' : ''} on
-            the page.
-          </span>
-        )}
-        <p>
-          <EditorsRefreshCTA tabID={tabID} setErrorMessage={setErrorMessage} />
-        </p>
-      </div>
-      {Object.entries(states).map(([key, state]) => (
-        <div key={key}>
-          <b>ID: {key}</b>
-          <br />
-          <TreeView
-            viewClassName="tree-view-output"
-            treeTypeButtonClassName="debug-treetype-button"
-            timeTravelPanelClassName="debug-timetravel-panel"
-            timeTravelButtonClassName="debug-timetravel-button"
-            timeTravelPanelSliderClassName="debug-timetravel-panel-slider"
-            timeTravelPanelButtonClassName="debug-timetravel-panel-button"
-            setEditorReadOnly={(isReadonly) =>
-              injectedPegasusService
-                .setEditorReadOnly(key, isReadonly)
-                .catch((e) => setErrorMessage(e.stack))
-            }
-            editorState={state as EditorState}
-            setEditorState={(editorState) =>
-              injectedPegasusService
-                .setEditorState(key, editorState as SerializedRawEditorState)
-                .catch((e) => setErrorMessage(e.stack))
-            }
-            generateContent={(exportDOM) =>
-              injectedPegasusService.generateTreeViewContent(key, exportDOM)
-            }
-          />
-          <hr />
-        </div>
-      ))}
+      <Flex
+        as="header"
+        position="fixed"
+        top="0"
+        height="50px"
+        backgroundColor="rgba(255,
+ 255, 255, 0.97)"
+        backdropFilter="saturate(180%) blur(5px)"
+        w="100%"
+        boxShadow="md"
+        zIndex={99}>
+        <Box paddingX="2" alignContent="center">
+          <ButtonGroup variant="outline" spacing="2">
+            <EditorInspectorButton
+              tabID={tabID}
+              setErrorMessage={setErrorMessage}
+            />
+            <EditorsRefreshCTA
+              tabID={tabID}
+              setErrorMessage={setErrorMessage}
+            />
+          </ButtonGroup>
+        </Box>
+        <Box pl="4" alignContent="center">
+          {states === undefined ? (
+            <Text fontSize="xs">Loading...</Text>
+          ) : (
+            <Text fontSize="xs">
+              Found <b>{lexicalCount}</b> editor
+              {lexicalCount > 1 || lexicalCount === 0 ? 's' : ''} on the page.
+            </Text>
+          )}
+        </Box>
+        <Spacer />
+        <Box px="2" alignContent="center">
+          <a href="https://lexical.dev" target="_blank">
+            <img
+              src={lexicalLogo}
+              className="logo"
+              width={134}
+              height={30}
+              alt="Lexical logo"
+            />
+          </a>
+        </Box>
+      </Flex>
+      <Box as="main" mt="50px">
+        {errorMessage !== '' ? (
+          <div className="card error">{errorMessage}</div>
+        ) : null}
+
+        <Box pt={5}>
+          {lexicalCount > 0 ? (
+            <EditorsList tabID={tabID} setErrorMessage={setErrorMessage} />
+          ) : (
+            <Alert status="info">
+              <AlertIcon />
+              No Lexical editors found on the page.
+            </Alert>
+          )}
+        </Box>
+      </Box>
     </>
   );
 }

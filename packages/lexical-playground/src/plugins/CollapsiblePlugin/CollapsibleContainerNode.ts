@@ -26,7 +26,7 @@ type SerializedCollapsibleContainerNode = Spread<
   SerializedElementNode
 >;
 
-export function convertDetailsElement(
+export function $convertDetailsElement(
   domNode: HTMLDetailsElement,
 ): DOMConversionOutput | null {
   const isOpen = domNode.open !== undefined ? domNode.open : true;
@@ -80,7 +80,7 @@ export class CollapsibleContainerNode extends ElementNode {
     return {
       details: (domNode: HTMLDetailsElement) => {
         return {
-          conversion: convertDetailsElement,
+          conversion: $convertDetailsElement,
           priority: 1,
         };
       },
@@ -96,6 +96,7 @@ export class CollapsibleContainerNode extends ElementNode {
 
   exportDOM(): DOMExportOutput {
     const element = document.createElement('details');
+    element.classList.add('Collapsible__container');
     element.setAttribute('open', this.__open.toString());
     return {element};
   }

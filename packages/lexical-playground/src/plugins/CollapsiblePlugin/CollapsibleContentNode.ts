@@ -18,7 +18,7 @@ import {
 
 type SerializedCollapsibleContentNode = SerializedElementNode;
 
-export function convertCollapsibleContentElement(
+export function $convertCollapsibleContentElement(
   domNode: HTMLElement,
 ): DOMConversionOutput | null {
   const node = $createCollapsibleContentNode();
@@ -53,7 +53,7 @@ export class CollapsibleContentNode extends ElementNode {
           return null;
         }
         return {
-          conversion: convertCollapsibleContentElement,
+          conversion: $convertCollapsibleContentElement,
           priority: 2,
         };
       },
@@ -62,6 +62,7 @@ export class CollapsibleContentNode extends ElementNode {
 
   exportDOM(): DOMExportOutput {
     const element = document.createElement('div');
+    element.classList.add('Collapsible__content');
     element.setAttribute('data-lexical-collapsible-content', 'true');
     return {element};
   }

@@ -83,11 +83,11 @@ export class TableCellNode extends ElementNode {
   static importDOM(): DOMConversionMap | null {
     return {
       td: (node: Node) => ({
-        conversion: convertTableCellNodeElement,
+        conversion: $convertTableCellNodeElement,
         priority: 0,
       }),
       th: (node: Node) => ({
-        conversion: convertTableCellNodeElement,
+        conversion: $convertTableCellNodeElement,
         priority: 0,
       }),
     };
@@ -290,7 +290,7 @@ export class TableCellNode extends ElementNode {
   }
 }
 
-export function convertTableCellNodeElement(
+export function $convertTableCellNodeElement(
   domNode: Node,
 ): DOMConversionOutput {
   const domNode_ = domNode as HTMLTableCellElement;
@@ -317,12 +317,12 @@ export function convertTableCellNodeElement(
   }
 
   const style = domNode_.style;
+  const textDecoration = style.textDecoration.split(' ');
   const hasBoldFontWeight =
     style.fontWeight === '700' || style.fontWeight === 'bold';
-  const hasLinethroughTextDecoration = style.textDecoration === 'line-through';
+  const hasLinethroughTextDecoration = textDecoration.includes('line-through');
   const hasItalicFontStyle = style.fontStyle === 'italic';
-  const hasUnderlineTextDecoration = style.textDecoration === 'underline';
-
+  const hasUnderlineTextDecoration = textDecoration.includes('underline');
   return {
     after: (childLexicalNodes) => {
       if (childLexicalNodes.length === 0) {
