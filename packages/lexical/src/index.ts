@@ -45,11 +45,8 @@ export type {
 export type {
   BaseSelection,
   ElementPointType as ElementPoint,
-  NodeSelection,
-  Point,
-  PointType,
-  RangeSelection,
   TextPointType as TextPoint,
+  PointType,
 } from './LexicalSelection';
 export type {
   ElementFormatType,
@@ -122,6 +119,9 @@ export {
 export type {EventHandler} from './LexicalEvents';
 export {$normalizeSelection as $normalizeSelection__EXPERIMENTAL} from './LexicalNormalization';
 export {
+  NodeSelection,
+  Point,
+  RangeSelection,
   $createNodeSelection,
   $createPoint,
   $createRangeSelection,
