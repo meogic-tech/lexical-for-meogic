@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -13,6 +15,19 @@ var text = require('@lexical/text');
 var utils = require('@lexical/utils');
 var lexical = require('lexical');
 
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -20,6 +35,7 @@ var lexical = require('lexical');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useCharacterLimit(editor, maxCharacters, optional = Object.freeze({})) {
   const {
     strlen = input => input.length,
@@ -156,14 +172,14 @@ function $wrapOverflowedNodes(offset) {
         if (previousSelection !== null) {
           lexical.$setSelection(previousSelection);
         }
-        mergePrevious(overflowNode);
+        $mergePrevious(overflowNode);
       }
     }
   }
 }
 function $wrapNode(node) {
   const overflowNode = overflow.$createOverflowNode();
-  node.insertBefore(overflowNode);
+  node.replace(overflowNode);
   overflowNode.append(node);
   return overflowNode;
 }
@@ -176,7 +192,7 @@ function $unwrapNode(node) {
   node.remove();
   return childrenLength > 0 ? children[childrenLength - 1] : null;
 }
-function mergePrevious(overflowNode) {
+function $mergePrevious(overflowNode) {
   const previousNode = overflowNode.getPreviousSibling();
   if (!overflow.$isOverflowNode(previousNode)) {
     return;
@@ -218,6 +234,7 @@ function mergePrevious(overflowNode) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const CHARACTER_LIMIT = 5;
 let textEncoderInstance = null;
 function textEncoder() {
@@ -241,7 +258,7 @@ function utf8Length(text) {
 function DefaultRenderer({
   remainingCharacters
 }) {
-  return /*#__PURE__*/React.createElement("span", {
+  return /*#__PURE__*/React__namespace.createElement("span", {
     className: `characters-limit ${remainingCharacters < 0 ? 'characters-limit-exceeded' : ''}`
   }, remainingCharacters);
 }

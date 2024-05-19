@@ -3,11 +3,13 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { createCommand, KEY_ARROW_DOWN_COMMAND, KEY_ARROW_UP_COMMAND, KEY_ESCAPE_COMMAND, KEY_TAB_COMMAND, KEY_ENTER_COMMAND, COMMAND_PRIORITY_LOW, $getSelection, $isRangeSelection, $isTextNode } from 'lexical';
 import * as React from 'react';
-import { useLayoutEffect as useLayoutEffect$1, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useLayoutEffect, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { mergeRegister } from '@lexical/utils';
 
 /**
@@ -27,8 +29,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
-const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect$1 : useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
+
+const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect : useEffect;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -37,6 +39,7 @@ var useLayoutEffect = useLayoutEffectImpl;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class MenuOption {
   constructor(key) {
     this.key = key;
@@ -124,7 +127,7 @@ function $splitNodeContainingQuery(match) {
 function getScrollParent$1(element, includeHidden) {
   let style = getComputedStyle(element);
   const excludeStaticParent = style.position === 'absolute';
-  const overflowRegex = includeHidden ? /(auto|scroll|hidden)/ : /(auto|scroll)/;
+  const overflowRegex = /(auto|scroll)/;
   if (style.position === 'fixed') {
     return document.body;
   }
@@ -151,7 +154,7 @@ function useDynamicPositioning(resolution, targetElement, onReposition, onVisibi
   useEffect(() => {
     if (targetElement != null && resolution != null) {
       const rootElement = editor.getRootElement();
-      const rootScrollParent = rootElement != null ? getScrollParent$1(rootElement, false) : document.body;
+      const rootScrollParent = rootElement != null ? getScrollParent$1(rootElement) : document.body;
       let ticking = false;
       let previousIsInView = isTriggerVisibleInNearestScrollContainer(targetElement, rootScrollParent);
       const handleScroll = function () {
@@ -223,7 +226,7 @@ function LexicalMenu({
       }
     };
   }, [editor]);
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     if (options === null) {
       setHighlightedIndex(null);
     } else if (selectedIndex === null) {
@@ -335,7 +338,7 @@ function useMenuAnchorRef(resolution, setResolution, className, parent = documen
         if (left + menuWidth > rootElementRect.right) {
           containerDiv.style.left = `${rootElementRect.right - menuWidth + window.pageXOffset}px`;
         }
-        if ((top + menuHeight > window.innerHeight || top + menuHeight > rootElementRect.bottom) && top - rootElementRect.top > menuHeight) {
+        if ((top + menuHeight > window.innerHeight || top + menuHeight > rootElementRect.bottom) && top - rootElementRect.top > menuHeight + height) {
           containerDiv.style.top = `${top - menuHeight + window.pageYOffset - height}px`;
         }
       }
@@ -387,6 +390,7 @@ function useMenuAnchorRef(resolution, setResolution, className, parent = documen
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const PUNCTUATION = '\\.,\\+\\*\\?\\$\\@\\|#{}\\(\\)\\^\\-\\[\\]\\\\/!%\'"~=<>_:;';
 function getTextUpToAnchor(selection) {
   const anchor = selection.anchor;

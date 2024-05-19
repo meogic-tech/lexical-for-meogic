@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { INSERT_CHECK_LIST_COMMAND, insertList, $isListItemNode, $isListNode } from '@lexical/list';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister, $findMatchingParent, isHTMLElement, calculateZoomLevel } from '@lexical/utils';
@@ -17,6 +19,7 @@ import { useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function CheckListPlugin() {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {

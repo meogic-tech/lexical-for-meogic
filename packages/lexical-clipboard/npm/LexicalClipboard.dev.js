@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var html = require('@lexical/html');
@@ -28,6 +30,7 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const getDOMSelection = targetWindow => CAN_USE_DOM ? (targetWindow || window).getSelection() : null;
 
 /**
@@ -138,13 +141,16 @@ function $insertDataTransferForRichText(dataTransfer, selection, editor) {
         parts.pop();
       }
       for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (part === '\n' || part === '\r\n') {
-          selection.insertParagraph();
-        } else if (part === '\t') {
-          selection.insertNodes([lexical.$createTabNode()]);
-        } else {
-          selection.insertText(part);
+        const currentSelection = lexical.$getSelection();
+        if (lexical.$isRangeSelection(currentSelection)) {
+          const part = parts[i];
+          if (part === '\n' || part === '\r\n') {
+            currentSelection.insertParagraph();
+          } else if (part === '\t') {
+            currentSelection.insertNodes([lexical.$createTabNode()]);
+          } else {
+            currentSelection.insertText(part);
+          }
         }
       }
     } else {

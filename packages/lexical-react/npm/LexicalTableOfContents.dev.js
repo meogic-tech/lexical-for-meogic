@@ -3,11 +3,14 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var richText = require('@lexical/rich-text');
+var utils = require('@lexical/utils');
 var lexical = require('lexical');
 var react = require('react');
 
@@ -18,6 +21,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function toEntry(heading) {
   return [heading.getKey(), heading.getTextContent(), heading.getTag()];
 }
@@ -28,12 +32,20 @@ function $insertHeadingIntoTableOfContents(prevHeading, newHeading, currentTable
   const newEntry = toEntry(newHeading);
   let newTableOfContents = [];
   if (prevHeading === null) {
+    // check if key already exists
+    if (currentTableOfContents.length > 0 && currentTableOfContents[0][0] === newHeading.__key) {
+      return currentTableOfContents;
+    }
     newTableOfContents = [newEntry, ...currentTableOfContents];
   } else {
     for (let i = 0; i < currentTableOfContents.length; i++) {
       const key = currentTableOfContents[i][0];
       newTableOfContents.push(currentTableOfContents[i]);
       if (key === prevHeading.getKey() && key !== newHeading.getKey()) {
+        // check if key already exists
+        if (i + 1 < currentTableOfContents.length && currentTableOfContents[i + 1][0] === newHeading.__key) {
+          return currentTableOfContents;
+        }
         newTableOfContents.push(newEntry);
       }
     }
@@ -82,6 +94,13 @@ function $updateHeadingPosition(prevHeading, heading, currentTableOfContents) {
   }
   return newTableOfContents;
 }
+function $getPreviousHeading(node) {
+  let prevHeading = utils.$getNextRightPreorderNode(node);
+  while (prevHeading !== null && !richText.$isHeadingNode(prevHeading)) {
+    prevHeading = utils.$getNextRightPreorderNode(prevHeading);
+  }
+  return prevHeading;
+}
 function LexicalTableOfContentsPlugin({
   children
 }) {
@@ -100,6 +119,31 @@ function LexicalTableOfContentsPlugin({
       }
       setTableOfContents(currentTableOfContents);
     });
+    const removeRootUpdateListener = editor.registerUpdateListener(({
+      editorState,
+      dirtyElements
+    }) => {
+      editorState.read(() => {
+        const updateChildHeadings = node => {
+          for (const child of node.getChildren()) {
+            if (richText.$isHeadingNode(child)) {
+              const prevHeading = $getPreviousHeading(child);
+              currentTableOfContents = $updateHeadingPosition(prevHeading, child, currentTableOfContents);
+              setTableOfContents(currentTableOfContents);
+            } else if (lexical.$isElementNode(child)) {
+              updateChildHeadings(child);
+            }
+          }
+        };
+
+        // If a node is changes, all child heading positions need to be updated
+        lexical.$getRoot().getChildren().forEach(node => {
+          if (lexical.$isElementNode(node) && dirtyElements.get(node.__key)) {
+            updateChildHeadings(node);
+          }
+        });
+      });
+    });
 
     // Listen to updates to heading mutations and update state
     const removeHeaderMutationListener = editor.registerMutationListener(richText.HeadingNode, mutatedNodes => {
@@ -108,10 +152,7 @@ function LexicalTableOfContentsPlugin({
           if (mutation === 'created') {
             const newHeading = lexical.$getNodeByKey(nodeKey);
             if (newHeading !== null) {
-              let prevHeading = newHeading.getPreviousSibling();
-              while (prevHeading !== null && !richText.$isHeadingNode(prevHeading)) {
-                prevHeading = prevHeading.getPreviousSibling();
-              }
+              const prevHeading = $getPreviousHeading(newHeading);
               currentTableOfContents = $insertHeadingIntoTableOfContents(prevHeading, newHeading, currentTableOfContents);
             }
           } else if (mutation === 'destroyed') {
@@ -119,10 +160,7 @@ function LexicalTableOfContentsPlugin({
           } else if (mutation === 'updated') {
             const newHeading = lexical.$getNodeByKey(nodeKey);
             if (newHeading !== null) {
-              let prevHeading = newHeading.getPreviousSibling();
-              while (prevHeading !== null && !richText.$isHeadingNode(prevHeading)) {
-                prevHeading = prevHeading.getPreviousSibling();
-              }
+              const prevHeading = $getPreviousHeading(newHeading);
               currentTableOfContents = $updateHeadingPosition(prevHeading, newHeading, currentTableOfContents);
             }
           }
@@ -151,6 +189,7 @@ function LexicalTableOfContentsPlugin({
     return () => {
       removeHeaderMutationListener();
       removeTextNodeMutationListener();
+      removeRootUpdateListener();
     };
   }, [editor]);
   return children(tableOfContents, editor);

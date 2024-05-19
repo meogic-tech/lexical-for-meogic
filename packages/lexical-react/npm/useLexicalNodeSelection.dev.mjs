@@ -3,9 +3,11 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getNodeByKey, $getSelection, $isNodeSelection, $createNodeSelection, $setSelection } from 'lexical';
+import { $getSelection, $isNodeSelection, $createNodeSelection, $setSelection, $getNodeByKey } from 'lexical';
 import { useState, useEffect, useCallback } from 'react';
 
 /**
@@ -15,6 +17,7 @@ import { useState, useEffect, useCallback } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function isNodeSelected(editor, key) {
   return editor.getEditorState().read(() => {
     const node = $getNodeByKey(key);

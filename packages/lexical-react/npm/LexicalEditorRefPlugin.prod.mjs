@@ -3,5 +3,7 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import{useLexicalComposerContext as t}from"@lexical/react/LexicalComposerContext";import*as e from"react";function o({editorRef:o}){const[r]=t();return e.useEffect((()=>{"function"==typeof o?o(r):"object"==typeof o&&(o.current=r)}),[r]),null}export{o as EditorRefPlugin};

@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var utils = require('@lexical/utils');
@@ -16,6 +18,7 @@ var lexical = require('lexical');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const HISTORY_MERGE = 0;
 const HISTORY_PUSH = 1;
 const DISCARD_HISTORY_CANDIDATE = 2;
@@ -262,7 +265,7 @@ function registerHistory(editor, historyState, delay) {
       editorState
     };
   };
-  const unregisterCommandListener = utils.mergeRegister(editor.registerCommand(lexical.UNDO_COMMAND, () => {
+  const unregister = utils.mergeRegister(editor.registerCommand(lexical.UNDO_COMMAND, () => {
     undo(editor, historyState);
     return true;
   }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerCommand(lexical.REDO_COMMAND, () => {
@@ -277,11 +280,7 @@ function registerHistory(editor, historyState, delay) {
     editor.dispatchCommand(lexical.CAN_UNDO_COMMAND, false);
     return true;
   }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerUpdateListener(applyChange));
-  const unregisterUpdateListener = editor.registerUpdateListener(applyChange);
-  return () => {
-    unregisterCommandListener();
-    unregisterUpdateListener();
-  };
+  return unregister;
 }
 
 /**

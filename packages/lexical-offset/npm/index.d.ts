@@ -46,6 +46,8 @@ export declare class OffsetView {
     createSelectionFromOffsets(originalStart: number, originalEnd: number, diffOffsetView?: OffsetView): null | RangeSelection;
     getOffsetsFromSelection(selection: RangeSelection): [number, number];
 }
-export declare function createChildrenArray(element: ElementNode, nodeMap: null | NodeMap): Array<NodeKey>;
+export declare function $createChildrenArray(element: ElementNode, nodeMap: null | NodeMap): Array<NodeKey>;
+/** @deprecated renamed to {@link $createChildrenArray} by @lexical/eslint-plugin rules-of-lexical */
+export declare const createChildrenArray: typeof $createChildrenArray;
 export declare function $createOffsetView(editor: LexicalEditor, blockOffsetSize?: number, editorState?: EditorState | null): OffsetView;
 export {};

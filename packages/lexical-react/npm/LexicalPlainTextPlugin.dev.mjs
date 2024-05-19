@@ -3,14 +3,16 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import useLexicalEditable from '@lexical/react/useLexicalEditable';
 import * as React from 'react';
-import { useLayoutEffect as useLayoutEffect$1, useEffect, useState, useMemo, Suspense } from 'react';
+import { useLayoutEffect, useEffect, useState, useMemo, Suspense } from 'react';
 import { $canShowPlaceholderCurry } from '@lexical/text';
 import { mergeRegister } from '@lexical/utils';
-import { createPortal, flushSync } from 'react-dom';
+import { flushSync, createPortal } from 'react-dom';
 import { registerDragonSupport } from '@lexical/dragon';
 import { registerPlainText } from '@lexical/plain-text';
 
@@ -31,8 +33,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
-const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect$1 : useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
+
+const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect : useEffect;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -41,13 +43,14 @@ var useLayoutEffect = useLayoutEffectImpl;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function canShowPlaceholderFromCurrentEditorState(editor) {
   const currentCanShowPlaceholder = editor.getEditorState().read($canShowPlaceholderCurry(editor.isComposing()));
   return currentCanShowPlaceholder;
 }
 function useCanShowPlaceholder(editor) {
   const [canShowPlaceholder, setCanShowPlaceholder] = useState(() => canShowPlaceholderFromCurrentEditorState(editor));
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     function resetCanShowPlaceholder() {
       const currentCanShowPlaceholder = canShowPlaceholderFromCurrentEditorState(editor);
       setCanShowPlaceholder(currentCanShowPlaceholder);
@@ -69,11 +72,12 @@ function useCanShowPlaceholder(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useDecorators(editor, ErrorBoundary) {
   const [decorators, setDecorators] = useState(() => editor.getDecorators());
 
   // Subscribe to changes
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     return editor.registerDecoratorListener(nextDecorators => {
       flushSync(() => {
         setDecorators(nextDecorators);
@@ -114,8 +118,9 @@ function useDecorators(editor, ErrorBoundary) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function usePlainTextSetup(editor) {
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     return mergeRegister(registerPlainText(editor), registerDragonSupport(editor));
 
     // We only do this for init
@@ -130,6 +135,7 @@ function usePlainTextSetup(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function PlainTextPlugin({
   contentEditable,
   placeholder,

@@ -47,7 +47,7 @@ export declare function isNestedListNode(node: LexicalNode | null | undefined): 
  * @param node - Node to start the search.
  * @returns The first ListItemNode found, or null if none exist.
  */
-export declare function findNearestListItemNode(node: LexicalNode): ListItemNode | null;
+export declare function $findNearestListItemNode(node: LexicalNode): ListItemNode | null;
 /**
  * Takes a deeply nested ListNode or ListItemNode and traverses up the branch to delete the first
  * ancestral ListNode (which could be the root ListNode) or ListItemNode with siblings, essentially
@@ -61,5 +61,5 @@ export declare function $removeHighestEmptyListParent(sublist: ListItemNode | Li
  * @param node - The node to be wrapped into a ListItemNode
  * @returns The ListItemNode which the passed node is wrapped in.
  */
-export declare function wrapInListItem(node: LexicalNode): ListItemNode;
+export declare function $wrapInListItem(node: LexicalNode): ListItemNode;
 export {};

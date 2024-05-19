@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { addClassNamesToElement } from '@lexical/utils';
 import { TextNode, $applyNodeReplacement } from 'lexical';
 
@@ -14,6 +16,7 @@ import { TextNode, $applyNodeReplacement } from 'lexical';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /** @noInheritDoc */
 class HashtagNode extends TextNode {

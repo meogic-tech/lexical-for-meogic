@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var selection = require('@lexical/selection');
@@ -18,6 +20,7 @@ var lexical = require('lexical');
  *
  */
 
+
 /**
  * How you parse your html string to get a document is left up to you. In the browser you can use the native
  * DOMParser API to generate a document (see clipboard.ts), but to use in a headless environment you can use JSDom
@@ -26,15 +29,17 @@ var lexical = require('lexical');
 function $generateNodesFromDOM(editor, dom) {
   const elements = dom.body ? dom.body.childNodes : [];
   let lexicalNodes = [];
+  const allArtificialNodes = [];
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     if (!IGNORE_TAGS.has(element.nodeName)) {
-      const lexicalNode = $createNodesFromDOM(element, editor);
+      const lexicalNode = $createNodesFromDOM(element, editor, allArtificialNodes, false);
       if (lexicalNode !== null) {
         lexicalNodes = lexicalNodes.concat(lexicalNode);
       }
     }
   }
+  $unwrapArtificalNodes(allArtificialNodes);
   return lexicalNodes;
 }
 function $generateHtmlFromNodes(editor, selection) {
@@ -117,7 +122,7 @@ function getConversionFunction(domNode, editor) {
   return currentConversion !== null ? currentConversion.conversion : null;
 }
 const IGNORE_TAGS = new Set(['STYLE', 'SCRIPT']);
-function $createNodesFromDOM(node, editor, forChildMap = new Map(), parentLexicalNode) {
+function $createNodesFromDOM(node, editor, allArtificialNodes, hasBlockAncestorLexicalNode, forChildMap = new Map(), parentLexicalNode) {
   let lexicalNodes = [];
   if (IGNORE_TAGS.has(node.nodeName)) {
     return lexicalNodes;
@@ -150,11 +155,23 @@ function $createNodesFromDOM(node, editor, forChildMap = new Map(), parentLexica
   // to do with it but we still need to process any childNodes.
   const children = node.childNodes;
   let childLexicalNodes = [];
+  const hasBlockAncestorLexicalNodeForChildren = currentLexicalNode != null && lexical.$isRootOrShadowRoot(currentLexicalNode) ? false : currentLexicalNode != null && lexical.$isBlockElementNode(currentLexicalNode) || hasBlockAncestorLexicalNode;
   for (let i = 0; i < children.length; i++) {
-    childLexicalNodes.push(...$createNodesFromDOM(children[i], editor, new Map(forChildMap), currentLexicalNode));
+    childLexicalNodes.push(...$createNodesFromDOM(children[i], editor, allArtificialNodes, hasBlockAncestorLexicalNodeForChildren, new Map(forChildMap), currentLexicalNode));
   }
   if (postTransform != null) {
     childLexicalNodes = postTransform(childLexicalNodes);
+  }
+  if (utils.isBlockDomNode(node)) {
+    if (!hasBlockAncestorLexicalNodeForChildren) {
+      childLexicalNodes = wrapContinuousInlines(node, childLexicalNodes, lexical.$createParagraphNode);
+    } else {
+      childLexicalNodes = wrapContinuousInlines(node, childLexicalNodes, () => {
+        const artificialNode = new lexical.ArtificialNode__DO_NOT_USE();
+        allArtificialNodes.push(artificialNode);
+        return artificialNode;
+      });
+    }
   }
   if (currentLexicalNode == null) {
     // If it hasn't been converted to a LexicalNode, we hoist its children
@@ -168,6 +185,44 @@ function $createNodesFromDOM(node, editor, forChildMap = new Map(), parentLexica
     }
   }
   return lexicalNodes;
+}
+function wrapContinuousInlines(domNode, nodes, createWrapperFn) {
+  const textAlign = domNode.style.textAlign;
+  const out = [];
+  let continuousInlines = [];
+  // wrap contiguous inline child nodes in para
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (lexical.$isBlockElementNode(node)) {
+      node.setFormat(textAlign);
+      out.push(node);
+    } else {
+      continuousInlines.push(node);
+      if (i === nodes.length - 1 || i < nodes.length - 1 && lexical.$isBlockElementNode(nodes[i + 1])) {
+        const wrapper = createWrapperFn();
+        wrapper.setFormat(textAlign);
+        wrapper.append(...continuousInlines);
+        out.push(wrapper);
+        continuousInlines = [];
+      }
+    }
+  }
+  return out;
+}
+function $unwrapArtificalNodes(allArtificialNodes) {
+  for (const node of allArtificialNodes) {
+    if (node.getNextSibling() instanceof lexical.ArtificialNode__DO_NOT_USE) {
+      node.insertAfter(lexical.$createLineBreakNode());
+    }
+  }
+  // Replace artificial node with it's children
+  for (const node of allArtificialNodes) {
+    const children = node.getChildren();
+    for (const child of children) {
+      node.insertBefore(child);
+    }
+    node.remove();
+  }
 }
 
 exports.$generateHtmlFromNodes = $generateHtmlFromNodes;

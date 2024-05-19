@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -80,6 +82,7 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
 const IS_APPLE = CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 const IS_FIREFOX = CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
@@ -103,6 +106,7 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 // DOM
 const DOM_ELEMENT_TYPE = 1;
@@ -229,6 +233,7 @@ function normalizeClassNames(...classNames) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 // The time between a text entry event and the mutation observer firing.
 const TEXT_MUTATION_VARIANCE = 100;
 let isProcessingMutations = false;
@@ -258,7 +263,7 @@ function getLastSelection(editor) {
     return selection !== null ? selection.clone() : null;
   });
 }
-function handleTextMutation(target, node, editor) {
+function $handleTextMutation(target, node, editor) {
   const domSelection = getDOMSelection(editor._window);
   let anchorOffset = null;
   let focusOffset = null;
@@ -306,7 +311,7 @@ function $flushMutations$1(editor, mutations, observer) {
           // Text mutations are deferred and passed to mutation listeners to be
           // processed outside of the Lexical engine.
           if (shouldFlushTextMutations && $isTextNode(targetNode) && shouldUpdateTextNodeFromMutation(selection, targetDOM, targetNode)) {
-            handleTextMutation(
+            $handleTextMutation(
             // nodeType === DOM_TEXT_TYPE is a Text DOM node
             targetDOM, targetNode, editor);
           }
@@ -318,7 +323,7 @@ function $flushMutations$1(editor, mutations, observer) {
           const addedDOMs = mutation.addedNodes;
           for (let s = 0; s < addedDOMs.length; s++) {
             const addedDOM = addedDOMs[s];
-            const node = getNodeFromDOMNode(addedDOM);
+            const node = $getNodeFromDOMNode(addedDOM);
             const parentDOM = addedDOM.parentNode;
             if (parentDOM != null && addedDOM !== blockCursorElement && node === null && (addedDOM.nodeName !== 'BR' || !isManagedLineBreak(addedDOM, parentDOM, editor))) {
               if (IS_FIREFOX) {
@@ -419,7 +424,7 @@ function $flushMutations$1(editor, mutations, observer) {
     isProcessingMutations = false;
   }
 }
-function flushRootMutations(editor) {
+function $flushRootMutations(editor) {
   const observer = editor._observer;
   if (observer !== null) {
     const mutations = observer.takeRecords();
@@ -440,6 +445,7 @@ function initMutationObserver(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $canSimpleTextNodesBeMerged(node1, node2) {
   const node1Mode = node1.__mode;
   const node1Format = node1.__format;
@@ -546,6 +552,7 @@ function $normalizePoint(point) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 let keyCounter = 1;
 function generateRandomKey() {
   return '' + keyCounter++;
@@ -674,6 +681,8 @@ function internalMarkParentElementsAsDirty(parentKey, nodeMap, dirtyElements) {
     nextParentKey = node.__parent;
   }
 }
+
+// TODO #6031 this function or their callers have to adjust selection (i.e. insertBefore)
 function removeFromParent(node) {
   const oldParent = node.getParent();
   if (oldParent !== null) {
@@ -792,7 +801,7 @@ function $getNodeByKey(key, _editorState) {
   }
   return node;
 }
-function getNodeFromDOMNode(dom, editorState) {
+function $getNodeFromDOMNode(dom, editorState) {
   const editor = getActiveEditor();
   // @ts-ignore We intentionally add this to the Node.
   const key = dom[`__lexicalKey_${editor._key}`];
@@ -804,7 +813,7 @@ function getNodeFromDOMNode(dom, editorState) {
 function $getNearestNodeFromDOMNode(startingDOM, editorState) {
   let dom = startingDOM;
   while (dom != null) {
-    const node = getNodeFromDOMNode(dom, editorState);
+    const node = $getNodeFromDOMNode(dom, editorState);
     if (node !== null) {
       return node;
     }
@@ -865,9 +874,9 @@ function $setSelection(selection) {
 function $flushMutations() {
   errorOnReadOnly();
   const editor = getActiveEditor();
-  flushRootMutations(editor);
+  $flushRootMutations(editor);
 }
-function getNodeFromDOM(dom) {
+function $getNodeFromDOM(dom) {
   const editor = getActiveEditor();
   const nodeKey = getNodeKeyFromDOM(dom, editor);
   if (nodeKey === null) {
@@ -1026,20 +1035,20 @@ function $shouldInsertTextAfterOrBeforeTextNode(selection, node) {
     return false;
   }
 }
-function isTab(keyCode, altKey, ctrlKey, metaKey) {
-  return keyCode === 9 && !altKey && !ctrlKey && !metaKey;
+function isTab(code, altKey, ctrlKey, metaKey) {
+  return code === 'Tab' && !altKey && !ctrlKey && !metaKey;
 }
-function isBold(keyCode, altKey, metaKey, ctrlKey) {
-  return keyCode === 66 && !altKey && controlOrMeta(metaKey, ctrlKey);
+function isBold(code, altKey, metaKey, ctrlKey) {
+  return code === 'KeyB' && !altKey && controlOrMeta(metaKey, ctrlKey);
 }
-function isItalic(keyCode, altKey, metaKey, ctrlKey) {
-  return keyCode === 73 && !altKey && controlOrMeta(metaKey, ctrlKey);
+function isItalic(code, altKey, metaKey, ctrlKey) {
+  return code === 'KeyI' && !altKey && controlOrMeta(metaKey, ctrlKey);
 }
-function isUnderline(keyCode, altKey, metaKey, ctrlKey) {
-  return keyCode === 85 && !altKey && controlOrMeta(metaKey, ctrlKey);
+function isUnderline(code, altKey, metaKey, ctrlKey) {
+  return code === 'KeyU' && !altKey && controlOrMeta(metaKey, ctrlKey);
 }
-function isParagraph(keyCode, shiftKey) {
-  return isReturn(keyCode) && !shiftKey;
+function isParagraph(code, shiftKey) {
+  return isReturn(code) && !shiftKey;
 }
 function isLineBreak(keyCode, shiftKey) {
   return isReturn(keyCode) && shiftKey;
@@ -1047,108 +1056,108 @@ function isLineBreak(keyCode, shiftKey) {
 
 // Inserts a new line after the selection
 
-function isOpenLineBreak(keyCode, ctrlKey) {
+function isOpenLineBreak(code, ctrlKey) {
   // 79 = KeyO
-  return IS_APPLE && ctrlKey && keyCode === 79;
+  return IS_APPLE && ctrlKey && code === 'KeyO';
 }
-function isDeleteWordBackward(keyCode, altKey, ctrlKey) {
-  return isBackspace(keyCode) && (IS_APPLE ? altKey : ctrlKey);
+function isDeleteWordBackward(code, altKey, ctrlKey) {
+  return isBackspace(code) && (IS_APPLE ? altKey : ctrlKey);
 }
-function isDeleteWordForward(keyCode, altKey, ctrlKey) {
-  return isDelete(keyCode) && (IS_APPLE ? altKey : ctrlKey);
+function isDeleteWordForward(code, altKey, ctrlKey) {
+  return isDelete(code) && (IS_APPLE ? altKey : ctrlKey);
 }
-function isDeleteLineBackward(keyCode, metaKey) {
-  return IS_APPLE && metaKey && isBackspace(keyCode);
+function isDeleteLineBackward(code, metaKey) {
+  return IS_APPLE && metaKey && isBackspace(code);
 }
-function isDeleteLineForward(keyCode, metaKey) {
-  return IS_APPLE && metaKey && isDelete(keyCode);
+function isDeleteLineForward(code, metaKey) {
+  return IS_APPLE && metaKey && isDelete(code);
 }
-function isDeleteBackward(keyCode, altKey, metaKey, ctrlKey) {
+function isDeleteBackward(code, altKey, metaKey, ctrlKey) {
   if (IS_APPLE) {
     if (altKey || metaKey) {
       return false;
     }
-    return isBackspace(keyCode) || keyCode === 72 && ctrlKey;
+    return isBackspace(code) || code === 'KeyH' && ctrlKey;
   }
   if (ctrlKey || altKey || metaKey) {
     return false;
   }
-  return isBackspace(keyCode);
+  return isBackspace(code);
 }
-function isDeleteForward(keyCode, ctrlKey, shiftKey, altKey, metaKey) {
+function isDeleteForward(code, ctrlKey, shiftKey, altKey, metaKey) {
   if (IS_APPLE) {
     if (shiftKey || altKey || metaKey) {
       return false;
     }
-    return isDelete(keyCode) || keyCode === 68 && ctrlKey;
+    return isDelete(code) || code === 'KeyD' && ctrlKey;
   }
   if (ctrlKey || altKey || metaKey) {
     return false;
   }
-  return isDelete(keyCode);
+  return isDelete(code);
 }
-function isUndo(keyCode, shiftKey, metaKey, ctrlKey) {
-  return keyCode === 90 && !shiftKey && controlOrMeta(metaKey, ctrlKey);
+function isUndo(code, shiftKey, metaKey, ctrlKey) {
+  return code === 'KeyZ' && !shiftKey && controlOrMeta(metaKey, ctrlKey);
 }
-function isRedo(keyCode, shiftKey, metaKey, ctrlKey) {
+function isRedo(code, shiftKey, metaKey, ctrlKey) {
   if (IS_APPLE) {
-    return keyCode === 90 && metaKey && shiftKey;
+    return code === 'KeyZ' && metaKey && shiftKey;
   }
-  return keyCode === 89 && ctrlKey || keyCode === 90 && ctrlKey && shiftKey;
+  return code === 'KeyY' && ctrlKey || code === 'KeyZ' && ctrlKey && shiftKey;
 }
-function isCopy(keyCode, shiftKey, metaKey, ctrlKey) {
+function isCopy(code, shiftKey, metaKey, ctrlKey) {
   if (shiftKey) {
     return false;
   }
-  if (keyCode === 67) {
+  if (code === 'KeyC') {
     return IS_APPLE ? metaKey : ctrlKey;
   }
   return false;
 }
-function isCut(keyCode, shiftKey, metaKey, ctrlKey) {
+function isCut(code, shiftKey, metaKey, ctrlKey) {
   if (shiftKey) {
     return false;
   }
-  if (keyCode === 88) {
+  if (code === 'KeyX') {
     return IS_APPLE ? metaKey : ctrlKey;
   }
   return false;
 }
-function isArrowLeft(keyCode) {
-  return keyCode === 37;
+function isArrowLeft(code) {
+  return code === 'ArrowLeft';
 }
-function isArrowRight(keyCode) {
-  return keyCode === 39;
+function isArrowRight(code) {
+  return code === 'ArrowRight';
 }
-function isArrowUp(keyCode) {
-  return keyCode === 38;
+function isArrowUp(code) {
+  return code === 'ArrowUp';
 }
-function isArrowDown(keyCode) {
-  return keyCode === 40;
+function isArrowDown(code) {
+  return code === 'ArrowDown';
 }
-function isMoveBackward(keyCode, ctrlKey, altKey, metaKey) {
-  return isArrowLeft(keyCode) && !ctrlKey && !metaKey && !altKey;
+function isMoveBackward(code, ctrlKey, altKey, metaKey) {
+  return isArrowLeft(code) && !ctrlKey && !metaKey && !altKey;
 }
-function isMoveToStart(keyCode, ctrlKey, shiftKey, altKey, metaKey) {
-  return isArrowLeft(keyCode) && !altKey && !shiftKey && (ctrlKey || metaKey);
+function isMoveToStart(code, ctrlKey, shiftKey, altKey, metaKey) {
+  return isArrowLeft(code) && !altKey && !shiftKey && (ctrlKey || metaKey);
 }
-function isMoveForward(keyCode, ctrlKey, altKey, metaKey) {
-  return isArrowRight(keyCode) && !ctrlKey && !metaKey && !altKey;
+function isMoveForward(code, ctrlKey, altKey, metaKey) {
+  return isArrowRight(code) && !ctrlKey && !metaKey && !altKey;
 }
-function isMoveToEnd(keyCode, ctrlKey, shiftKey, altKey, metaKey) {
-  return isArrowRight(keyCode) && !altKey && !shiftKey && (ctrlKey || metaKey);
+function isMoveToEnd(code, ctrlKey, shiftKey, altKey, metaKey) {
+  return isArrowRight(code) && !altKey && !shiftKey && (ctrlKey || metaKey);
 }
-function isMoveUp(keyCode, ctrlKey, metaKey) {
-  return isArrowUp(keyCode) && !ctrlKey && !metaKey;
+function isMoveUp(code, ctrlKey, metaKey) {
+  return isArrowUp(code) && !ctrlKey && !metaKey;
 }
-function isMoveDown(keyCode, ctrlKey, metaKey) {
-  return isArrowDown(keyCode) && !ctrlKey && !metaKey;
+function isMoveDown(code, ctrlKey, metaKey) {
+  return isArrowDown(code) && !ctrlKey && !metaKey;
 }
 function isModifier(ctrlKey, shiftKey, altKey, metaKey) {
   return ctrlKey || shiftKey || altKey || metaKey;
 }
-function isSpace(keyCode) {
-  return keyCode === 32;
+function isSpace(code) {
+  return code === 'Space';
 }
 function controlOrMeta(metaKey, ctrlKey) {
   if (IS_APPLE) {
@@ -1156,20 +1165,20 @@ function controlOrMeta(metaKey, ctrlKey) {
   }
   return ctrlKey;
 }
-function isReturn(keyCode) {
-  return keyCode === 13;
+function isReturn(code) {
+  return code === 'Enter';
 }
-function isBackspace(keyCode) {
-  return keyCode === 8;
+function isBackspace(code) {
+  return code === 'Backspace';
 }
-function isEscape(keyCode) {
-  return keyCode === 27;
+function isEscape(code) {
+  return code === 'Escape';
 }
-function isDelete(keyCode) {
-  return keyCode === 46;
+function isDelete(code) {
+  return code === 'Delete';
 }
-function isSelectAll(keyCode, metaKey, ctrlKey) {
-  return keyCode === 65 && controlOrMeta(metaKey, ctrlKey);
+function isSelectAll(code, metaKey, ctrlKey) {
+  return code === 'KeyA' && controlOrMeta(metaKey, ctrlKey);
 }
 function $selectAll() {
   const root = $getRoot();
@@ -1575,11 +1584,31 @@ function isHTMLElement(x) {
 }
 
 /**
+ *
+ * @param node - the Dom Node to check
+ * @returns if the Dom Node is an inline node
+ */
+function isInlineDomNode(node) {
+  const inlineNodes = new RegExp(/^(a|abbr|acronym|b|cite|code|del|em|i|ins|kbd|label|output|q|ruby|s|samp|span|strong|sub|sup|time|u|tt|var|#text)$/, 'i');
+  return node.nodeName.match(inlineNodes) !== null;
+}
+
+/**
+ *
+ * @param node - the Dom Node to check
+ * @returns if the Dom Node is a block node
+ */
+function isBlockDomNode(node) {
+  const blockNodes = new RegExp(/^(address|article|aside|blockquote|canvas|dd|div|dl|dt|fieldset|figcaption|figure|footer|form|h1|h2|h3|h4|h5|h6|header|hr|li|main|nav|noscript|ol|p|pre|section|table|td|tfoot|ul|video)$/, 'i');
+  return node.nodeName.match(blockNodes) !== null;
+}
+
+/**
  * This function is for internal use of the library.
  * Please do not use it as it may change in the future.
  */
 function INTERNAL_$isBlock(node) {
-  if ($isDecoratorNode(node) && !node.isInline()) {
+  if ($isRootNode(node) || $isDecoratorNode(node) && !node.isInline()) {
     return true;
   }
   if (!$isElementNode(node) || $isRootOrShadowRoot(node)) {
@@ -1612,6 +1641,7 @@ function $getEditor() {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $garbageCollectDetachedDecorators(editor, pendingEditorState) {
   const currentDecorators = editor._decorators;
   const pendingDecorators = editor._pendingDecorators;
@@ -1691,6 +1721,7 @@ function $garbageCollectDetachedNodes(prevEditorState, editorState, dirtyLeaves,
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 let subTreeTextContent = '';
 let subTreeDirectionedTextContent = '';
 let subTreeTextFormat = null;
@@ -1774,7 +1805,7 @@ function setElementFormat(dom, format) {
     setTextAlign(domStyle, 'end');
   }
 }
-function createNode(key, parentDOM, insertDOM) {
+function $createNode(key, parentDOM, insertDOM) {
   const node = activeNextNodeMap.get(key);
   if (node === undefined) {
     {
@@ -1801,7 +1832,7 @@ function createNode(key, parentDOM, insertDOM) {
     if (childrenSize !== 0) {
       const endIndex = childrenSize - 1;
       const children = createChildrenArray(node, activeNextNodeMap);
-      createChildrenWithDirection(children, endIndex, node, dom);
+      $createChildrenWithDirection(children, endIndex, node, dom);
     }
     const format = node.__format;
     if (format !== 0) {
@@ -1851,19 +1882,19 @@ function createNode(key, parentDOM, insertDOM) {
   setMutatedNode(mutatedNodes, activeEditorNodes, activeMutationListeners, node, 'created');
   return dom;
 }
-function createChildrenWithDirection(children, endIndex, element, dom) {
+function $createChildrenWithDirection(children, endIndex, element, dom) {
   const previousSubTreeDirectionedTextContent = subTreeDirectionedTextContent;
   subTreeDirectionedTextContent = '';
-  createChildren(children, element, 0, endIndex, dom, null);
+  $createChildren(children, element, 0, endIndex, dom, null);
   reconcileBlockDirection(element, dom);
   subTreeDirectionedTextContent = previousSubTreeDirectionedTextContent;
 }
-function createChildren(children, element, _startIndex, endIndex, dom, insertDOM) {
+function $createChildren(children, element, _startIndex, endIndex, dom, insertDOM) {
   const previousSubTreeTextContent = subTreeTextContent;
   subTreeTextContent = '';
   let startIndex = _startIndex;
   for (; startIndex <= endIndex; ++startIndex) {
-    createNode(children[startIndex], dom, insertDOM);
+    $createNode(children[startIndex], dom, insertDOM);
     const node = activeNextNodeMap.get(children[startIndex]);
     if (node !== null && subTreeTextFormat === null && $isTextNode(node)) {
       subTreeTextFormat = node.getFormat();
@@ -1964,11 +1995,11 @@ function reconcileBlockDirection(element, dom) {
     dom.__lexicalDir = direction;
   }
 }
-function reconcileChildrenWithDirection(prevElement, nextElement, dom) {
+function $reconcileChildrenWithDirection(prevElement, nextElement, dom) {
   const previousSubTreeDirectionTextContent = subTreeDirectionedTextContent;
   subTreeDirectionedTextContent = '';
   subTreeTextFormat = null;
-  reconcileChildren(prevElement, nextElement, dom);
+  $reconcileChildren(prevElement, nextElement, dom);
   reconcileBlockDirection(nextElement, dom);
   reconcileParagraphFormat(nextElement);
   subTreeDirectionedTextContent = previousSubTreeDirectionTextContent;
@@ -1989,7 +2020,7 @@ function createChildrenArray(element, nodeMap) {
   }
   return children;
 }
-function reconcileChildren(prevElement, nextElement, dom) {
+function $reconcileChildren(prevElement, nextElement, dom) {
   const previousSubTreeTextContent = subTreeTextContent;
   const prevChildrenSize = prevElement.__size;
   const nextChildrenSize = nextElement.__size;
@@ -1998,10 +2029,10 @@ function reconcileChildren(prevElement, nextElement, dom) {
     const prevFirstChildKey = prevElement.__first;
     const nextFrstChildKey = nextElement.__first;
     if (prevFirstChildKey === nextFrstChildKey) {
-      reconcileNode(prevFirstChildKey, dom);
+      $reconcileNode(prevFirstChildKey, dom);
     } else {
       const lastDOM = getPrevElementByKeyOrThrow(prevFirstChildKey);
-      const replacementDOM = createNode(nextFrstChildKey, null, null);
+      const replacementDOM = $createNode(nextFrstChildKey, null, null);
       dom.replaceChild(replacementDOM, lastDOM);
       destroyNode(prevFirstChildKey, null);
     }
@@ -2014,7 +2045,7 @@ function reconcileChildren(prevElement, nextElement, dom) {
     const nextChildren = createChildrenArray(nextElement, activeNextNodeMap);
     if (prevChildrenSize === 0) {
       if (nextChildrenSize !== 0) {
-        createChildren(nextChildren, nextElement, 0, nextChildrenSize - 1, dom, null);
+        $createChildren(nextChildren, nextElement, 0, nextChildrenSize - 1, dom, null);
       }
     } else if (nextChildrenSize === 0) {
       if (prevChildrenSize !== 0) {
@@ -2028,7 +2059,7 @@ function reconcileChildren(prevElement, nextElement, dom) {
         }
       }
     } else {
-      reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChildrenSize, nextChildrenSize, dom);
+      $reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChildrenSize, nextChildrenSize, dom);
     }
   }
   if ($textContentRequiresDoubleLinebreakAtEnd(nextElement)) {
@@ -2039,7 +2070,7 @@ function reconcileChildren(prevElement, nextElement, dom) {
   dom.__lexicalTextContent = subTreeTextContent;
   subTreeTextContent = previousSubTreeTextContent + subTreeTextContent;
 }
-function reconcileNode(key, parentDOM) {
+function $reconcileNode(key, parentDOM) {
   const prevNode = activePrevNodeMap.get(key);
   let nextNode = activeNextNodeMap.get(key);
   if (prevNode === undefined || nextNode === undefined) {
@@ -2087,7 +2118,7 @@ function reconcileNode(key, parentDOM) {
   nextNode.updateDOMProperties(prevNode, dom, activeEditorConfig);
   // Update node. If it returns true, we need to unmount and re-create the node
   if (nextNode.updateDOM(prevNode, dom, activeEditorConfig)) {
-    const replacementDOM = createNode(key, null, null);
+    const replacementDOM = $createNode(key, null, null);
     if (parentDOM === null) {
       {
         throw Error(`reconcileNode: parentDOM is null`);
@@ -2108,7 +2139,7 @@ function reconcileNode(key, parentDOM) {
       setElementFormat(dom, nextFormat);
     }
     if (isDirty) {
-      reconcileChildrenWithDirection(prevNode, nextNode, dom);
+      $reconcileChildrenWithDirection(prevNode, nextNode, dom);
       if (!$isRootNode(nextNode) && !nextNode.isInline()) {
         reconcileElementTerminatingLineBreak(prevNode, nextNode, dom);
       }
@@ -2164,7 +2195,7 @@ function getNextSibling(element) {
   }
   return nextSibling;
 }
-function reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChildrenLength, nextChildrenLength, dom) {
+function $reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChildrenLength, nextChildrenLength, dom) {
   const prevEndIndex = prevChildrenLength - 1;
   const nextEndIndex = nextChildrenLength - 1;
   let prevChildrenSet;
@@ -2176,7 +2207,7 @@ function reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChil
     const prevKey = prevChildren[prevIndex];
     const nextKey = nextChildren[nextIndex];
     if (prevKey === nextKey) {
-      siblingDOM = getNextSibling(reconcileNode(nextKey, dom));
+      siblingDOM = getNextSibling($reconcileNode(nextKey, dom));
       prevIndex++;
       nextIndex++;
     } else {
@@ -2195,20 +2226,20 @@ function reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChil
         prevIndex++;
       } else if (!prevHasNextKey) {
         // Create next
-        createNode(nextKey, dom, siblingDOM);
+        $createNode(nextKey, dom, siblingDOM);
         nextIndex++;
       } else {
         // Move next
         const childDOM = getElementByKeyOrThrow(activeEditor$1, nextKey);
         if (childDOM === siblingDOM) {
-          siblingDOM = getNextSibling(reconcileNode(nextKey, dom));
+          siblingDOM = getNextSibling($reconcileNode(nextKey, dom));
         } else {
           if (siblingDOM != null) {
             dom.insertBefore(childDOM, siblingDOM);
           } else {
             dom.appendChild(childDOM);
           }
-          reconcileNode(nextKey, dom);
+          $reconcileNode(nextKey, dom);
         }
         prevIndex++;
         nextIndex++;
@@ -2224,12 +2255,12 @@ function reconcileNodeChildren(nextElement, prevChildren, nextChildren, prevChil
   if (appendNewChildren && !removeOldChildren) {
     const previousNode = nextChildren[nextEndIndex + 1];
     const insertDOM = previousNode === undefined ? null : activeEditor$1.getElementByKey(previousNode);
-    createChildren(nextChildren, nextElement, nextIndex, nextEndIndex, dom, insertDOM);
+    $createChildren(nextChildren, nextElement, nextIndex, nextEndIndex, dom, insertDOM);
   } else if (removeOldChildren && !appendNewChildren) {
     destroyChildren(prevChildren, prevIndex, prevEndIndex, dom);
   }
 }
-function reconcileRoot(prevEditorState, nextEditorState, editor, dirtyType, dirtyElements, dirtyLeaves) {
+function $reconcileRoot(prevEditorState, nextEditorState, editor, dirtyType, dirtyElements, dirtyLeaves) {
   // We cache text content to make retrieval more efficient.
   // The cache must be rebuilt during reconciliation to account for any changes.
   subTreeTextContent = '';
@@ -2253,7 +2284,7 @@ function reconcileRoot(prevEditorState, nextEditorState, editor, dirtyType, dirt
   // listeners later in the update cycle.
   const currentMutatedNodes = new Map();
   mutatedNodes = currentMutatedNodes;
-  reconcileNode('root', null);
+  $reconcileNode('root', null);
   // We don't want a bunch of void checks throughout the scope
   // so instead we make it seem that these values are always set.
   // We also want to make sure we clear them down, otherwise we
@@ -2301,6 +2332,7 @@ function getPrevElementByKeyOrThrow(key) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const PASS_THROUGH_COMMAND = Object.freeze({});
 const ANDROID_COMPOSITION_LATENCY = 30;
 const rootElementEvents = [['keydown', onKeyDown], ['pointerdown', onPointerDown], ['compositionstart', onCompositionStart], ['compositionend', onCompositionEnd], ['input', onInput], ['click', onClick], ['cut', PASS_THROUGH_COMMAND], ['copy', PASS_THROUGH_COMMAND], ['dragstart', PASS_THROUGH_COMMAND], ['dragover', PASS_THROUGH_COMMAND], ['dragend', PASS_THROUGH_COMMAND], ['paste', PASS_THROUGH_COMMAND], ['focus', PASS_THROUGH_COMMAND], ['blur', PASS_THROUGH_COMMAND], ['drop', PASS_THROUGH_COMMAND]];
@@ -2308,7 +2340,7 @@ if (CAN_USE_BEFORE_INPUT) {
   rootElementEvents.push(['beforeinput', (event, editor) => onBeforeInput(event, editor)]);
 }
 let lastKeyDownTimeStamp = 0;
-let lastKeyCode = 0;
+let lastKeyCode = null;
 let lastBeforeInputInsertTextTimeStamp = 0;
 let unprocessedBeforeInputData = null;
 const rootElementsRegistered = new WeakMap();
@@ -2513,7 +2545,7 @@ function onClick(event, editor) {
           // When we click on an empty paragraph node or the end of a paragraph that ends
           // with an image/poll, the nodeType will be ELEMENT_NODE
           if (nodeType === DOM_ELEMENT_TYPE || nodeType === DOM_TEXT_TYPE) {
-            const newSelection = internalCreateRangeSelection(lastSelection, domSelection, editor, event);
+            const newSelection = $internalCreateRangeSelection(lastSelection, domSelection, editor, event);
             $setSelection(newSelection);
           }
         }
@@ -2550,7 +2582,7 @@ function $canRemoveText(anchorNode, focusNode) {
   return anchorNode !== focusNode || $isElementNode(anchorNode) || $isElementNode(focusNode) || !anchorNode.isToken() || !focusNode.isToken();
 }
 function isPossiblyAndroidKeyPress(timeStamp) {
-  return lastKeyCode === 229 && timeStamp < lastKeyDownTimeStamp + ANDROID_COMPOSITION_LATENCY;
+  return lastKeyCode === 'Delete' && timeStamp < lastKeyDownTimeStamp + ANDROID_COMPOSITION_LATENCY;
 }
 function onBeforeInput(event, editor) {
   const inputType = event.inputType;
@@ -2796,7 +2828,7 @@ function onInput(event, editor) {
       // to ensure to disable composition before dispatching the
       // insertText command for when changing the sequence for FF.
       if (isFirefoxEndingComposition) {
-        onCompositionEndImpl(editor, data);
+        $onCompositionEndImpl(editor, data);
         isFirefoxEndingComposition = false;
       }
       const anchor = selection.anchor;
@@ -2805,11 +2837,13 @@ function onInput(event, editor) {
       if (domSelection === null) {
         return;
       }
-      const offset = anchor.offset;
+      const isBackward = selection.isBackward();
+      const startOffset = isBackward ? selection.anchor.offset : selection.focus.offset;
+      const endOffset = isBackward ? selection.focus.offset : selection.anchor.offset;
       // If the content is the same as inserted, then don't dispatch an insertion.
       // Given onInput doesn't take the current selection (it uses the previous)
       // we can compare that against what the DOM currently says.
-      if (!CAN_USE_BEFORE_INPUT || selection.isCollapsed() || !$isTextNode(anchorNode) || domSelection.anchorNode === null || anchorNode.getTextContent().slice(0, offset) + data + anchorNode.getTextContent().slice(offset + selection.focus.offset) !== getAnchorTextFromDOM(domSelection.anchorNode)) {
+      if (!CAN_USE_BEFORE_INPUT || selection.isCollapsed() || !$isTextNode(anchorNode) || domSelection.anchorNode === null || anchorNode.getTextContent().slice(0, startOffset) + data + anchorNode.getTextContent().slice(startOffset + endOffset) !== getAnchorTextFromDOM(domSelection.anchorNode)) {
         dispatchCommand(editor, CONTROLLED_TEXT_INSERTION_COMMAND, data);
       }
       const textLength = data.length;
@@ -2831,7 +2865,7 @@ function onInput(event, editor) {
 
       // onInput always fires after onCompositionEnd for FF.
       if (isFirefoxEndingComposition) {
-        onCompositionEndImpl(editor, data || undefined);
+        $onCompositionEndImpl(editor, data || undefined);
         isFirefoxEndingComposition = false;
       }
     }
@@ -2866,7 +2900,7 @@ function onCompositionStart(event, editor) {
     }
   });
 }
-function onCompositionEndImpl(editor, data) {
+function $onCompositionEndImpl(editor, data) {
   const compositionKey = editor._compositionKey;
   $setCompositionKey(null);
 
@@ -2909,18 +2943,18 @@ function onCompositionEnd(event, editor) {
     isFirefoxEndingComposition = true;
   } else {
     updateEditor(editor, () => {
-      onCompositionEndImpl(editor, event.data);
+      $onCompositionEndImpl(editor, event.data);
     });
   }
 }
 function onKeyDown(event, editor) {
   lastKeyDownTimeStamp = event.timeStamp;
-  lastKeyCode = event.keyCode;
+  lastKeyCode = event.code;
   if (editor.isComposing()) {
     return;
   }
   const {
-    keyCode,
+    code,
     shiftKey,
     ctrlKey,
     metaKey,
@@ -2929,90 +2963,90 @@ function onKeyDown(event, editor) {
   if (dispatchCommand(editor, KEY_DOWN_COMMAND, event)) {
     return;
   }
-  if (isMoveForward(keyCode, ctrlKey, altKey, metaKey)) {
+  if (isMoveForward(code, ctrlKey, altKey, metaKey)) {
     dispatchCommand(editor, KEY_ARROW_RIGHT_COMMAND, event);
-  } else if (isMoveToEnd(keyCode, ctrlKey, shiftKey, altKey, metaKey)) {
+  } else if (isMoveToEnd(code, ctrlKey, shiftKey, altKey, metaKey)) {
     dispatchCommand(editor, MOVE_TO_END, event);
-  } else if (isMoveBackward(keyCode, ctrlKey, altKey, metaKey)) {
+  } else if (isMoveBackward(code, ctrlKey, altKey, metaKey)) {
     dispatchCommand(editor, KEY_ARROW_LEFT_COMMAND, event);
-  } else if (isMoveToStart(keyCode, ctrlKey, shiftKey, altKey, metaKey)) {
+  } else if (isMoveToStart(code, ctrlKey, shiftKey, altKey, metaKey)) {
     dispatchCommand(editor, MOVE_TO_START, event);
-  } else if (isMoveUp(keyCode, ctrlKey, metaKey)) {
+  } else if (isMoveUp(code, ctrlKey, metaKey)) {
     dispatchCommand(editor, KEY_ARROW_UP_COMMAND, event);
-  } else if (isMoveDown(keyCode, ctrlKey, metaKey)) {
+  } else if (isMoveDown(code, ctrlKey, metaKey)) {
     dispatchCommand(editor, KEY_ARROW_DOWN_COMMAND, event);
-  } else if (isLineBreak(keyCode, shiftKey)) {
+  } else if (isLineBreak(code, shiftKey)) {
     isInsertLineBreak = true;
     dispatchCommand(editor, KEY_ENTER_COMMAND, event);
-  } else if (isSpace(keyCode)) {
+  } else if (isSpace(code)) {
     dispatchCommand(editor, KEY_SPACE_COMMAND, event);
-  } else if (isOpenLineBreak(keyCode, ctrlKey)) {
+  } else if (isOpenLineBreak(code, ctrlKey)) {
     event.preventDefault();
     isInsertLineBreak = true;
     dispatchCommand(editor, INSERT_LINE_BREAK_COMMAND, true);
-  } else if (isParagraph(keyCode, shiftKey)) {
+  } else if (isParagraph(code, shiftKey)) {
     isInsertLineBreak = false;
     dispatchCommand(editor, KEY_ENTER_COMMAND, event);
-  } else if (isDeleteBackward(keyCode, altKey, metaKey, ctrlKey)) {
-    if (isBackspace(keyCode)) {
+  } else if (isDeleteBackward(code, altKey, metaKey, ctrlKey)) {
+    if (isBackspace(code)) {
       dispatchCommand(editor, KEY_BACKSPACE_COMMAND, event);
     } else {
       event.preventDefault();
       dispatchCommand(editor, DELETE_CHARACTER_COMMAND, true);
     }
-  } else if (isEscape(keyCode)) {
+  } else if (isEscape(code)) {
     dispatchCommand(editor, KEY_ESCAPE_COMMAND, event);
-  } else if (isDeleteForward(keyCode, ctrlKey, shiftKey, altKey, metaKey)) {
-    if (isDelete(keyCode)) {
+  } else if (isDeleteForward(code, ctrlKey, shiftKey, altKey, metaKey)) {
+    if (isDelete(code)) {
       dispatchCommand(editor, KEY_DELETE_COMMAND, event);
     } else {
       event.preventDefault();
       dispatchCommand(editor, DELETE_CHARACTER_COMMAND, false);
     }
-  } else if (isDeleteWordBackward(keyCode, altKey, ctrlKey)) {
+  } else if (isDeleteWordBackward(code, altKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, DELETE_WORD_COMMAND, true);
-  } else if (isDeleteWordForward(keyCode, altKey, ctrlKey)) {
+  } else if (isDeleteWordForward(code, altKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, DELETE_WORD_COMMAND, false);
-  } else if (isDeleteLineBackward(keyCode, metaKey)) {
+  } else if (isDeleteLineBackward(code, metaKey)) {
     event.preventDefault();
     dispatchCommand(editor, DELETE_LINE_COMMAND, true);
-  } else if (isDeleteLineForward(keyCode, metaKey)) {
+  } else if (isDeleteLineForward(code, metaKey)) {
     event.preventDefault();
     dispatchCommand(editor, DELETE_LINE_COMMAND, false);
-  } else if (isBold(keyCode, altKey, metaKey, ctrlKey)) {
+  } else if (isBold(code, altKey, metaKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, FORMAT_TEXT_COMMAND, 'bold');
-  } else if (isUnderline(keyCode, altKey, metaKey, ctrlKey)) {
+  } else if (isUnderline(code, altKey, metaKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, FORMAT_TEXT_COMMAND, 'underline');
-  } else if (isItalic(keyCode, altKey, metaKey, ctrlKey)) {
+  } else if (isItalic(code, altKey, metaKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, FORMAT_TEXT_COMMAND, 'italic');
-  } else if (isTab(keyCode, altKey, ctrlKey, metaKey)) {
+  } else if (isTab(code, altKey, ctrlKey, metaKey)) {
     dispatchCommand(editor, KEY_TAB_COMMAND, event);
-  } else if (isUndo(keyCode, shiftKey, metaKey, ctrlKey)) {
+  } else if (isUndo(code, shiftKey, metaKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, UNDO_COMMAND, undefined);
-  } else if (isRedo(keyCode, shiftKey, metaKey, ctrlKey)) {
+  } else if (isRedo(code, shiftKey, metaKey, ctrlKey)) {
     event.preventDefault();
     dispatchCommand(editor, REDO_COMMAND, undefined);
   } else {
     const prevSelection = editor._editorState._selection;
     if ($isNodeSelection(prevSelection)) {
-      if (isCopy(keyCode, shiftKey, metaKey, ctrlKey)) {
+      if (isCopy(code, shiftKey, metaKey, ctrlKey)) {
         event.preventDefault();
         dispatchCommand(editor, COPY_COMMAND, event);
-      } else if (isCut(keyCode, shiftKey, metaKey, ctrlKey)) {
+      } else if (isCut(code, shiftKey, metaKey, ctrlKey)) {
         event.preventDefault();
         dispatchCommand(editor, CUT_COMMAND, event);
-      } else if (isSelectAll(keyCode, metaKey, ctrlKey)) {
+      } else if (isSelectAll(code, metaKey, ctrlKey)) {
         event.preventDefault();
         dispatchCommand(editor, SELECT_ALL_COMMAND, event);
       }
       // FF does it well (no need to override behavior)
-    } else if (!IS_FIREFOX && isSelectAll(keyCode, metaKey, ctrlKey)) {
+    } else if (!IS_FIREFOX && isSelectAll(code, metaKey, ctrlKey)) {
       event.preventDefault();
       dispatchCommand(editor, SELECT_ALL_COMMAND, event);
     }
@@ -3062,7 +3096,7 @@ function onDocumentSelectionChange(event) {
       if (nodeType !== DOM_ELEMENT_TYPE && nodeType !== DOM_TEXT_TYPE) {
         return;
       }
-      const newSelection = internalCreateRangeSelection(lastSelection, domSelection, nextActiveEditor, event);
+      const newSelection = $internalCreateRangeSelection(lastSelection, domSelection, nextActiveEditor, event);
       $setSelection(newSelection);
     });
   }
@@ -3106,7 +3140,7 @@ function addRootElementEvents(rootElement, editor) {
   if (documentRootElementsCount === undefined || documentRootElementsCount < 1) {
     doc.addEventListener('selectionchange', onDocumentSelectionChange);
   }
-  rootElementsRegistered.set(doc, documentRootElementsCount || 0 + 1);
+  rootElementsRegistered.set(doc, (documentRootElementsCount || 0) + 1);
 
   // @ts-expect-error: internal field
   rootElement.__lexicalEditor = editor;
@@ -3164,8 +3198,12 @@ function removeRootElementEvents(rootElement) {
     throw Error(`Root element not registered`);
   } // We only want to have a single global selectionchange event handler, shared
   // between all editor instances.
-  rootElementsRegistered.set(doc, documentRootElementsCount - 1);
-  if (rootElementsRegistered.get(doc) === 0) {
+  const newCount = documentRootElementsCount - 1;
+  if (!(newCount >= 0)) {
+    throw Error(`Root element count less than 0`);
+  }
+  rootElementsRegistered.set(doc, newCount);
+  if (newCount === 0) {
     doc.removeEventListener('selectionchange', onDocumentSelectionChange);
   }
 
@@ -3212,7 +3250,8 @@ function markCollapsedSelectionFormat(format, style, offset, key, timeStamp) {
  * LICENSE file in the root directory of this source tree.
  *
  */
-function removeNode(nodeToRemove, restoreSelection, preserveEmptyParent) {
+
+function $removeNode(nodeToRemove, restoreSelection, preserveEmptyParent) {
   errorOnReadOnly();
   const key = nodeToRemove.__key;
   const parent = nodeToRemove.getParent();
@@ -3244,7 +3283,7 @@ function removeNode(nodeToRemove, restoreSelection, preserveEmptyParent) {
     removeFromParent(nodeToRemove);
   }
   if (!preserveEmptyParent && !$isRootOrShadowRoot(parent) && !parent.canBeEmpty() && parent.isEmpty()) {
-    removeNode(parent, restoreSelection);
+    $removeNode(parent, restoreSelection);
   }
   if (restoreSelection && $isRootNode(parent) && parent.isEmpty()) {
     parent.selectEnd();
@@ -3920,7 +3959,7 @@ class LexicalNode {
    * other node heuristics such as {@link ElementNode#canBeEmpty}
    * */
   remove(preserveEmptyParent) {
-    removeNode(this, true, preserveEmptyParent);
+    $removeNode(this, true, preserveEmptyParent);
   }
 
   /**
@@ -3949,7 +3988,7 @@ class LexicalNode {
     const prevKey = self.__prev;
     const nextKey = self.__next;
     const parentKey = self.__parent;
-    removeNode(self, false, true);
+    $removeNode(self, false, true);
     if (prevSibling === null) {
       writableParent.__first = key;
     } else {
@@ -4187,7 +4226,7 @@ function errorOnTypeKlassMismatch(type, klass) {
  * later sibling of FirstNode. If not provided, it will be its last sibling.
  */
 function insertRangeAfter(node, firstToInsert, lastToInsert) {
-  const lastToInsert2 = lastToInsert || firstToInsert.getParentOrThrow().getLastChild();
+  const lastToInsert2 = firstToInsert.getParentOrThrow().getLastChild();
   let current = firstToInsert;
   const nodesToInsert = [firstToInsert];
   while (current !== lastToInsert2) {
@@ -4212,6 +4251,7 @@ function insertRangeAfter(node, firstToInsert, lastToInsert) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class LineBreakNode extends LexicalNode {
   static getType() {
@@ -4239,7 +4279,7 @@ class LineBreakNode extends LexicalNode {
           return null;
         }
         return {
-          conversion: convertLineBreakElement,
+          conversion: $convertLineBreakElement,
           priority: 0
         };
       }
@@ -4255,7 +4295,7 @@ class LineBreakNode extends LexicalNode {
     };
   }
 }
-function convertLineBreakElement(node) {
+function $convertLineBreakElement(node) {
   return {
     node: $createLineBreakNode()
   };
@@ -4290,6 +4330,7 @@ function isWhitespaceDomTextNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function getElementOuterTag(node, format) {
   if (format & IS_CODE) {
     return 'code';
@@ -4664,7 +4705,7 @@ class TextNode extends LexicalNode {
   static importDOM() {
     return {
       '#text': () => ({
-        conversion: convertTextDOMNode,
+        conversion: $convertTextDOMNode,
         priority: 0
       }),
       b: () => ({
@@ -4908,7 +4949,7 @@ class TextNode extends LexicalNode {
       focusOffset = 0;
     }
     if (!$isRangeSelection(selection)) {
-      return internalMakeRangeSelection(key, anchorOffset, key, focusOffset, 'text', 'text');
+      return $internalMakeRangeSelection(key, anchorOffset, key, focusOffset, 'text', 'text');
     } else {
       const compositionKey = $getCompositionKey();
       if (compositionKey === selection.anchor.key || compositionKey === selection.focus.key) {
@@ -5145,14 +5186,15 @@ function convertSpanElement(domNode) {
   const span = domNode;
   const style = span.style;
   const fontWeight = style.fontWeight;
+  const textDecoration = style.textDecoration.split(' ');
   // Google Docs uses span tags + font-weight for bold text
   const hasBoldFontWeight = fontWeight === '700' || fontWeight === 'bold';
   // Google Docs uses span tags + text-decoration: line-through for strikethrough text
-  const hasLinethroughTextDecoration = style.textDecoration === 'line-through';
+  const hasLinethroughTextDecoration = textDecoration.includes('line-through');
   // Google Docs uses span tags + font-style for italic text
   const hasItalicFontStyle = style.fontStyle === 'italic';
   // Google Docs uses span tags + text-decoration: underline for underline text
-  const hasUnderlineTextDecoration = style.textDecoration === 'underline';
+  const hasUnderlineTextDecoration = textDecoration.includes('underline');
   // Google Docs uses span tags + vertical-align to specify subscript and superscript
   const verticalAlign = style.verticalAlign;
   return {
@@ -5216,7 +5258,7 @@ function findParentPreDOMNode(node) {
   }
   return resultNode;
 }
-function convertTextDOMNode(domNode) {
+function $convertTextDOMNode(domNode) {
   const domNode_ = domNode;
   const parentDom = domNode.parentElement;
   if (!(parentDom !== null)) {
@@ -5292,7 +5334,6 @@ function convertTextDOMNode(domNode) {
     node: $createTextNode(textContent)
   };
 }
-const inlineParents = new RegExp(/^(a|abbr|acronym|b|cite|code|del|em|i|ins|kbd|label|output|q|ruby|s|samp|span|strong|sub|sup|time|u|tt|var)$/, 'i');
 function findTextInLine(text, forward) {
   let node = text;
   // eslint-disable-next-line no-constant-condition
@@ -5308,7 +5349,7 @@ function findTextInLine(text, forward) {
     node = sibling;
     if (node.nodeType === DOM_ELEMENT_TYPE) {
       const display = node.style.display;
-      if (display === '' && node.nodeName.match(inlineParents) === null || display !== '' && !display.startsWith('inline')) {
+      if (display === '' && !isInlineDomNode(node) || display !== '' && !display.startsWith('inline')) {
         return null;
       }
     }
@@ -5364,6 +5405,7 @@ function $isTextNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class TabNode extends TextNode {
   static getType() {
@@ -5433,6 +5475,7 @@ function $isTabNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class Point {
   constructor(key, offset, type) {
     this._selection = null;
@@ -5828,7 +5871,7 @@ class RangeSelection {
     const editor = getActiveEditor();
     const currentEditorState = editor.getEditorState();
     const lastSelection = currentEditorState._selection;
-    const resolvedSelectionPoints = internalResolveSelectionPoints(range.startContainer, range.startOffset, range.endContainer, range.endOffset, editor, lastSelection);
+    const resolvedSelectionPoints = $internalResolveSelectionPoints(range.startContainer, range.startOffset, range.endContainer, range.endOffset, editor, lastSelection);
     if (resolvedSelectionPoints === null) {
       return;
     }
@@ -5914,20 +5957,21 @@ class RangeSelection {
   insertText(text) {
     const anchor = this.anchor;
     const focus = this.focus;
-    const isBefore = this.isCollapsed() || anchor.isBefore(focus);
     const format = this.format;
     const style = this.style;
-    if (isBefore && anchor.type === 'element') {
-      $transferStartingElementPointToTextPoint(anchor, focus, format, style);
-    } else if (!isBefore && focus.type === 'element') {
-      $transferStartingElementPointToTextPoint(focus, anchor, format, style);
+    let firstPoint = anchor;
+    let endPoint = focus;
+    if (!this.isCollapsed() && focus.isBefore(anchor)) {
+      firstPoint = focus;
+      endPoint = anchor;
     }
+    if (firstPoint.type === 'element') {
+      $transferStartingElementPointToTextPoint(firstPoint, endPoint, format, style);
+    }
+    const startOffset = firstPoint.offset;
+    let endOffset = endPoint.offset;
     const selectedNodes = this.getNodes();
     const selectedNodesLength = selectedNodes.length;
-    const firstPoint = isBefore ? anchor : focus;
-    const endPoint = isBefore ? focus : anchor;
-    const startOffset = firstPoint.offset;
-    const endOffset = endPoint.offset;
     let firstNode = selectedNodes[0];
     if (!$isTextNode(firstNode)) {
       {
@@ -5939,6 +5983,10 @@ class RangeSelection {
     const firstNodeParent = firstNode.getParentOrThrow();
     const lastIndex = selectedNodesLength - 1;
     let lastNode = selectedNodes[lastIndex];
+    if (selectedNodesLength === 1 && endPoint.type === 'element') {
+      endOffset = firstNodeTextLength;
+      endPoint.set(firstPoint.key, endOffset, 'text');
+    }
     if (this.isCollapsed() && startOffset === firstNodeTextLength && (firstNode.isSegmented() || firstNode.isToken() || !firstNode.canInsertTextAfter() || !firstNodeParent.canInsertTextAfter() && firstNode.getNextSibling() === null)) {
       let nextSibling = firstNode.getNextSibling();
       if (!$isTextNode(nextSibling) || !nextSibling.canInsertTextBefore() || $isTokenOrSegmented(nextSibling)) {
@@ -5986,7 +6034,7 @@ class RangeSelection {
       const lastNodeParent = lastNode.getParent();
       if (!firstNodeParent.canInsertTextBefore() || !firstNodeParent.canInsertTextAfter() || $isElementNode(lastNodeParent) && (!lastNodeParent.canInsertTextBefore() || !lastNodeParent.canInsertTextAfter())) {
         this.insertText('');
-        normalizeSelectionPointsForBoundaries(this.anchor, this.focus, null);
+        $normalizeSelectionPointsForBoundaries(this.anchor, this.focus, null);
         this.insertText(text);
         return;
       }
@@ -6316,7 +6364,7 @@ class RangeSelection {
       if ('__language' in nodes[0]) {
         this.insertText(nodes[0].getTextContent());
       } else {
-        const index = removeTextAndSplitBlock(this);
+        const index = $removeTextAndSplitBlock(this);
         firstBlock.splice(index, 0, nodes);
         last.selectEnd();
       }
@@ -6329,7 +6377,7 @@ class RangeSelection {
       if (!$isElementNode(firstBlock)) {
         throw Error(`Expected 'firstBlock' to be an ElementNode`);
       }
-      const index = removeTextAndSplitBlock(this);
+      const index = $removeTextAndSplitBlock(this);
       firstBlock.splice(index, 0, nodes);
       last.selectEnd();
       return;
@@ -6384,7 +6432,7 @@ class RangeSelection {
       paragraph.select();
       return paragraph;
     }
-    const index = removeTextAndSplitBlock(this);
+    const index = $removeTextAndSplitBlock(this);
     const block = $getAncestor(this.anchor.getNode(), INTERNAL_$isBlock);
     if (!$isElementNode(block)) {
       throw Error(`Expected ancestor to be an ElementNode`);
@@ -6834,7 +6882,7 @@ function shouldResolveAncestor(resolvedElement, resolvedOffset, lastPoint) {
   const parent = resolvedElement.getParent();
   return lastPoint === null || parent === null || !parent.canBeEmpty() || parent !== lastPoint.getNode();
 }
-function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
+function $internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
   let resolvedOffset = offset;
   let resolvedNode;
   // If we have selection on an element, we will
@@ -6849,6 +6897,7 @@ function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
     // We use the anchor to find which child node to select
     const childNodes = dom.childNodes;
     const childNodesLength = childNodes.length;
+    const blockCursorElement = editor._blockCursorElement;
     // If the anchor is the same as length, then this means we
     // need to select the very last text node.
     if (resolvedOffset === childNodesLength) {
@@ -6857,17 +6906,23 @@ function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
     }
     let childDOM = childNodes[resolvedOffset];
     let hasBlockCursor = false;
-    if (childDOM === editor._blockCursorElement) {
+    if (childDOM === blockCursorElement) {
       childDOM = childNodes[resolvedOffset + 1];
       hasBlockCursor = true;
-    } else if (editor._blockCursorElement !== null) {
-      resolvedOffset--;
+    } else if (blockCursorElement !== null) {
+      const blockCursorElementParent = blockCursorElement.parentNode;
+      if (dom === blockCursorElementParent) {
+        const blockCursorOffset = Array.prototype.indexOf.call(blockCursorElementParent.children, blockCursorElement);
+        if (offset > blockCursorOffset) {
+          resolvedOffset--;
+        }
+      }
     }
-    resolvedNode = getNodeFromDOM(childDOM);
+    resolvedNode = $getNodeFromDOM(childDOM);
     if ($isTextNode(resolvedNode)) {
       resolvedOffset = getTextNodeOffset(resolvedNode, moveSelectionToEnd);
     } else {
-      let resolvedElement = getNodeFromDOM(dom);
+      let resolvedElement = $getNodeFromDOM(dom);
       // Ensure resolvedElement is actually a element.
       if (resolvedElement === null) {
         return null;
@@ -6879,11 +6934,11 @@ function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
           const descendant = moveSelectionToEnd ? child.getLastDescendant() : child.getFirstDescendant();
           if (descendant === null) {
             resolvedElement = child;
-            resolvedOffset = 0;
           } else {
             child = descendant;
             resolvedElement = $isElementNode(child) ? child : child.getParentOrThrow();
           }
+          resolvedOffset = 0;
         }
         if ($isTextNode(child)) {
           resolvedNode = child;
@@ -6896,7 +6951,7 @@ function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
         const index = resolvedElement.getIndexWithinParent();
         // When selecting decorators, there can be some selection issues when using resolvedOffset,
         // and instead we should be checking if we're using the offset
-        if (offset === 0 && $isDecoratorNode(resolvedElement) && getNodeFromDOM(dom) === resolvedElement) {
+        if (offset === 0 && $isDecoratorNode(resolvedElement) && $getNodeFromDOM(dom) === resolvedElement) {
           resolvedOffset = index;
         } else {
           resolvedOffset = index + 1;
@@ -6909,7 +6964,7 @@ function internalResolveSelectionPoint(dom, offset, lastPoint, editor) {
     }
   } else {
     // TextNode or null
-    resolvedNode = getNodeFromDOM(dom);
+    resolvedNode = $getNodeFromDOM(dom);
   }
   if (!$isTextNode(resolvedNode)) {
     return null;
@@ -6956,7 +7011,7 @@ function resolveSelectionPointOnBoundary(point, isBackward, isCollapsed) {
     }
   }
 }
-function normalizeSelectionPointsForBoundaries(anchor, focus, lastSelection) {
+function $normalizeSelectionPointsForBoundaries(anchor, focus, lastSelection) {
   if (anchor.type === 'text' && focus.type === 'text') {
     const isBackward = anchor.isBefore(focus);
     const isCollapsed = anchor.is(focus);
@@ -6979,21 +7034,21 @@ function normalizeSelectionPointsForBoundaries(anchor, focus, lastSelection) {
     }
   }
 }
-function internalResolveSelectionPoints(anchorDOM, anchorOffset, focusDOM, focusOffset, editor, lastSelection) {
+function $internalResolveSelectionPoints(anchorDOM, anchorOffset, focusDOM, focusOffset, editor, lastSelection) {
   if (anchorDOM === null || focusDOM === null || !isSelectionWithinEditor(editor, anchorDOM, focusDOM)) {
     return null;
   }
-  const resolvedAnchorPoint = internalResolveSelectionPoint(anchorDOM, anchorOffset, $isRangeSelection(lastSelection) ? lastSelection.anchor : null, editor);
+  const resolvedAnchorPoint = $internalResolveSelectionPoint(anchorDOM, anchorOffset, $isRangeSelection(lastSelection) ? lastSelection.anchor : null, editor);
   if (resolvedAnchorPoint === null) {
     return null;
   }
-  const resolvedFocusPoint = internalResolveSelectionPoint(focusDOM, focusOffset, $isRangeSelection(lastSelection) ? lastSelection.focus : null, editor);
+  const resolvedFocusPoint = $internalResolveSelectionPoint(focusDOM, focusOffset, $isRangeSelection(lastSelection) ? lastSelection.focus : null, editor);
   if (resolvedFocusPoint === null) {
     return null;
   }
   if (resolvedAnchorPoint.type === 'element' && resolvedFocusPoint.type === 'element') {
-    const anchorNode = getNodeFromDOM(anchorDOM);
-    const focusNode = getNodeFromDOM(focusDOM);
+    const anchorNode = $getNodeFromDOM(anchorDOM);
+    const focusNode = $getNodeFromDOM(focusDOM);
     // Ensure if we're selecting the content of a decorator that we
     // return null for this point, as it's not in the controlled scope
     // of Lexical.
@@ -7003,7 +7058,7 @@ function internalResolveSelectionPoints(anchorDOM, anchorOffset, focusDOM, focus
   }
 
   // Handle normalization of selection when it is at the boundaries.
-  normalizeSelectionPointsForBoundaries(resolvedAnchorPoint, resolvedFocusPoint, lastSelection);
+  $normalizeSelectionPointsForBoundaries(resolvedAnchorPoint, resolvedFocusPoint, lastSelection);
   return [resolvedAnchorPoint, resolvedFocusPoint];
 }
 function $isBlockElementNode(node) {
@@ -7014,7 +7069,7 @@ function $isBlockElementNode(node) {
 // selection is null, i.e. forcing selection on the editor
 // when it current exists outside the editor.
 
-function internalMakeRangeSelection(anchorKey, anchorOffset, focusKey, focusOffset, anchorType, focusType) {
+function $internalMakeRangeSelection(anchorKey, anchorOffset, focusKey, focusOffset, anchorType, focusType) {
   const editorState = getActiveEditorState();
   const selection = new RangeSelection($createPoint(anchorKey, anchorOffset, anchorType), $createPoint(focusKey, focusOffset, focusType), 0, '');
   selection.dirty = true;
@@ -7029,19 +7084,19 @@ function $createRangeSelection() {
 function $createNodeSelection() {
   return new NodeSelection(new Set());
 }
-function internalCreateSelection(editor) {
+function $internalCreateSelection(editor) {
   const currentEditorState = editor.getEditorState();
   const lastSelection = currentEditorState._selection;
   const domSelection = getDOMSelection(editor._window);
   if ($isRangeSelection(lastSelection) || lastSelection == null) {
-    return internalCreateRangeSelection(lastSelection, domSelection, editor, null);
+    return $internalCreateRangeSelection(lastSelection, domSelection, editor, null);
   }
   return lastSelection.clone();
 }
 function $createRangeSelectionFromDom(domSelection, editor) {
-  return internalCreateRangeSelection(null, domSelection, editor, null);
+  return $internalCreateRangeSelection(null, domSelection, editor, null);
 }
-function internalCreateRangeSelection(lastSelection, domSelection, editor, event) {
+function $internalCreateRangeSelection(lastSelection, domSelection, editor, event) {
   const windowObj = editor._window;
   if (windowObj === null) {
     return null;
@@ -7081,7 +7136,7 @@ function internalCreateRangeSelection(lastSelection, domSelection, editor, event
   }
   // Let's resolve the text nodes from the offsets and DOM nodes we have from
   // native selection.
-  const resolvedSelectionPoints = internalResolveSelectionPoints(anchorDOM, anchorOffset, focusDOM, focusOffset, editor, lastSelection);
+  const resolvedSelectionPoints = $internalResolveSelectionPoints(anchorDOM, anchorOffset, focusDOM, focusOffset, editor, lastSelection);
   if (resolvedSelectionPoints === null) {
     return null;
   }
@@ -7333,6 +7388,9 @@ function updateDOMSelection(prevSelection, nextSelection, editor, domSelection, 
     // If we encounter an error, continue. This can sometimes
     // occur with FF and there's no good reason as to why it
     // should happen.
+    {
+      console.warn(error);
+    }
   }
   if (!tags.has('skip-scroll-into-view') && nextSelection.isCollapsed() && rootElement !== null && rootElement === document.activeElement) {
     const selectionTarget = nextSelection instanceof RangeSelection && nextSelection.anchor.type === 'element' ? nextAnchorNode.childNodes[nextAnchorOffset] || null : domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
@@ -7364,19 +7422,29 @@ function $getTextContent() {
   }
   return selection.getTextContent();
 }
-function removeTextAndSplitBlock(selection) {
+function $removeTextAndSplitBlock(selection) {
+  let selection_ = selection;
   if (!selection.isCollapsed()) {
-    selection.removeText();
+    selection_.removeText();
   }
-  const anchor = selection.anchor;
+  // A new selection can originate as a result of node replacement, in which case is registered via
+  // $setSelection
+  const newSelection = $getSelection();
+  if ($isRangeSelection(newSelection)) {
+    selection_ = newSelection;
+  }
+  if (!$isRangeSelection(selection_)) {
+    throw Error(`Unexpected dirty selection to be null`);
+  }
+  const anchor = selection_.anchor;
   let node = anchor.getNode();
   let offset = anchor.offset;
   while (!INTERNAL_$isBlock(node)) {
-    [node, offset] = splitNodeAtPoint(node, offset);
+    [node, offset] = $splitNodeAtPoint(node, offset);
   }
   return offset;
 }
-function splitNodeAtPoint(node, offset) {
+function $splitNodeAtPoint(node, offset) {
   const parent = node.getParent();
   if (!parent) {
     const paragraph = $createParagraphNode();
@@ -7454,6 +7522,7 @@ function $isMergeableNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 let activeEditorState = null;
 let activeEditor = null;
 let isReadOnlyMode = false;
@@ -7715,7 +7784,7 @@ function handleDEVOnlyPendingUpdateGuarantees(pendingEditorState) {
     throw new Error('Cannot call delete() on a frozen Lexical node map');
   };
 }
-function commitPendingUpdates(editor, recoveryEditorState) {
+function $commitPendingUpdates(editor, recoveryEditorState) {
   const pendingEditorState = editor._pendingEditorState;
   const rootElement = editor._rootElement;
   const shouldSkipDOM = editor._headless || rootElement === null;
@@ -7750,7 +7819,7 @@ function commitPendingUpdates(editor, recoveryEditorState) {
       const dirtyElements = editor._dirtyElements;
       const dirtyLeaves = editor._dirtyLeaves;
       observer.disconnect();
-      mutatedNodes = reconcileRoot(currentEditorState, pendingEditorState, editor, dirtyType, dirtyElements, dirtyLeaves);
+      mutatedNodes = $reconcileRoot(currentEditorState, pendingEditorState, editor, dirtyType, dirtyElements, dirtyLeaves);
     } catch (error) {
       // Report errors
       if (error instanceof Error) {
@@ -7763,7 +7832,7 @@ function commitPendingUpdates(editor, recoveryEditorState) {
         initMutationObserver(editor);
         editor._dirtyType = FULL_RECONCILE;
         isAttemptingToRecoverFromReconcilerError = true;
-        commitPendingUpdates(editor, currentEditorState);
+        $commitPendingUpdates(editor, currentEditorState);
         isAttemptingToRecoverFromReconcilerError = false;
       } else {
         // To avoid a possible situation of infinite loops, lets throw
@@ -7868,7 +7937,7 @@ function commitPendingUpdates(editor, recoveryEditorState) {
     tags
   });
   triggerDeferredUpdateCallbacks(editor, deferred);
-  triggerEnqueuedUpdates(editor);
+  $triggerEnqueuedUpdates(editor);
 }
 function triggerTextContentListeners(editor, currentEditorState, pendingEditorState) {
   const currentTextContent = getEditorStateTextContent(currentEditorState);
@@ -7935,13 +8004,13 @@ function triggerCommandListeners(editor, type, payload) {
   }
   return false;
 }
-function triggerEnqueuedUpdates(editor) {
+function $triggerEnqueuedUpdates(editor) {
   const queuedUpdates = editor._updates;
   if (queuedUpdates.length !== 0) {
     const queuedUpdate = queuedUpdates.shift();
     if (queuedUpdate) {
       const [updateFn, options] = queuedUpdate;
-      beginUpdate(editor, updateFn, options);
+      $beginUpdate(editor, updateFn, options);
     }
   }
 }
@@ -7990,7 +8059,7 @@ function processNestedUpdates(editor, initialSkipTransforms) {
   }
   return skipTransforms;
 }
-function beginUpdate(editor, updateFn, options) {
+function $beginUpdate(editor, updateFn, options) {
   const updateTags = editor._updateTags;
   let onUpdate;
   let tag;
@@ -8031,7 +8100,7 @@ function beginUpdate(editor, updateFn, options) {
           pendingEditorState._selection = currentEditorState._selection.clone();
         }
       } else {
-        pendingEditorState._selection = internalCreateSelection(editor);
+        pendingEditorState._selection = $internalCreateSelection(editor);
       }
     }
     const startingCompositionKey = editor._compositionKey;
@@ -8079,7 +8148,7 @@ function beginUpdate(editor, updateFn, options) {
     editor._cloneNotNeeded.clear();
     editor._dirtyLeaves = new Set();
     editor._dirtyElements.clear();
-    commitPendingUpdates(editor);
+    $commitPendingUpdates(editor);
     return;
   } finally {
     activeEditorState = previousActiveEditorState;
@@ -8092,10 +8161,10 @@ function beginUpdate(editor, updateFn, options) {
   if (shouldUpdate) {
     if (pendingEditorState._flushSync) {
       pendingEditorState._flushSync = false;
-      commitPendingUpdates(editor);
+      $commitPendingUpdates(editor);
     } else if (editorStateWasCloned) {
       scheduleMicroTask(() => {
-        commitPendingUpdates(editor);
+        $commitPendingUpdates(editor);
       });
     }
   } else {
@@ -8111,7 +8180,7 @@ function updateEditor(editor, updateFn, options) {
   if (editor._updating) {
     editor._updates.push([updateFn, options]);
   } else {
-    beginUpdate(editor, updateFn, options);
+    $beginUpdate(editor, updateFn, options);
   }
 }
 
@@ -8122,6 +8191,7 @@ function updateEditor(editor, updateFn, options) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /** @noInheritDoc */
 class DecoratorNode extends LexicalNode {
@@ -8158,6 +8228,7 @@ function $isDecoratorNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class ElementNode extends LexicalNode {
   /** @internal */
@@ -8399,7 +8470,7 @@ class ElementNode extends LexicalNode {
     }
     const key = this.__key;
     if (!$isRangeSelection(selection)) {
-      return internalMakeRangeSelection(key, anchorOffset, key, focusOffset, 'element', 'element');
+      return $internalMakeRangeSelection(key, anchorOffset, key, focusOffset, 'element', 'element');
     } else {
       selection.anchor.set(key, anchorOffset, 'element');
       selection.focus.set(key, focusOffset, 'element');
@@ -8633,6 +8704,7 @@ function isPointRemoved(point, nodesToRemoveKeySet, nodesToInsertKeySet) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class RootNode extends ElementNode {
   /** @internal */
@@ -8737,6 +8809,7 @@ function $isRootNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function editorStateHasDirtySelection(editorState, editor) {
   const currentSelection = editor.getEditorState()._selection;
   const pendingSelection = editorState._selection;
@@ -8815,6 +8888,28 @@ class EditorState {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
+
+// TODO: Cleanup ArtificialNode__DO_NOT_USE #5966
+class ArtificialNode__DO_NOT_USE extends ElementNode {
+  static getType() {
+    return 'artificial';
+  }
+  createDOM(config) {
+    // this isnt supposed to be used and is not used anywhere but defining it to appease the API
+    const dom = document.createElement('div');
+    return dom;
+  }
+}
+
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 /** @noInheritDoc */
 class ParagraphNode extends ElementNode {
   /** @internal */
@@ -8860,7 +8955,7 @@ class ParagraphNode extends ElementNode {
   static importDOM() {
     return {
       p: node => ({
-        conversion: convertParagraphElement,
+        conversion: $convertParagraphElement,
         priority: 0
       })
     };
@@ -8939,7 +9034,7 @@ class ParagraphNode extends ElementNode {
     return false;
   }
 }
-function convertParagraphElement(element) {
+function $convertParagraphElement(element) {
   const node = $createParagraphNode();
   if (element.style) {
     node.setFormat(element.style.textAlign);
@@ -8966,6 +9061,7 @@ function $isParagraphNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 // https://github.com/microsoft/TypeScript/issues/3841
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9076,7 +9172,7 @@ function createEditor(editorConfig) {
   const editorState = createEmptyEditorState();
   const namespace = config.namespace || (parentEditor !== null ? parentEditor._config.namespace : createUID());
   const initialEditorState = config.editorState;
-  const nodes = [RootNode, TextNode, LineBreakNode, TabNode, ParagraphNode, ...(config.nodes || [])];
+  const nodes = [RootNode, TextNode, LineBreakNode, TabNode, ParagraphNode, ArtificialNode__DO_NOT_USE, ...(config.nodes || [])];
   const {
     onError,
     html
@@ -9549,7 +9645,7 @@ class LexicalEditor {
         this._dirtyType = FULL_RECONCILE;
         initMutationObserver(this);
         this._updateTags.add('history-merge');
-        commitPendingUpdates(this);
+        $commitPendingUpdates(this);
 
         // TODO: remove this flag once we no longer use UEv2 internally
         if (!this._config.disableEvents) {
@@ -9597,7 +9693,7 @@ class LexicalEditor {
         throw Error(`setEditorState: the editor state is empty. Ensure the editor state's root node never becomes empty.`);
       }
     }
-    flushRootMutations(this);
+    $flushRootMutations(this);
     const pendingEditorState = this._pendingEditorState;
     const tags = this._updateTags;
     const tag = options !== undefined ? options.tag : null;
@@ -9605,7 +9701,7 @@ class LexicalEditor {
       if (tag != null) {
         tags.add(tag);
       }
-      commitPendingUpdates(this);
+      $commitPendingUpdates(this);
     }
     this._pendingEditorState = editorState;
     this._dirtyType = FULL_RECONCILE;
@@ -9614,7 +9710,7 @@ class LexicalEditor {
     if (tag != null) {
       tags.add(tag);
     }
-    commitPendingUpdates(this);
+    $commitPendingUpdates(this);
   }
 
   /**
@@ -9737,4 +9833,4 @@ class LexicalEditor {
   }
 }
 
-export { $addUpdateTag, $applyNodeReplacement, $copyNode, $createLineBreakNode, $createNodeSelection, $createParagraphNode, $createPoint, $createRangeSelection, $createRangeSelectionFromDom, $createTabNode, $createTextNode, $getAdjacentNode, $getCharacterOffsets, $getEditor, $getNearestNodeFromDOMNode, $getNearestRootOrShadowRoot, $getNodeByKey, $getPreviousSelection, $getRoot, $getSelection, $getTextContent, $hasAncestor, $hasUpdateTag, $insertNodes, $isBlockElementNode, $isDecoratorNode, $isElementNode, $isInlineElementOrDecoratorNode, $isLeafNode, $isLineBreakNode, $isMergeableNode, $isNodeSelection, $isParagraphNode, $isRangeSelection, $isRootNode, $isRootOrShadowRoot, $isTabNode, $isTextNode, $nodesOfType, $normalizeSelection as $normalizeSelection__EXPERIMENTAL, $parseSerializedNode, $selectAll, $setCompositionKey, $setSelection, $splitNode, BLUR_COMMAND, CAN_REDO_COMMAND, CAN_UNDO_COMMAND, CLEAR_EDITOR_COMMAND, CLEAR_HISTORY_COMMAND, CLICK_COMMAND, COMMAND_PRIORITY_CRITICAL, COMMAND_PRIORITY_EDITOR, COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, COMMAND_PRIORITY_NORMAL, CONTROLLED_TEXT_INSERTION_COMMAND, COPY_COMMAND, CUT_COMMAND, DELETE_CHARACTER_COMMAND, DELETE_LINE_COMMAND, DELETE_WORD_COMMAND, DRAGEND_COMMAND, DRAGOVER_COMMAND, DRAGSTART_COMMAND, DROP_COMMAND, DecoratorNode, ElementNode, FOCUS_COMMAND, FORMAT_ELEMENT_COMMAND, FORMAT_TEXT_COMMAND, INDENT_CONTENT_COMMAND, INSERT_LINE_BREAK_COMMAND, INSERT_PARAGRAPH_COMMAND, INSERT_TAB_COMMAND, KEY_ARROW_DOWN_COMMAND, KEY_ARROW_LEFT_COMMAND, KEY_ARROW_RIGHT_COMMAND, KEY_ARROW_UP_COMMAND, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_DOWN_COMMAND, KEY_ENTER_COMMAND, KEY_ESCAPE_COMMAND, KEY_MODIFIER_COMMAND, KEY_SPACE_COMMAND, KEY_TAB_COMMAND, LineBreakNode, MOVE_TO_END, MOVE_TO_START, OUTDENT_CONTENT_COMMAND, PASTE_COMMAND, ParagraphNode, REDO_COMMAND, REMOVE_TEXT_COMMAND, RootNode, SELECTION_CHANGE_COMMAND, SELECTION_INSERT_CLIPBOARD_NODES_COMMAND, SELECT_ALL_COMMAND, TabNode, TextNode, UNDO_COMMAND, createCommand, createEditor, getNearestEditorFromDOMNode, isCurrentlyReadOnlyMode, isHTMLAnchorElement, isHTMLElement, isSelectionCapturedInDecoratorInput, isSelectionWithinEditor };
+export { $addUpdateTag, $applyNodeReplacement, $copyNode, $createLineBreakNode, $createNodeSelection, $createParagraphNode, $createPoint, $createRangeSelection, $createRangeSelectionFromDom, $createTabNode, $createTextNode, $getAdjacentNode, $getCharacterOffsets, $getEditor, $getNearestNodeFromDOMNode, $getNearestRootOrShadowRoot, $getNodeByKey, $getPreviousSelection, $getRoot, $getSelection, $getTextContent, $hasAncestor, $hasUpdateTag, $insertNodes, $isBlockElementNode, $isDecoratorNode, $isElementNode, $isInlineElementOrDecoratorNode, $isLeafNode, $isLineBreakNode, $isMergeableNode, $isNodeSelection, $isParagraphNode, $isRangeSelection, $isRootNode, $isRootOrShadowRoot, $isTabNode, $isTextNode, $nodesOfType, $normalizeSelection as $normalizeSelection__EXPERIMENTAL, $parseSerializedNode, $selectAll, $setCompositionKey, $setSelection, $splitNode, ArtificialNode__DO_NOT_USE, BLUR_COMMAND, CAN_REDO_COMMAND, CAN_UNDO_COMMAND, CLEAR_EDITOR_COMMAND, CLEAR_HISTORY_COMMAND, CLICK_COMMAND, COMMAND_PRIORITY_CRITICAL, COMMAND_PRIORITY_EDITOR, COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, COMMAND_PRIORITY_NORMAL, CONTROLLED_TEXT_INSERTION_COMMAND, COPY_COMMAND, CUT_COMMAND, DELETE_CHARACTER_COMMAND, DELETE_LINE_COMMAND, DELETE_WORD_COMMAND, DRAGEND_COMMAND, DRAGOVER_COMMAND, DRAGSTART_COMMAND, DROP_COMMAND, DecoratorNode, ElementNode, FOCUS_COMMAND, FORMAT_ELEMENT_COMMAND, FORMAT_TEXT_COMMAND, INDENT_CONTENT_COMMAND, INSERT_LINE_BREAK_COMMAND, INSERT_PARAGRAPH_COMMAND, INSERT_TAB_COMMAND, KEY_ARROW_DOWN_COMMAND, KEY_ARROW_LEFT_COMMAND, KEY_ARROW_RIGHT_COMMAND, KEY_ARROW_UP_COMMAND, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_DOWN_COMMAND, KEY_ENTER_COMMAND, KEY_ESCAPE_COMMAND, KEY_MODIFIER_COMMAND, KEY_SPACE_COMMAND, KEY_TAB_COMMAND, LineBreakNode, MOVE_TO_END, MOVE_TO_START, OUTDENT_CONTENT_COMMAND, PASTE_COMMAND, ParagraphNode, REDO_COMMAND, REMOVE_TEXT_COMMAND, RootNode, SELECTION_CHANGE_COMMAND, SELECTION_INSERT_CLIPBOARD_NODES_COMMAND, SELECT_ALL_COMMAND, TabNode, TextNode, UNDO_COMMAND, createCommand, createEditor, getNearestEditorFromDOMNode, isBlockDomNode, isCurrentlyReadOnlyMode, isHTMLAnchorElement, isHTMLElement, isInlineDomNode, isSelectionCapturedInDecoratorInput, isSelectionWithinEditor };

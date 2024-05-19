@@ -9,4 +9,4 @@ import type { LexicalEditor } from 'lexical';
 import { LexicalCommand } from 'lexical';
 export declare function generateContent(editor: LexicalEditor, commandsLog: ReadonlyArray<LexicalCommand<unknown> & {
     payload: unknown;
-}>, exportDOM: boolean): string;
+}>, exportDOM: boolean, obfuscateText?: boolean): string;

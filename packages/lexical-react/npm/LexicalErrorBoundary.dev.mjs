@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import * as React from 'react';
 
 function _setPrototypeOf(o, p) {
@@ -138,6 +140,7 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function LexicalErrorBoundary({
   children,
   onError

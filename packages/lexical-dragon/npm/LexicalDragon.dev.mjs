@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $getSelection, $isRangeSelection, $isTextNode } from 'lexical';
 
 /**
@@ -13,6 +15,7 @@ import { $getSelection, $isRangeSelection, $isTextNode } from 'lexical';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function registerDragonSupport(editor) {
   const origin = window.location.origin;
   const handler = event => {

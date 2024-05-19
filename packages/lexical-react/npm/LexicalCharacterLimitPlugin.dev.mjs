@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import * as React from 'react';
 import { useEffect, useState, useMemo } from 'react';
@@ -19,6 +21,7 @@ import { $getSelection, $isRangeSelection, $isTextNode, $isLeafNode, $setSelecti
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useCharacterLimit(editor, maxCharacters, optional = Object.freeze({})) {
   const {
     strlen = input => input.length,
@@ -155,14 +158,14 @@ function $wrapOverflowedNodes(offset) {
         if (previousSelection !== null) {
           $setSelection(previousSelection);
         }
-        mergePrevious(overflowNode);
+        $mergePrevious(overflowNode);
       }
     }
   }
 }
 function $wrapNode(node) {
   const overflowNode = $createOverflowNode();
-  node.insertBefore(overflowNode);
+  node.replace(overflowNode);
   overflowNode.append(node);
   return overflowNode;
 }
@@ -175,7 +178,7 @@ function $unwrapNode(node) {
   node.remove();
   return childrenLength > 0 ? children[childrenLength - 1] : null;
 }
-function mergePrevious(overflowNode) {
+function $mergePrevious(overflowNode) {
   const previousNode = overflowNode.getPreviousSibling();
   if (!$isOverflowNode(previousNode)) {
     return;
@@ -217,6 +220,7 @@ function mergePrevious(overflowNode) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const CHARACTER_LIMIT = 5;
 let textEncoderInstance = null;
 function textEncoder() {

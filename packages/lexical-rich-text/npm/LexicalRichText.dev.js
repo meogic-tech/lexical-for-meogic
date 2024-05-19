@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var clipboard = require('@lexical/clipboard');
@@ -63,20 +65,15 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
-CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
 const CAN_USE_BEFORE_INPUT = CAN_USE_DOM && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
 const IS_SAFARI = CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
 const IS_IOS = CAN_USE_DOM && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const IS_ANDROID = CAN_USE_DOM && /Android/.test(navigator.userAgent);
 
 // Keep these in case we need to use them in the future.
 // export const IS_WINDOWS: boolean = CAN_USE_DOM && /Win/.test(navigator.platform);
 const IS_CHROME = CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
-// export const canUseTextInputEvent: boolean = CAN_USE_DOM && 'TextEvent' in window && !documentMode;
-
-CAN_USE_DOM && IS_ANDROID && IS_CHROME;
 const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
 
 /**
@@ -86,6 +83,7 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const DRAG_DROP_PASTE = lexical.createCommand('DRAG_DROP_PASTE_FILE');
 /** @noInheritDoc */
 class QuoteNode extends lexical.ElementNode {
@@ -112,7 +110,7 @@ class QuoteNode extends lexical.ElementNode {
   static importDOM() {
     return {
       blockquote: node => ({
-        conversion: convertBlockquoteElement,
+        conversion: $convertBlockquoteElement,
         priority: 0
       })
     };
@@ -210,27 +208,27 @@ class HeadingNode extends lexical.ElementNode {
   static importDOM() {
     return {
       h1: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h2: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h3: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h4: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h5: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h6: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       p: node => {
@@ -328,7 +326,7 @@ function isGoogleDocsTitle(domNode) {
   }
   return false;
 }
-function convertHeadingElement(element) {
+function $convertHeadingElement(element) {
   const nodeName = element.nodeName.toLowerCase();
   let node = null;
   if (nodeName === 'h1' || nodeName === 'h2' || nodeName === 'h3' || nodeName === 'h4' || nodeName === 'h5' || nodeName === 'h6') {
@@ -341,7 +339,7 @@ function convertHeadingElement(element) {
     node
   };
 }
-function convertBlockquoteElement(element) {
+function $convertBlockquoteElement(element) {
   const node = $createQuoteNode();
   if (element.style !== null) {
     node.setFormat(element.style.textAlign);
@@ -398,7 +396,7 @@ function eventFiles(event) {
   const hasContent = types.includes('text/html') || types.includes('text/plain');
   return [hasFiles, Array.from(dataTransfer.files), hasContent];
 }
-function handleIndentAndOutdent(indentOrOutdent) {
+function $handleIndentAndOutdent(indentOrOutdent) {
   const selection = lexical.$getSelection();
   if (!lexical.$isRangeSelection(selection)) {
     return false;
@@ -411,7 +409,10 @@ function handleIndentAndOutdent(indentOrOutdent) {
     if (alreadyHandled.has(key)) {
       continue;
     }
-    const parentBlock = utils.$getNearestBlockElementAncestorOrThrow(node);
+    const parentBlock = utils.$findMatchingParent(node, parentNode => lexical.$isElementNode(parentNode) && !parentNode.isInline());
+    if (parentBlock === null) {
+      continue;
+    }
     const parentKey = parentBlock.getKey();
     if (parentBlock.canIndent() && !alreadyHandled.has(parentKey)) {
       alreadyHandled.add(parentKey);
@@ -524,12 +525,12 @@ function registerRichText(editor) {
     lexical.$insertNodes([lexical.$createTabNode()]);
     return true;
   }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerCommand(lexical.INDENT_CONTENT_COMMAND, () => {
-    return handleIndentAndOutdent(block => {
+    return $handleIndentAndOutdent(block => {
       const indent = block.getIndent();
       block.setIndent(indent + 1);
     });
   }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerCommand(lexical.OUTDENT_CONTENT_COMMAND, () => {
-    return handleIndentAndOutdent(block => {
+    return $handleIndentAndOutdent(block => {
       const indent = block.getIndent();
       if (indent > 0) {
         block.setIndent(indent - 1);

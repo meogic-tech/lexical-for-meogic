@@ -6,7 +6,7 @@
  *
  */
 import type { Binding, YjsNode } from '.';
-import type { ElementNode, LexicalNode, NodeMap, RangeSelection } from 'lexical';
+import type { EditorState, LexicalNode, RangeSelection } from 'lexical';
 import { NodeKey } from 'lexical';
 import { Map as YMap, XmlElement, XmlText } from 'yjs';
 import { CollabDecoratorNode } from './CollabDecoratorNode';
@@ -16,7 +16,7 @@ import { CollabTextNode } from './CollabTextNode';
 export declare function getIndexOfYjsNode(yjsParentNode: YjsNode, yjsNode: YjsNode): number;
 export declare function $getNodeByKeyOrThrow(key: NodeKey): LexicalNode;
 export declare function $createCollabNodeFromLexicalNode(binding: Binding, lexicalNode: LexicalNode, parent: CollabElementNode): CollabElementNode | CollabTextNode | CollabLineBreakNode | CollabDecoratorNode;
-export declare function getOrInitCollabNodeFromSharedType(binding: Binding, sharedType: XmlText | YMap<unknown> | XmlElement, parent?: CollabElementNode): CollabElementNode | CollabTextNode | CollabLineBreakNode | CollabDecoratorNode;
+export declare function $getOrInitCollabNodeFromSharedType(binding: Binding, sharedType: XmlText | YMap<unknown> | XmlElement, parent?: CollabElementNode): CollabElementNode | CollabTextNode | CollabLineBreakNode | CollabDecoratorNode;
 export declare function createLexicalNodeFromCollabNode(binding: Binding, collabNode: CollabElementNode | CollabTextNode | CollabDecoratorNode | CollabLineBreakNode, parentKey: NodeKey): LexicalNode;
 export declare function syncPropertiesFromYjs(binding: Binding, sharedType: XmlText | YMap<unknown> | XmlElement, lexicalNode: LexicalNode, keysChanged: null | Set<string>): void;
 export declare function syncPropertiesFromLexical(binding: Binding, sharedType: XmlText | YMap<unknown> | XmlElement, prevLexicalNode: null | LexicalNode, nextLexicalNode: LexicalNode): void;
@@ -29,5 +29,5 @@ export declare function getPositionFromElementAndOffset(node: CollabElementNode,
 };
 export declare function doesSelectionNeedRecovering(selection: RangeSelection): boolean;
 export declare function syncWithTransaction(binding: Binding, fn: () => void): void;
-export declare function createChildrenArray(element: ElementNode, nodeMap: null | NodeMap): Array<NodeKey>;
 export declare function removeFromParent(node: LexicalNode): void;
+export declare function $moveSelectionToPreviousNode(anchorNodeKey: string, currentEditorState: EditorState): void;

@@ -3,9 +3,12 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 const mod = await (process.env.NODE_ENV === 'development' ? import('./LexicalTable.dev.mjs') : import('./LexicalTable.prod.mjs'));
 export const $computeTableMap = mod.$computeTableMap;
+export const $computeTableMapSkipCellCheck = mod.$computeTableMapSkipCellCheck;
 export const $createTableCellNode = mod.$createTableCellNode;
 export const $createTableNode = mod.$createTableNode;
 export const $createTableNodeWithDimensions = mod.$createTableNodeWithDimensions;

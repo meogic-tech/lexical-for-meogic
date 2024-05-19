@@ -94,4 +94,6 @@ export declare const TOGGLE_LINK_COMMAND: LexicalCommand<string | ({
  * @param url - The URL the link directs to.
  * @param attributes - Optional HTML a tag attributes. { target, rel, title }
  */
-export declare function toggleLink(url: null | string, attributes?: LinkAttributes): void;
+export declare function $toggleLink(url: null | string, attributes?: LinkAttributes): void;
+/** @deprecated renamed to {@link $toggleLink} by @lexical/eslint-plugin rules-of-lexical */
+export declare const toggleLink: typeof $toggleLink;

@@ -3,10 +3,12 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import * as React from 'react';
-import { useLayoutEffect as useLayoutEffect$1, useEffect, useState, useCallback } from 'react';
+import { useLayoutEffect, useEffect, useState, useCallback } from 'react';
 
 function _extends() {
   _extends = Object.assign ? Object.assign.bind() : function (target) {
@@ -40,8 +42,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
-const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect$1 : useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
+
+const useLayoutEffectImpl = CAN_USE_DOM ? useLayoutEffect : useEffect;
 
 function ContentEditable({
   ariaActiveDescendant,
@@ -73,7 +75,7 @@ function ContentEditable({
       editor.setRootElement(rootElement);
     }
   }, [editor]);
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     setEditable(editor.isEditable());
     return editor.registerEditableListener(currentIsEditable => {
       setEditable(currentIsEditable);

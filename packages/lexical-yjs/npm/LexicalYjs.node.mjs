@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 const mod = await (process.env.NODE_ENV === 'development' ? import('./LexicalYjs.dev.mjs') : import('./LexicalYjs.prod.mjs'));
 export const CONNECTED_COMMAND = mod.CONNECTED_COMMAND;
 export const TOGGLE_CONNECT_COMMAND = mod.TOGGLE_CONNECT_COMMAND;

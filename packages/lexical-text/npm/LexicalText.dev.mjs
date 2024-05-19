@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $getRoot, $isDecoratorNode, $isElementNode, $isParagraphNode, $isTextNode, TextNode, $createTextNode } from 'lexical';
 
 /**
@@ -177,6 +179,7 @@ function $findTextIntersectionFromCharacters(root, targetCharacters) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /**
  * Returns a tuple that can be rested (...) into mergeRegister to clean up
  * node transforms listeners that transforms text into another node, eg. a HashtagNode.
@@ -200,7 +203,7 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
   const isTargetNode = node => {
     return node instanceof targetNode;
   };
-  const replaceWithSimpleText = node => {
+  const $replaceWithSimpleText = node => {
     const textNode = $createTextNode(node.getTextContent());
     textNode.setFormat(node.getFormat());
     node.replace(textNode);
@@ -208,11 +211,11 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
   const getMode = node => {
     return node.getLatest().__mode;
   };
-  const textNodeTransform = node => {
+  const $textNodeTransform = node => {
     if (!node.isSimpleText()) {
       return;
     }
-    const prevSibling = node.getPreviousSibling();
+    let prevSibling = node.getPreviousSibling();
     let text = node.getTextContent();
     let currentNode = node;
     let match;
@@ -222,7 +225,7 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
       const prevMatch = getMatch(combinedText);
       if (isTargetNode(prevSibling)) {
         if (prevMatch === null || getMode(prevSibling) !== 0) {
-          replaceWithSimpleText(prevSibling);
+          $replaceWithSimpleText(prevSibling);
           return;
         } else {
           const diff = prevMatch.end - previousText.length;
@@ -244,7 +247,7 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
         return;
       }
     }
-
+    let prevMatchLengthToSkip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
       match = getMatch(text);
@@ -257,7 +260,7 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
           const nextMatch = getMatch(nextText);
           if (nextMatch === null) {
             if (isTargetNode(nextSibling)) {
-              replaceWithSimpleText(nextSibling);
+              $replaceWithSimpleText(nextSibling);
             } else {
               nextSibling.markDirty();
             }
@@ -266,23 +269,22 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
             return;
           }
         }
-      } else {
-        const nextMatch = getMatch(nextText);
-        if (nextMatch !== null && nextMatch.start === 0) {
-          return;
-        }
       }
       if (match === null) {
         return;
       }
       if (match.start === 0 && $isTextNode(prevSibling) && prevSibling.isTextEntity()) {
+        prevMatchLengthToSkip += match.end;
         continue;
       }
       let nodeToReplace;
       if (match.start === 0) {
         [nodeToReplace, currentNode] = currentNode.splitText(match.end);
       } else {
-        [, nodeToReplace, currentNode] = currentNode.splitText(match.start, match.end);
+        [, nodeToReplace, currentNode] = currentNode.splitText(match.start + prevMatchLengthToSkip, match.end + prevMatchLengthToSkip);
+      }
+      if (!(nodeToReplace !== undefined)) {
+        throw Error(`${'nodeToReplace'} should not be undefined. You may want to check splitOffsets passed to the splitText.`);
       }
       const replacementNode = createNode(nodeToReplace);
       replacementNode.setFormat(nodeToReplace.getFormat());
@@ -290,13 +292,15 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
       if (currentNode == null) {
         return;
       }
+      prevMatchLengthToSkip = 0;
+      prevSibling = replacementNode;
     }
   };
-  const reverseNodeTransform = node => {
+  const $reverseNodeTransform = node => {
     const text = node.getTextContent();
     const match = getMatch(text);
     if (match === null || match.start !== 0) {
-      replaceWithSimpleText(node);
+      $replaceWithSimpleText(node);
       return;
     }
     if (text.length > match.end) {
@@ -306,21 +310,21 @@ function registerLexicalTextEntity(editor, getMatch, targetNode, createNode) {
     }
     const prevSibling = node.getPreviousSibling();
     if ($isTextNode(prevSibling) && prevSibling.isTextEntity()) {
-      replaceWithSimpleText(prevSibling);
-      replaceWithSimpleText(node);
+      $replaceWithSimpleText(prevSibling);
+      $replaceWithSimpleText(node);
     }
     const nextSibling = node.getNextSibling();
     if ($isTextNode(nextSibling) && nextSibling.isTextEntity()) {
-      replaceWithSimpleText(nextSibling);
+      $replaceWithSimpleText(nextSibling);
 
       // This may have already been converted in the previous block
       if (isTargetNode(node)) {
-        replaceWithSimpleText(node);
+        $replaceWithSimpleText(node);
       }
     }
   };
-  const removePlainTextTransform = editor.registerNodeTransform(TextNode, textNodeTransform);
-  const removeReverseNodeTransform = editor.registerNodeTransform(targetNode, reverseNodeTransform);
+  const removePlainTextTransform = editor.registerNodeTransform(TextNode, $textNodeTransform);
+  const removeReverseNodeTransform = editor.registerNodeTransform(targetNode, $reverseNodeTransform);
   return [removePlainTextTransform, removeReverseNodeTransform];
 }
 

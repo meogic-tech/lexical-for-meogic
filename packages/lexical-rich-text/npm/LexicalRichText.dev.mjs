@@ -3,11 +3,13 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $insertDataTransferForRichText, copyToClipboard } from '@lexical/clipboard';
 import { $shouldOverrideDefaultCharacterSelection, $moveCharacter } from '@lexical/selection';
 import { addClassNamesToElement, isHTMLElement, objectKlassEquals, mergeRegister, $findMatchingParent, $getNearestBlockElementAncestorOrThrow } from '@lexical/utils';
-import { createCommand, ElementNode, $applyNodeReplacement, $createParagraphNode, CLICK_COMMAND, $getSelection, $isNodeSelection, DELETE_CHARACTER_COMMAND, $isRangeSelection, COMMAND_PRIORITY_EDITOR, DELETE_WORD_COMMAND, DELETE_LINE_COMMAND, CONTROLLED_TEXT_INSERTION_COMMAND, REMOVE_TEXT_COMMAND, FORMAT_TEXT_COMMAND, FORMAT_ELEMENT_COMMAND, $isElementNode, INSERT_LINE_BREAK_COMMAND, INSERT_PARAGRAPH_COMMAND, INSERT_TAB_COMMAND, $insertNodes, $createTabNode, INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND, KEY_ARROW_UP_COMMAND, $isDecoratorNode, $getAdjacentNode, KEY_ARROW_DOWN_COMMAND, $getRoot, KEY_ARROW_LEFT_COMMAND, KEY_ARROW_RIGHT_COMMAND, KEY_BACKSPACE_COMMAND, $isRootNode, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND, KEY_ESCAPE_COMMAND, DROP_COMMAND, $getNearestNodeFromDOMNode, $createRangeSelection, $isTextNode, $normalizeSelection__EXPERIMENTAL, $setSelection, DRAGSTART_COMMAND, DRAGOVER_COMMAND, SELECT_ALL_COMMAND, $selectAll, COPY_COMMAND, CUT_COMMAND, PASTE_COMMAND, isSelectionCapturedInDecoratorInput } from 'lexical';
+import { createCommand, ElementNode, $createParagraphNode, $applyNodeReplacement, CLICK_COMMAND, $getSelection, $isNodeSelection, DELETE_CHARACTER_COMMAND, $isRangeSelection, COMMAND_PRIORITY_EDITOR, DELETE_WORD_COMMAND, DELETE_LINE_COMMAND, CONTROLLED_TEXT_INSERTION_COMMAND, REMOVE_TEXT_COMMAND, FORMAT_TEXT_COMMAND, FORMAT_ELEMENT_COMMAND, $isElementNode, INSERT_LINE_BREAK_COMMAND, INSERT_PARAGRAPH_COMMAND, INSERT_TAB_COMMAND, $insertNodes, $createTabNode, INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND, KEY_ARROW_UP_COMMAND, $getAdjacentNode, $isDecoratorNode, KEY_ARROW_DOWN_COMMAND, KEY_ARROW_LEFT_COMMAND, KEY_ARROW_RIGHT_COMMAND, KEY_BACKSPACE_COMMAND, $isRootNode, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND, KEY_ESCAPE_COMMAND, DROP_COMMAND, $getNearestNodeFromDOMNode, $createRangeSelection, $isTextNode, $normalizeSelection__EXPERIMENTAL, $setSelection, DRAGSTART_COMMAND, DRAGOVER_COMMAND, SELECT_ALL_COMMAND, $selectAll, COPY_COMMAND, CUT_COMMAND, PASTE_COMMAND, isSelectionCapturedInDecoratorInput, $getRoot } from 'lexical';
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -61,20 +63,15 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
-CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
 const CAN_USE_BEFORE_INPUT = CAN_USE_DOM && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
 const IS_SAFARI = CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
 const IS_IOS = CAN_USE_DOM && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const IS_ANDROID = CAN_USE_DOM && /Android/.test(navigator.userAgent);
 
 // Keep these in case we need to use them in the future.
 // export const IS_WINDOWS: boolean = CAN_USE_DOM && /Win/.test(navigator.platform);
 const IS_CHROME = CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
-// export const canUseTextInputEvent: boolean = CAN_USE_DOM && 'TextEvent' in window && !documentMode;
-
-CAN_USE_DOM && IS_ANDROID && IS_CHROME;
 const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
 
 /**
@@ -84,6 +81,7 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const DRAG_DROP_PASTE = createCommand('DRAG_DROP_PASTE_FILE');
 /** @noInheritDoc */
 class QuoteNode extends ElementNode {
@@ -110,7 +108,7 @@ class QuoteNode extends ElementNode {
   static importDOM() {
     return {
       blockquote: node => ({
-        conversion: convertBlockquoteElement,
+        conversion: $convertBlockquoteElement,
         priority: 0
       })
     };
@@ -208,27 +206,27 @@ class HeadingNode extends ElementNode {
   static importDOM() {
     return {
       h1: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h2: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h3: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h4: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h5: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       h6: node => ({
-        conversion: convertHeadingElement,
+        conversion: $convertHeadingElement,
         priority: 0
       }),
       p: node => {
@@ -326,7 +324,7 @@ function isGoogleDocsTitle(domNode) {
   }
   return false;
 }
-function convertHeadingElement(element) {
+function $convertHeadingElement(element) {
   const nodeName = element.nodeName.toLowerCase();
   let node = null;
   if (nodeName === 'h1' || nodeName === 'h2' || nodeName === 'h3' || nodeName === 'h4' || nodeName === 'h5' || nodeName === 'h6') {
@@ -339,7 +337,7 @@ function convertHeadingElement(element) {
     node
   };
 }
-function convertBlockquoteElement(element) {
+function $convertBlockquoteElement(element) {
   const node = $createQuoteNode();
   if (element.style !== null) {
     node.setFormat(element.style.textAlign);
@@ -396,7 +394,7 @@ function eventFiles(event) {
   const hasContent = types.includes('text/html') || types.includes('text/plain');
   return [hasFiles, Array.from(dataTransfer.files), hasContent];
 }
-function handleIndentAndOutdent(indentOrOutdent) {
+function $handleIndentAndOutdent(indentOrOutdent) {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
     return false;
@@ -409,7 +407,10 @@ function handleIndentAndOutdent(indentOrOutdent) {
     if (alreadyHandled.has(key)) {
       continue;
     }
-    const parentBlock = $getNearestBlockElementAncestorOrThrow(node);
+    const parentBlock = $findMatchingParent(node, parentNode => $isElementNode(parentNode) && !parentNode.isInline());
+    if (parentBlock === null) {
+      continue;
+    }
     const parentKey = parentBlock.getKey();
     if (parentBlock.canIndent() && !alreadyHandled.has(parentKey)) {
       alreadyHandled.add(parentKey);
@@ -522,12 +523,12 @@ function registerRichText(editor) {
     $insertNodes([$createTabNode()]);
     return true;
   }, COMMAND_PRIORITY_EDITOR), editor.registerCommand(INDENT_CONTENT_COMMAND, () => {
-    return handleIndentAndOutdent(block => {
+    return $handleIndentAndOutdent(block => {
       const indent = block.getIndent();
       block.setIndent(indent + 1);
     });
   }, COMMAND_PRIORITY_EDITOR), editor.registerCommand(OUTDENT_CONTENT_COMMAND, () => {
-    return handleIndentAndOutdent(block => {
+    return $handleIndentAndOutdent(block => {
       const indent = block.getIndent();
       if (indent > 0) {
         block.setIndent(indent - 1);

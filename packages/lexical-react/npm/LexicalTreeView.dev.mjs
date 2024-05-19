@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalCommandsLog, TreeView as TreeView$1, generateContent } from '@lexical/devtools-core';
 import { mergeRegister } from '@lexical/utils';
 import * as React from 'react';
@@ -16,6 +18,7 @@ import { useState, useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function TreeView({
   treeTypeButtonClassName,
   timeTravelButtonClassName,

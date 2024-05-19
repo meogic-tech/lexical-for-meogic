@@ -3,10 +3,25 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 function _setPrototypeOf(o, p) {
   _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
@@ -116,12 +131,12 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
         resetErrorBoundary: this.resetErrorBoundary
       };
 
-      if ( /*#__PURE__*/React.isValidElement(fallback)) {
+      if ( /*#__PURE__*/React__namespace.isValidElement(fallback)) {
         return fallback;
       } else if (typeof fallbackRender === 'function') {
         return fallbackRender(_props);
       } else if (FallbackComponent) {
-        return /*#__PURE__*/React.createElement(FallbackComponent, _props);
+        return /*#__PURE__*/React__namespace.createElement(FallbackComponent, _props);
       } else {
         throw new Error('react-error-boundary requires either a fallback, fallbackRender, or FallbackComponent prop');
       }
@@ -131,7 +146,7 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
   };
 
   return ErrorBoundary;
-}(React.Component);
+}(React__namespace.Component);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -140,12 +155,13 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function LexicalErrorBoundary({
   children,
   onError
 }) {
-  return /*#__PURE__*/React.createElement(ErrorBoundary, {
-    fallback: /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React__namespace.createElement(ErrorBoundary, {
+    fallback: /*#__PURE__*/React__namespace.createElement("div", {
       style: {
         border: '1px solid #f00',
         color: '#f00',

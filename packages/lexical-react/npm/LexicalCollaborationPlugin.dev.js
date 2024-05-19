@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalCollaborationContext = require('@lexical/react/LexicalCollaborationContext');
@@ -15,6 +17,19 @@ var lexical = require('lexical');
 var reactDom = require('react-dom');
 var yjs$1 = require('yjs');
 
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -22,6 +37,7 @@ var yjs$1 = require('yjs');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useYjsCollaboration(editor, id, provider, docMap, name, color, shouldBootstrap, cursorsContainerRef, initialEditorState, excludedProperties, awarenessData) {
   const isReloadingDoc = React.useRef(false);
   const [doc, setDoc] = React.useState(docMap.get(id));
@@ -107,7 +123,7 @@ function useYjsCollaboration(editor, id, provider, docMap, name, color, shouldBo
     const ref = element => {
       binding.cursorsContainer = element;
     };
-    return /*#__PURE__*/reactDom.createPortal( /*#__PURE__*/React.createElement("div", {
+    return /*#__PURE__*/reactDom.createPortal( /*#__PURE__*/React__namespace.createElement("div", {
       ref: ref
     }), cursorsContainerRef && cursorsContainerRef.current || document.body);
   }, [binding, cursorsContainerRef]);
@@ -163,7 +179,7 @@ function useYjsHistory(editor, binding) {
   }, [undoManager]);
 
   // Exposing undo and redo states
-  React.useEffect(() => {
+  React__namespace.useEffect(() => {
     const updateUndoRedoStates = () => {
       editor.dispatchCommand(lexical.CAN_UNDO_COMMAND, undoManager.undoStack.length > 0);
       editor.dispatchCommand(lexical.CAN_REDO_COMMAND, undoManager.redoStack.length > 0);
@@ -270,6 +286,7 @@ function clearEditorSkipCollab(editor, binding) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function CollaborationPlugin({
   id,
   providerFactory,

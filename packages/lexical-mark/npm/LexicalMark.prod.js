@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';var k=require("lexical"),m=require("@lexical/utils");
 class p extends k.ElementNode{static getType(){return"mark"}static clone(a){return new p(Array.from(a.__ids),a.__key)}static importDOM(){return null}static importJSON(a){let b=q(a.ids);b.setFormat(a.format);b.setIndent(a.indent);b.setDirection(a.direction);return b}exportJSON(){return{...super.exportJSON(),ids:this.getIDs(),type:"mark",version:1}}constructor(a,b){super(b);this.__ids=a||[]}createDOM(a){let b=document.createElement("mark");m.addClassNamesToElement(b,a.theme.mark);1<this.__ids.length&&
 m.addClassNamesToElement(b,a.theme.markOverlap);return b}updateDOM(a,b,c){a=a.__ids.length;let d=this.__ids.length;c=c.theme.markOverlap;a!==d&&(1===a?2===d&&m.addClassNamesToElement(b,c):1===d&&m.removeClassNamesFromElement(b,c));return!1}hasID(a){let b=this.getIDs();for(let c=0;c<b.length;c++)if(a===b[c])return!0;return!1}getIDs(){let a=this.getLatest();return r(a)?a.__ids:[]}addID(a){var b=this.getWritable();if(r(b)){let c=b.__ids;b.__ids=c;for(b=0;b<c.length;b++)if(a===c[b])return;c.push(a)}}deleteID(a){var b=

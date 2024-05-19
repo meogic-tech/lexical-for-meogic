@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { mergeRegister } from '@lexical/utils';
@@ -18,6 +20,7 @@ import { useCallback, useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const INSERT_HORIZONTAL_RULE_COMMAND = createCommand('INSERT_HORIZONTAL_RULE_COMMAND');
 function HorizontalRuleComponent({
   nodeKey,
@@ -25,7 +28,7 @@ function HorizontalRuleComponent({
 }) {
   const [editor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
-  const onDelete = useCallback(event => {
+  const $onDelete = useCallback(event => {
     if (isSelected && $isNodeSelection($getSelection())) {
       event.preventDefault();
       const node = $getNodeByKey(nodeKey);
@@ -47,8 +50,8 @@ function HorizontalRuleComponent({
         return true;
       }
       return false;
-    }, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_DELETE_COMMAND, onDelete, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_BACKSPACE_COMMAND, onDelete, COMMAND_PRIORITY_LOW));
-  }, [clearSelection, editor, isSelected, nodeKey, onDelete, setSelected]);
+    }, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_DELETE_COMMAND, $onDelete, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_BACKSPACE_COMMAND, $onDelete, COMMAND_PRIORITY_LOW));
+  }, [clearSelection, editor, isSelected, nodeKey, $onDelete, setSelected]);
   useEffect(() => {
     const hrElem = editor.getElementByKey(nodeKey);
     if (hrElem !== null) {
@@ -75,7 +78,7 @@ class HorizontalRuleNode extends DecoratorNode {
   static importDOM() {
     return {
       hr: () => ({
-        conversion: convertHorizontalRuleElement,
+        conversion: $convertHorizontalRuleElement,
         priority: 0
       })
     };
@@ -128,7 +131,7 @@ class HorizontalRuleNode extends DecoratorNode {
     return writableSelf;
   }
 }
-function convertHorizontalRuleElement() {
+function $convertHorizontalRuleElement() {
   return {
     node: $createHorizontalRuleNode()
   };

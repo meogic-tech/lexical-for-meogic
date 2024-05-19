@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -17,6 +19,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useHistory(editor, externalHistoryState, delay = 1000) {
   const historyState = react.useMemo(() => externalHistoryState || history.createEmptyHistoryState(), [externalHistoryState]);
   react.useEffect(() => {
@@ -31,6 +34,7 @@ function useHistory(editor, externalHistoryState, delay = 1000) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function HistoryPlugin({
   externalHistoryState
 }) {

@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $filter, $getNearestBlockElementAncestorOrThrow } from '@lexical/utils';
 import { KEY_TAB_COMMAND, $getSelection, $isRangeSelection, OUTDENT_CONTENT_COMMAND, INDENT_CONTENT_COMMAND, INSERT_TAB_COMMAND, COMMAND_PRIORITY_EDITOR, $isBlockElementNode, $createRangeSelection, $normalizeSelection__EXPERIMENTAL } from 'lexical';
@@ -16,7 +18,8 @@ import { useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
-function indentOverTab(selection) {
+
+function $indentOverTab(selection) {
   // const handled = new Set();
   const nodes = selection.getNodes();
   const canIndentBlockNodes = $filter(nodes, node => {
@@ -55,7 +58,7 @@ function registerTabIndentation(editor) {
       return false;
     }
     event.preventDefault();
-    const command = indentOverTab(selection) ? event.shiftKey ? OUTDENT_CONTENT_COMMAND : INDENT_CONTENT_COMMAND : INSERT_TAB_COMMAND;
+    const command = $indentOverTab(selection) ? event.shiftKey ? OUTDENT_CONTENT_COMMAND : INDENT_CONTENT_COMMAND : INSERT_TAB_COMMAND;
     return editor.dispatchCommand(command, undefined);
   }, COMMAND_PRIORITY_EDITOR);
 }

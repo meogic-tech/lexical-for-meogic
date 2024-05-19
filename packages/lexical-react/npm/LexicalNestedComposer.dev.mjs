@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useCollaborationContext } from '@lexical/react/LexicalCollaborationContext';
 import { LexicalComposerContext, createLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import * as React from 'react';
@@ -16,6 +18,7 @@ import { useRef, useContext, useMemo, useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function getTransformSetFromKlass(klass) {
   const transform = klass.transform();
   return transform !== null ? new Set([transform]) : new Set();

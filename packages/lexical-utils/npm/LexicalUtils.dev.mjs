@@ -3,10 +3,12 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { createRectsFromDOMRange, $cloneWithProperties } from '@lexical/selection';
 import { $getSelection, $isRangeSelection, TextNode, $getRoot, $isElementNode, $isTextNode, $setSelection, $getPreviousSelection, $isRootOrShadowRoot, $splitNode, $createParagraphNode } from 'lexical';
-export { $splitNode, isHTMLAnchorElement, isHTMLElement } from 'lexical';
+export { $splitNode, isBlockDomNode, isHTMLAnchorElement, isHTMLElement, isInlineDomNode } from 'lexical';
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -16,7 +18,7 @@ export { $splitNode, isHTMLAnchorElement, isHTMLElement } from 'lexical';
  *
  */
 
-const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 'undefined' && typeof window.document.createElement !== 'undefined';
+const CAN_USE_DOM$1 = typeof window !== 'undefined' && typeof window.document !== 'undefined' && typeof window.document.createElement !== 'undefined';
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -25,21 +27,22 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
-const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
-const IS_APPLE = CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-const IS_FIREFOX = CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
-const CAN_USE_BEFORE_INPUT = CAN_USE_DOM && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
-const IS_SAFARI = CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
-const IS_IOS = CAN_USE_DOM && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const IS_ANDROID = CAN_USE_DOM && /Android/.test(navigator.userAgent);
+
+const documentMode = CAN_USE_DOM$1 && 'documentMode' in document ? document.documentMode : null;
+const IS_APPLE$1 = CAN_USE_DOM$1 && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const IS_FIREFOX$1 = CAN_USE_DOM$1 && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
+const CAN_USE_BEFORE_INPUT$1 = CAN_USE_DOM$1 && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
+const IS_SAFARI$1 = CAN_USE_DOM$1 && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
+const IS_IOS$1 = CAN_USE_DOM$1 && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const IS_ANDROID$1 = CAN_USE_DOM$1 && /Android/.test(navigator.userAgent);
 
 // Keep these in case we need to use them in the future.
 // export const IS_WINDOWS: boolean = CAN_USE_DOM && /Win/.test(navigator.platform);
-const IS_CHROME = CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
+const IS_CHROME$1 = CAN_USE_DOM$1 && /^(?=.*Chrome).*/i.test(navigator.userAgent);
 // export const canUseTextInputEvent: boolean = CAN_USE_DOM && 'TextEvent' in window && !documentMode;
 
-const IS_ANDROID_CHROME = CAN_USE_DOM && IS_ANDROID && IS_CHROME;
-const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
+const IS_ANDROID_CHROME$1 = CAN_USE_DOM$1 && IS_ANDROID$1 && IS_CHROME$1;
+const IS_APPLE_WEBKIT$1 = CAN_USE_DOM$1 && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME$1;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -116,6 +119,7 @@ function px(value) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const mutationObserverConfig = {
   attributes: true,
   characterData: true,
@@ -243,6 +247,7 @@ function positionNodeOnRange(editor, range, onReposition) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function markSelection(editor, onReposition) {
   let previousAnchorNode = null;
   let previousAnchorOffset = null;
@@ -360,6 +365,18 @@ function markSelection(editor, onReposition) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
+// Hotfix to export these with inlined types #5918
+const CAN_USE_BEFORE_INPUT = CAN_USE_BEFORE_INPUT$1;
+const CAN_USE_DOM = CAN_USE_DOM$1;
+const IS_ANDROID = IS_ANDROID$1;
+const IS_ANDROID_CHROME = IS_ANDROID_CHROME$1;
+const IS_APPLE = IS_APPLE$1;
+const IS_APPLE_WEBKIT = IS_APPLE_WEBKIT$1;
+const IS_CHROME = IS_CHROME$1;
+const IS_FIREFOX = IS_FIREFOX$1;
+const IS_IOS = IS_IOS$1;
+const IS_SAFARI = IS_SAFARI$1;
 /**
  * Takes an HTML element and adds the classNames passed within an array,
  * ignoring any non-string types. A space can be used to add multiple classes
@@ -465,7 +482,7 @@ function mediaFileReader(files, acceptableMimeTypes) {
 function $dfs(startingNode, endingNode) {
   const nodes = [];
   const start = (startingNode || $getRoot()).getLatest();
-  const end = endingNode || ($isElementNode(start) ? start.getLastDescendant() : start);
+  const end = endingNode || ($isElementNode(start) ? start.getLastDescendant() || start : start);
   let node = start;
   let depth = $getDepth(node);
   while (node !== null && !node.is(end)) {
@@ -505,6 +522,32 @@ function $getDepth(node) {
     depth++;
   }
   return depth;
+}
+
+/**
+ * Performs a right-to-left preorder tree traversal.
+ * From the starting node it goes to the rightmost child, than backtracks to paret and finds new rightmost path.
+ * It will return the next node in traversal sequence after the startingNode.
+ * The traversal is similar to $dfs functions above, but the nodes are visited right-to-left, not left-to-right.
+ * @param startingNode - The node to start the search.
+ * @returns The next node in pre-order right to left traversal sequence or `null`, if the node does not exist
+ */
+function $getNextRightPreorderNode(startingNode) {
+  let node = startingNode;
+  if ($isElementNode(node) && node.getChildrenSize() > 0) {
+    node = node.getLastChild();
+  } else {
+    let sibling = null;
+    while (sibling === null && node !== null) {
+      sibling = node.getPreviousSibling();
+      if (sibling === null) {
+        node = node.getParent();
+      } else {
+        node = sibling;
+      }
+    }
+  }
+  return node;
 }
 
 /**
@@ -595,7 +638,7 @@ function registerNestedElementResolver(editor, targetNode, cloneNode, handleOver
     }
     return null;
   };
-  const elementNodeTransform = node => {
+  const $elementNodeTransform = node => {
     const match = $findMatch(node);
     if (match !== null) {
       const {
@@ -623,7 +666,7 @@ function registerNestedElementResolver(editor, targetNode, cloneNode, handleOver
       }
     }
   };
-  return editor.registerNodeTransform(targetNode, elementNodeTransform);
+  return editor.registerNodeTransform(targetNode, $elementNodeTransform);
 }
 
 /**
@@ -783,4 +826,4 @@ function calculateZoomLevel(element) {
   return zoom;
 }
 
-export { $dfs, $filter, $findMatchingParent, $getNearestBlockElementAncestorOrThrow, $getNearestNodeOfType, $insertFirst, $insertNodeToNearestRoot, $restoreEditorState, $wrapNodeInElement, CAN_USE_BEFORE_INPUT, CAN_USE_DOM, IS_ANDROID, IS_ANDROID_CHROME, IS_APPLE, IS_APPLE_WEBKIT, IS_CHROME, IS_FIREFOX, IS_IOS, IS_SAFARI, addClassNamesToElement, calculateZoomLevel, isMimeType, markSelection, mediaFileReader, mergeRegister, objectKlassEquals, positionNodeOnRange, registerNestedElementResolver, removeClassNamesFromElement };
+export { $dfs, $filter, $findMatchingParent, $getNearestBlockElementAncestorOrThrow, $getNearestNodeOfType, $getNextRightPreorderNode, $insertFirst, $insertNodeToNearestRoot, $restoreEditorState, $wrapNodeInElement, CAN_USE_BEFORE_INPUT, CAN_USE_DOM, IS_ANDROID, IS_ANDROID_CHROME, IS_APPLE, IS_APPLE_WEBKIT, IS_CHROME, IS_FIREFOX, IS_IOS, IS_SAFARI, addClassNamesToElement, calculateZoomLevel, isMimeType, markSelection, mediaFileReader, mergeRegister, objectKlassEquals, positionNodeOnRange, registerNestedElementResolver, removeClassNamesFromElement };

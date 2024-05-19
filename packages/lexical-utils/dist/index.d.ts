@@ -9,9 +9,17 @@ import { EditorState, ElementNode, Klass, LexicalEditor, LexicalNode } from 'lex
 export { default as markSelection } from './markSelection';
 export { default as mergeRegister } from './mergeRegister';
 export { default as positionNodeOnRange } from './positionNodeOnRange';
-export { $splitNode, isHTMLAnchorElement, isHTMLElement } from 'lexical';
-export { CAN_USE_DOM } from 'shared/canUseDOM';
-export { CAN_USE_BEFORE_INPUT, IS_ANDROID, IS_ANDROID_CHROME, IS_APPLE, IS_APPLE_WEBKIT, IS_CHROME, IS_FIREFOX, IS_IOS, IS_SAFARI, } from 'shared/environment';
+export { $splitNode, isBlockDomNode, isHTMLAnchorElement, isHTMLElement, isInlineDomNode, } from 'lexical';
+export declare const CAN_USE_BEFORE_INPUT: boolean;
+export declare const CAN_USE_DOM: boolean;
+export declare const IS_ANDROID: boolean;
+export declare const IS_ANDROID_CHROME: boolean;
+export declare const IS_APPLE: boolean;
+export declare const IS_APPLE_WEBKIT: boolean;
+export declare const IS_CHROME: boolean;
+export declare const IS_FIREFOX: boolean;
+export declare const IS_IOS: boolean;
+export declare const IS_SAFARI: boolean;
 export type DFSNode = Readonly<{
     depth: number;
     node: LexicalNode;
@@ -69,6 +77,15 @@ export declare function mediaFileReader(files: Array<File>, acceptableMimeTypes:
  * {depth: number, node: LexicalNode} It will always return at least 1 node (the ending node) so long as it exists
  */
 export declare function $dfs(startingNode?: LexicalNode, endingNode?: LexicalNode): Array<DFSNode>;
+/**
+ * Performs a right-to-left preorder tree traversal.
+ * From the starting node it goes to the rightmost child, than backtracks to paret and finds new rightmost path.
+ * It will return the next node in traversal sequence after the startingNode.
+ * The traversal is similar to $dfs functions above, but the nodes are visited right-to-left, not left-to-right.
+ * @param startingNode - The node to start the search.
+ * @returns The next node in pre-order right to left traversal sequence or `null`, if the node does not exist
+ */
+export declare function $getNextRightPreorderNode(startingNode: LexicalNode): LexicalNode | null;
 /**
  * Takes a node and traverses up its ancestors (toward the root node)
  * in order to find a specific type of node.

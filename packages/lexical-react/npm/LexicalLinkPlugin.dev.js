@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var link = require('@lexical/link');
@@ -19,6 +21,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function LinkPlugin({
   validateUrl
 }) {
@@ -29,11 +32,11 @@ function LinkPlugin({
     }
     return utils.mergeRegister(editor.registerCommand(link.TOGGLE_LINK_COMMAND, payload => {
       if (payload === null) {
-        link.toggleLink(payload);
+        link.$toggleLink(payload);
         return true;
       } else if (typeof payload === 'string') {
         if (validateUrl === undefined || validateUrl(payload)) {
-          link.toggleLink(payload);
+          link.$toggleLink(payload);
           return true;
         }
         return false;
@@ -44,7 +47,7 @@ function LinkPlugin({
           rel,
           title
         } = payload;
-        link.toggleLink(url, {
+        link.$toggleLink(url, {
           rel,
           target,
           title

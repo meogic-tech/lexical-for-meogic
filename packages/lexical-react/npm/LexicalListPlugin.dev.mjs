@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { INSERT_ORDERED_LIST_COMMAND, insertList, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND, removeList, $handleListInsertParagraph, ListNode, ListItemNode } from '@lexical/list';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
@@ -17,6 +19,7 @@ import { COMMAND_PRIORITY_LOW, INSERT_PARAGRAPH_COMMAND } from 'lexical';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useList(editor) {
   useEffect(() => {
     return mergeRegister(editor.registerCommand(INSERT_ORDERED_LIST_COMMAND, () => {
@@ -45,6 +48,7 @@ function useList(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function ListPlugin() {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {

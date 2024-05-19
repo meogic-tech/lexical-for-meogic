@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { $isLinkNode } from '@lexical/link';
 import { $isMarkNode } from '@lexical/mark';
@@ -19,6 +21,7 @@ import { forwardRef, useState, useRef, useCallback, useEffect, useMemo } from 'r
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const NON_SINGLE_WIDTH_CHARS_REPLACEMENT = Object.freeze({
   '\t': '\\t',
   '\n': '\\n'
@@ -36,7 +39,7 @@ const FORMAT_PREDICATES = [node => node.hasFormat('bold') && 'Bold', node => nod
 const FORMAT_PREDICATES_PARAGRAPH = [node => node.hasTextFormat('bold') && 'Bold', node => node.hasTextFormat('code') && 'Code', node => node.hasTextFormat('italic') && 'Italic', node => node.hasTextFormat('strikethrough') && 'Strikethrough', node => node.hasTextFormat('subscript') && 'Subscript', node => node.hasTextFormat('superscript') && 'Superscript', node => node.hasTextFormat('underline') && 'Underline'];
 const DETAIL_PREDICATES = [node => node.isDirectionless() && 'Directionless', node => node.isUnmergeable() && 'Unmergeable'];
 const MODE_PREDICATES = [node => node.isToken() && 'Token', node => node.isSegmented() && 'Segmented'];
-function generateContent(editor, commandsLog, exportDOM) {
+function generateContent(editor, commandsLog, exportDOM, obfuscateText = false) {
   const editorState = editor.getEditorState();
   const editorConfig = editor._config;
   const compositionKey = editor._compositionKey;
@@ -57,8 +60,8 @@ function generateContent(editor, commandsLog, exportDOM) {
       const typeDisplay = node.getType() || '';
       const isSelected = node.isSelected();
       const idsDisplay = $isMarkNode(node) ? ` id: [ ${node.getIDs().join(', ')} ] ` : '';
-      res += `${isSelected ? SYMBOLS.selectedLine : ' '} ${indent.join(' ')} ${nodeKeyDisplay} ${typeDisplay} ${idsDisplay} ${printNode(node)}\n`;
-      res += printSelectedCharsLine({
+      res += `${isSelected ? SYMBOLS.selectedLine : ' '} ${indent.join(' ')} ${nodeKeyDisplay} ${typeDisplay} ${idsDisplay} ${printNode(node, obfuscateText)}\n`;
+      res += $printSelectedCharsLine({
         indent,
         isSelected,
         node,
@@ -120,20 +123,24 @@ function visitTree(currentNode, visitor, indent = []) {
     }
   });
 }
-function normalize(text) {
-  return Object.entries(NON_SINGLE_WIDTH_CHARS_REPLACEMENT).reduce((acc, [key, value]) => acc.replace(new RegExp(key, 'g'), String(value)), text);
+function normalize(text, obfuscateText = false) {
+  const textToPrint = Object.entries(NON_SINGLE_WIDTH_CHARS_REPLACEMENT).reduce((acc, [key, value]) => acc.replace(new RegExp(key, 'g'), String(value)), text);
+  if (obfuscateText) {
+    return textToPrint.replace(/[^\s]/g, '*');
+  }
+  return textToPrint;
 }
 
 // TODO Pass via props to allow customizability
-function printNode(node) {
+function printNode(node, obfuscateText = false) {
   if ($isTextNode(node)) {
     const text = node.getTextContent();
-    const title = text.length === 0 ? '(empty)' : `"${normalize(text)}"`;
+    const title = text.length === 0 ? '(empty)' : `"${normalize(text, obfuscateText)}"`;
     const properties = printAllTextNodeProperties(node);
     return [title, properties.length !== 0 ? `{ ${properties} }` : null].filter(Boolean).join(' ').trim();
   } else if ($isLinkNode(node)) {
     const link = node.getURL();
-    const title = link.length === 0 ? '(empty)' : `"${normalize(link)}"`;
+    const title = link.length === 0 ? '(empty)' : `"${normalize(link, obfuscateText)}"`;
     const properties = printAllLinkNodeProperties(node);
     return [title, properties.length !== 0 ? `{ ${properties} }` : null].filter(Boolean).join(' ').trim();
   } else if ($isParagraphNode(node)) {
@@ -201,7 +208,7 @@ function printTitleProperties(node) {
   }
   return str;
 }
-function printSelectedCharsLine({
+function $printSelectedCharsLine({
   indent,
   isSelected,
   node,
@@ -293,6 +300,7 @@ function $getSelectionStartEnd(node, selection) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const LARGE_EDITOR_STATE_SIZE = 1000;
 const TreeView = /*#__PURE__*/forwardRef(function TreeViewWrapped({
   treeTypeButtonClassName,
@@ -465,6 +473,7 @@ const TreeView = /*#__PURE__*/forwardRef(function TreeViewWrapped({
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function registerLexicalCommandLogger(editor, setLoggedCommands) {
   const unregisterCommandListeners = new Set();
   for (const [command] of editor._commands) {

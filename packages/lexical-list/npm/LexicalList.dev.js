@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var lexical = require('lexical');
@@ -16,6 +18,7 @@ var utils = require('@lexical/utils');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /**
  * Checks the depth of listNode from the root node.
@@ -125,7 +128,7 @@ function $removeHighestEmptyListParent(sublist) {
  * @param node - The node to be wrapped into a ListItemNode
  * @returns The ListItemNode which the passed node is wrapped in.
  */
-function wrapInListItem(node) {
+function $wrapInListItem(node) {
   const listItemWrapper = $createListItemNode();
   return listItemWrapper.append(node);
 }
@@ -137,6 +140,7 @@ function wrapInListItem(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $isSelectingEmptyListItem(anchorNode, nodes) {
   return $isListItemNode(anchorNode) && (nodes.length === 0 || nodes.length === 1 && anchorNode.is(nodes[0]) && anchorNode.getChildrenSize() === 0);
 }
@@ -186,7 +190,7 @@ function insertList(editor, listType) {
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         if (lexical.$isElementNode(node) && node.isEmpty() && !$isListItemNode(node) && !handled.has(node.getKey())) {
-          createListOrMerge(node, listType);
+          $createListOrMerge(node, listType);
           continue;
         }
         if (lexical.$isLeafNode(node)) {
@@ -205,7 +209,7 @@ function insertList(editor, listType) {
               const nextParent = parent.getParent();
               if (lexical.$isRootOrShadowRoot(nextParent) && !handled.has(parentKey)) {
                 handled.add(parentKey);
-                createListOrMerge(parent, listType);
+                $createListOrMerge(parent, listType);
                 break;
               }
               parent = nextParent;
@@ -219,7 +223,7 @@ function insertList(editor, listType) {
 function append(node, nodesToAppend) {
   node.splice(node.getChildrenSize(), 0, nodesToAppend);
 }
-function createListOrMerge(node, listType) {
+function $createListOrMerge(node, listType) {
   if ($isListNode(node)) {
     return node;
   }
@@ -565,6 +569,7 @@ function normalizeClassNames(...classNames) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class ListItemNode extends lexical.ElementNode {
   /** @internal */
@@ -621,7 +626,7 @@ class ListItemNode extends lexical.ElementNode {
   static importDOM() {
     return {
       li: node => ({
-        conversion: convertListItemElement,
+        conversion: $convertListItemElement,
         priority: 0
       })
     };
@@ -900,7 +905,7 @@ function updateListItemChecked(dom, listItemNode, prevListItemNode, listNode) {
     }
   }
 }
-function convertListItemElement(domNode) {
+function $convertListItemElement(domNode) {
   const checked = utils.isHTMLElement(domNode) && domNode.getAttribute('aria-checked') === 'true';
   return {
     node: $createListItemNode(checked)
@@ -932,6 +937,7 @@ function $isListItemNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class ListNode extends lexical.ElementNode {
   /** @internal */
@@ -979,14 +985,14 @@ class ListNode extends lexical.ElementNode {
     }
     // @ts-expect-error Internal field.
     dom.__lexicalListType = this.__listType;
-    setListThemeClassNames(dom, config.theme, this);
+    $setListThemeClassNames(dom, config.theme, this);
     return dom;
   }
   updateDOM(prevNode, dom, config) {
     if (prevNode.__tag !== this.__tag) {
       return true;
     }
-    setListThemeClassNames(dom, config.theme, this);
+    $setListThemeClassNames(dom, config.theme, this);
     return false;
   }
   static transform() {
@@ -1001,11 +1007,11 @@ class ListNode extends lexical.ElementNode {
   static importDOM() {
     return {
       ol: node => ({
-        conversion: convertListNode,
+        conversion: $convertListNode,
         priority: 0
       }),
       ul: node => ({
-        conversion: convertListNode,
+        conversion: $convertListNode,
         priority: 0
       })
     };
@@ -1073,7 +1079,7 @@ class ListNode extends lexical.ElementNode {
     return $isListItemNode(child);
   }
 }
-function setListThemeClassNames(dom, editorThemeClasses, node) {
+function $setListThemeClassNames(dom, editorThemeClasses, node) {
   const classesToAdd = [];
   const classesToRemove = [];
   const listTheme = editorThemeClasses.list;
@@ -1125,7 +1131,7 @@ function setListThemeClassNames(dom, editorThemeClasses, node) {
  * ensuring that they are all ListItemNodes and contain either a single nested ListNode
  * or some other inline content.
  */
-function normalizeChildren(nodes) {
+function $normalizeChildren(nodes) {
   const normalizedListItems = [];
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
@@ -1135,17 +1141,17 @@ function normalizeChildren(nodes) {
       if (children.length > 1) {
         children.forEach(child => {
           if ($isListNode(child)) {
-            normalizedListItems.push(wrapInListItem(child));
+            normalizedListItems.push($wrapInListItem(child));
           }
         });
       }
     } else {
-      normalizedListItems.push(wrapInListItem(node));
+      normalizedListItems.push($wrapInListItem(node));
     }
   }
   return normalizedListItems;
 }
-function convertListNode(domNode) {
+function $convertListNode(domNode) {
   const nodeName = domNode.nodeName.toLowerCase();
   let node = null;
   if (nodeName === 'ol') {
@@ -1160,7 +1166,7 @@ function convertListNode(domNode) {
     }
   }
   return {
-    after: normalizeChildren,
+    after: $normalizeChildren,
     node
   };
 }
@@ -1195,6 +1201,7 @@ function $isListNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const INSERT_UNORDERED_LIST_COMMAND = lexical.createCommand('INSERT_UNORDERED_LIST_COMMAND');
 const INSERT_ORDERED_LIST_COMMAND = lexical.createCommand('INSERT_ORDERED_LIST_COMMAND');
 const INSERT_CHECK_LIST_COMMAND = lexical.createCommand('INSERT_CHECK_LIST_COMMAND');

@@ -3,10 +3,12 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { CLEAR_HISTORY_COMMAND } from 'lexical';
 
-var version = "0.14.5";
+var version = "0.15.0";
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -15,6 +17,7 @@ var version = "0.14.5";
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /**
  * Takes a file and inputs its content into the editor state as an input field.

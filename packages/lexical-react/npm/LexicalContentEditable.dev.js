@@ -3,11 +3,26 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 function _extends() {
   _extends = Object.assign ? Object.assign.bind() : function (target) {
@@ -41,8 +56,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const useLayoutEffectImpl = CAN_USE_DOM ? React.useLayoutEffect : React.useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
 
 function ContentEditable({
   ariaActiveDescendant,
@@ -74,13 +89,13 @@ function ContentEditable({
       editor.setRootElement(rootElement);
     }
   }, [editor]);
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     setEditable(editor.isEditable());
     return editor.registerEditableListener(currentIsEditable => {
       setEditable(currentIsEditable);
     });
   }, [editor]);
-  return /*#__PURE__*/React.createElement("div", _extends({}, rest, {
+  return /*#__PURE__*/React__namespace.createElement("div", _extends({}, rest, {
     "aria-activedescendant": !isEditable ? undefined : ariaActiveDescendant,
     "aria-autocomplete": !isEditable ? 'none' : ariaAutoComplete,
     "aria-controls": !isEditable ? undefined : ariaControls,

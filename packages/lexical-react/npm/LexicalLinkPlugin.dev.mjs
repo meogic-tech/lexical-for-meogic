@@ -3,8 +3,10 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
-import { LinkNode, TOGGLE_LINK_COMMAND, toggleLink } from '@lexical/link';
+
+import { LinkNode, TOGGLE_LINK_COMMAND, $toggleLink } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister, objectKlassEquals } from '@lexical/utils';
 import { COMMAND_PRIORITY_LOW, PASTE_COMMAND, $getSelection, $isRangeSelection, $isElementNode } from 'lexical';
@@ -17,6 +19,7 @@ import { useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function LinkPlugin({
   validateUrl
 }) {
@@ -27,11 +30,11 @@ function LinkPlugin({
     }
     return mergeRegister(editor.registerCommand(TOGGLE_LINK_COMMAND, payload => {
       if (payload === null) {
-        toggleLink(payload);
+        $toggleLink(payload);
         return true;
       } else if (typeof payload === 'string') {
         if (validateUrl === undefined || validateUrl(payload)) {
-          toggleLink(payload);
+          $toggleLink(payload);
           return true;
         }
         return false;
@@ -42,7 +45,7 @@ function LinkPlugin({
           rel,
           title
         } = payload;
-        toggleLink(url, {
+        $toggleLink(url, {
           rel,
           target,
           title

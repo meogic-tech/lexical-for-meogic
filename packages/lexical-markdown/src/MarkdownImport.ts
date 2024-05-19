@@ -14,7 +14,7 @@ import type {
 } from '@lexical/markdown';
 import type {LexicalNode, TextNode} from 'lexical';
 
-import {$createCodeNode} from '@lexical/code';
+import {$createCodeNode, CodeNode} from '@lexical/code';
 import {$isListItemNode, $isListNode, ListItemNode} from '@lexical/list';
 import {$isQuoteNode} from '@lexical/rich-text';
 import {$findMatchingParent} from '@lexical/utils';

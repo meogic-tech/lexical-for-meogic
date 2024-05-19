@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var lexical = require('lexical');
@@ -24,6 +26,7 @@ const CSS_TO_STYLES = new Map();
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function getDOMTextNode(element) {
   let node = element;
   while (node != null) {
@@ -305,7 +308,7 @@ function $isAtNodeEnd(point) {
  * @param anchor - The anchor of the current selection, where the selection should be pointing.
  * @param delCount - The amount of characters to delete. Useful as a dynamic variable eg. textContentSize - maxLength;
  */
-function trimTextContentFromAnchor(editor, anchor, delCount) {
+function $trimTextContentFromAnchor(editor, anchor, delCount) {
   // Work from the current selection anchor point
   let currentNode = anchor.getNode();
   let remaining = delCount;
@@ -555,6 +558,7 @@ function $patchStyleText(selection, patch) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /**
  * Converts all nodes in the selection that are of one block type to another.
@@ -923,7 +927,7 @@ function $getSelectionStyleValueForProperty(selection, styleProperty, defaultVal
   const isBackward = selection.isBackward();
   const endOffset = isBackward ? focus.offset : anchor.offset;
   const endNode = isBackward ? focus.getNode() : anchor.getNode();
-  if (selection.isCollapsed() && selection.style !== '') {
+  if (lexical.$isRangeSelection(selection) && selection.isCollapsed() && selection.style !== '') {
     const css = selection.style;
     const styleObject = getStyleObjectFromCSS(css);
     if (styleObject !== null && styleProperty in styleObject) {
@@ -977,6 +981,17 @@ function $getAncestor(node, predicate) {
   return predicate(parent) ? parent : null;
 }
 
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/** @deprecated renamed to {@link $trimTextContentFromAnchor} by @lexical/eslint-plugin rules-of-lexical */
+const trimTextContentFromAnchor = $trimTextContentFromAnchor;
+
 exports.$addNodeStyle = $addNodeStyle;
 exports.$cloneWithProperties = $cloneWithProperties;
 exports.$getSelectionStyleValueForProperty = $getSelectionStyleValueForProperty;
@@ -989,6 +1004,7 @@ exports.$selectAll = $selectAll;
 exports.$setBlocksType = $setBlocksType;
 exports.$shouldOverrideDefaultCharacterSelection = $shouldOverrideDefaultCharacterSelection;
 exports.$sliceSelectedTextNodeContent = $sliceSelectedTextNodeContent;
+exports.$trimTextContentFromAnchor = $trimTextContentFromAnchor;
 exports.$wrapNodes = $wrapNodes;
 exports.createDOMRange = createDOMRange;
 exports.createRectsFromDOMRange = createRectsFromDOMRange;

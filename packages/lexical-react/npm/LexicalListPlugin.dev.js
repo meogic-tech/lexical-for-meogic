@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var list = require('@lexical/list');
@@ -19,6 +21,7 @@ var lexical = require('lexical');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useList(editor) {
   react.useEffect(() => {
     return utils.mergeRegister(editor.registerCommand(list.INSERT_ORDERED_LIST_COMMAND, () => {
@@ -47,6 +50,7 @@ function useList(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function ListPlugin() {
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
   react.useEffect(() => {

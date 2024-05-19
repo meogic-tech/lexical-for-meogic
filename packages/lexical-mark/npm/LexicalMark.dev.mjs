@@ -3,8 +3,10 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
-import { ElementNode, $applyNodeReplacement, $isRangeSelection, $isElementNode, $isTextNode } from 'lexical';
+
+import { ElementNode, $isRangeSelection, $applyNodeReplacement, $isElementNode, $isTextNode } from 'lexical';
 import { addClassNamesToElement, removeClassNamesFromElement } from '@lexical/utils';
 
 /**
@@ -14,6 +16,7 @@ import { addClassNamesToElement, removeClassNamesFromElement } from '@lexical/ut
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class MarkNode extends ElementNode {
   /** @internal */
@@ -158,6 +161,7 @@ function $isMarkNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $unwrapMarkNode(node) {
   const children = node.getChildren();
   let target = null;

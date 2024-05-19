@@ -3,13 +3,15 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var lexical = require('lexical');
 var yjs = require('yjs');
-var selection = require('@lexical/selection');
 var offset = require('@lexical/offset');
+var selection = require('@lexical/selection');
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -18,6 +20,7 @@ var offset = require('@lexical/offset');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class CollabLineBreakNode {
   constructor(map, parent) {
     this._key = '';
@@ -96,7 +99,8 @@ function simpleDiffWithCursor(a, b, cursor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
-function diffTextContentAndApplyDelta(collabNode, key, prevText, nextText) {
+
+function $diffTextContentAndApplyDelta(collabNode, key, prevText, nextText) {
   const selection = lexical.$getSelection();
   let cursorOffset = nextText.length;
   if (lexical.$isRangeSelection(selection) && selection.isCollapsed()) {
@@ -163,7 +167,7 @@ class CollabTextNode {
       const prevText = prevLexicalNode.__text;
       if (prevText !== nextText) {
         const key = nextLexicalNode.__key;
-        diffTextContentAndApplyDelta(this, key, prevText, nextText);
+        $diffTextContentAndApplyDelta(this, key, prevText, nextText);
         this._text = nextText;
       }
     }
@@ -198,6 +202,7 @@ function $createCollabTextNode(map, text, parent, type) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const baseExcludedProperties = new Set(['__key', '__parent', '__next', '__prev']);
 const elementExcludedProperties = new Set(['__first', '__last', '__size']);
 const rootExcludedProperties = new Set(['__cachedText']);
@@ -262,7 +267,7 @@ function getNodeTypeFromSharedType(sharedType) {
   }
   return type;
 }
-function getOrInitCollabNodeFromSharedType(binding, sharedType, parent) {
+function $getOrInitCollabNodeFromSharedType(binding, sharedType, parent) {
   const collabNode = sharedType._collabNode;
   if (collabNode === undefined) {
     const registeredNodes = binding.editor._nodes;
@@ -272,7 +277,7 @@ function getOrInitCollabNodeFromSharedType(binding, sharedType, parent) {
       throw Error(`Node ${type} is not registered`);
     }
     const sharedParent = sharedType.parent;
-    const targetParent = parent === undefined && sharedParent !== null ? getOrInitCollabNodeFromSharedType(binding, sharedParent) : parent || null;
+    const targetParent = parent === undefined && sharedParent !== null ? $getOrInitCollabNodeFromSharedType(binding, sharedParent) : parent || null;
     if (!(targetParent instanceof CollabElementNode)) {
       throw Error(`Expected parent to be a collab element node`);
     }
@@ -463,21 +468,6 @@ function doesSelectionNeedRecovering(selection) {
 function syncWithTransaction(binding, fn) {
   binding.doc.transact(fn, binding);
 }
-function createChildrenArray(element, nodeMap) {
-  const children = [];
-  let nodeKey = element.__first;
-  while (nodeKey !== null) {
-    const node = nodeMap === null ? lexical.$getNodeByKey(nodeKey) : nodeMap.get(nodeKey);
-    if (node === null || node === undefined) {
-      {
-        throw Error(`createChildrenArray: node does not exist in nodeMap`);
-      }
-    }
-    children.push(nodeKey);
-    nodeKey = node.__next;
-  }
-  return children;
-}
 function removeFromParent(node) {
   const oldParent = node.getParent();
   if (oldParent !== null) {
@@ -528,6 +518,35 @@ function removeFromParent(node) {
     writableNode.__parent = null;
   }
 }
+function $moveSelectionToPreviousNode(anchorNodeKey, currentEditorState) {
+  const anchorNode = currentEditorState._nodeMap.get(anchorNodeKey);
+  if (!anchorNode) {
+    lexical.$getRoot().selectStart();
+    return;
+  }
+  // Get previous node
+  const prevNodeKey = anchorNode.__prev;
+  let prevNode = null;
+  if (prevNodeKey) {
+    prevNode = lexical.$getNodeByKey(prevNodeKey);
+  }
+
+  // If previous node not found, get parent node
+  if (prevNode === null && anchorNode.__parent !== null) {
+    prevNode = lexical.$getNodeByKey(anchorNode.__parent);
+  }
+  if (prevNode === null) {
+    lexical.$getRoot().selectStart();
+    return;
+  }
+  if (prevNode !== null && prevNode.isAttached()) {
+    prevNode.selectEnd();
+    return;
+  } else {
+    // If the found node is also deleted, select the next one
+    $moveSelectionToPreviousNode(prevNode.__key, currentEditorState);
+  }
+}
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -536,6 +555,7 @@ function removeFromParent(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class CollabDecoratorNode {
   constructor(xmlElem, parent, type) {
     this._key = '';
@@ -601,6 +621,7 @@ function $createCollabDecoratorNode(xmlElem, parent, type) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class CollabElementNode {
   constructor(xmlText, parent, type) {
     this._key = '';
@@ -717,7 +738,7 @@ class CollabElementNode {
           const {
             nodeIndex
           } = getPositionFromElementAndOffset(this, currIndex, false);
-          const collabNode = getOrInitCollabNodeFromSharedType(binding, sharedType, this);
+          const collabNode = $getOrInitCollabNodeFromSharedType(binding, sharedType, this);
           children.splice(nodeIndex, 0, collabNode);
           currIndex += 1;
         }
@@ -733,7 +754,7 @@ class CollabElementNode {
       throw Error(`syncChildrenFromYjs: could not find element node`);
     }
     const key = lexicalNode.__key;
-    const prevLexicalChildrenKeys = createChildrenArray(lexicalNode, null);
+    const prevLexicalChildrenKeys = offset.$createChildrenArray(lexicalNode, null);
     const lexicalChildrenKeysLength = prevLexicalChildrenKeys.length;
     const collabChildren = this._children;
     const collabChildrenLength = collabChildren.length;
@@ -854,8 +875,8 @@ class CollabElementNode {
   }
   syncChildrenFromLexical(binding, nextLexicalNode, prevNodeMap, dirtyElements, dirtyLeaves) {
     const prevLexicalNode = this.getPrevNode(prevNodeMap);
-    const prevChildren = prevLexicalNode === null ? [] : createChildrenArray(prevLexicalNode, prevNodeMap);
-    const nextChildren = createChildrenArray(nextLexicalNode, null);
+    const prevChildren = prevLexicalNode === null ? [] : offset.$createChildrenArray(prevLexicalNode, prevNodeMap);
+    const nextChildren = offset.$createChildrenArray(nextLexicalNode, null);
     const prevEndIndex = prevChildren.length - 1;
     const nextEndIndex = nextChildren.length - 1;
     const collabNodeMap = binding.collabNodeMap;
@@ -1015,6 +1036,7 @@ function $createCollabElementNode(xmlText, parent, type) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function createBinding(editor, provider, id, doc, docMap, excludedProperties) {
   if (!(doc !== undefined && doc !== null)) {
     throw Error(`createBinding: doc is null or undefined`);
@@ -1044,6 +1066,7 @@ function createBinding(editor, provider, id, doc, docMap, excludedProperties) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function createRelativePosition(point, binding) {
   const collabNodeMap = binding.collabNodeMap;
   const collabNode = collabNodeMap.get(point.key);
@@ -1220,7 +1243,7 @@ function updateCursor(binding, cursor, nextSelection, nodeMap) {
     selections.pop();
   }
 }
-function syncLocalCursorPosition(binding, provider) {
+function $syncLocalCursorPosition(binding, provider) {
   const awareness = provider.awareness;
   const localState = awareness.getLocalState();
   if (localState === null) {
@@ -1243,13 +1266,13 @@ function syncLocalCursorPosition(binding, provider) {
         }
         const anchor = selection.anchor;
         const focus = selection.focus;
-        setPoint(anchor, anchorKey, anchorOffset);
-        setPoint(focus, focusKey, focusOffset);
+        $setPoint(anchor, anchorKey, anchorOffset);
+        $setPoint(focus, focusKey, focusOffset);
       }
     }
   }
 }
-function setPoint(point, key, offset) {
+function $setPoint(point, key, offset) {
   if (point.key !== key || point.offset !== offset) {
     let anchorNode = lexical.$getNodeByKey(key);
     if (anchorNode !== null && !lexical.$isElementNode(anchorNode) && !lexical.$isTextNode(anchorNode)) {
@@ -1389,12 +1412,13 @@ function syncLexicalSelectionToYjs(binding, provider, prevSelection, nextSelecti
  *
  */
 
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function syncEvent(binding, event) {
+function $syncEvent(binding, event) {
   const {
     target
   } = event;
-  const collabNode = getOrInitCollabNodeFromSharedType(binding, target);
+  const collabNode = $getOrInitCollabNodeFromSharedType(binding, target);
   if (collabNode instanceof CollabElementNode && event instanceof yjs.YTextEvent) {
     // @ts-expect-error We need to access the private property of the class
     const {
@@ -1446,10 +1470,9 @@ function syncYjsChangesToLexical(binding, provider, events, isFromUndoManger) {
   // https://github.com/yjs/yjs/blob/00ef472d68545cb260abd35c2de4b3b78719c9e4/src/utils/YEvent.js#L132
   events.forEach(event => event.delta);
   editor.update(() => {
-    const pendingEditorState = editor._pendingEditorState;
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
-      syncEvent(binding, event);
+      $syncEvent(binding, event);
     }
     // If there was a collision on the top level paragraph
     // we need to re-add a paragraph
@@ -1458,30 +1481,19 @@ function syncYjsChangesToLexical(binding, provider, events, isFromUndoManger) {
     }
     const selection = lexical.$getSelection();
     if (lexical.$isRangeSelection(selection)) {
-      // We can't use Yjs's cursor position here, as it doesn't always
-      // handle selection recovery correctly – especially on elements that
-      // get moved around or split. So instead, we roll our own solution.
       if (doesSelectionNeedRecovering(selection)) {
         const prevSelection = currentEditorState._selection;
         if (lexical.$isRangeSelection(prevSelection)) {
-          const prevOffsetView = offset.$createOffsetView(editor, 0, currentEditorState);
-          const nextOffsetView = offset.$createOffsetView(editor, 0, pendingEditorState);
-          const [start, end] = prevOffsetView.getOffsetsFromSelection(prevSelection);
-          const nextSelection = start >= 0 && end >= 0 ? nextOffsetView.createSelectionFromOffsets(start, end, prevOffsetView) : null;
-          if (nextSelection !== null) {
-            lexical.$setSelection(nextSelection);
-          } else {
-            // Fallback is to use the Yjs cursor position
-            syncLocalCursorPosition(binding, provider);
-            if (doesSelectionNeedRecovering(selection)) {
-              // Fallback
-              lexical.$getRoot().selectEnd();
-            }
+          $syncLocalCursorPosition(binding, provider);
+          if (doesSelectionNeedRecovering(selection)) {
+            // If the selected node is deleted, move the selection to the previous or parent node.
+            const anchorNodeKey = selection.anchor.key;
+            $moveSelectionToPreviousNode(anchorNodeKey, currentEditorState);
           }
         }
         syncLexicalSelectionToYjs(binding, provider, prevSelection, lexical.$getSelection());
       } else {
-        syncLocalCursorPosition(binding, provider);
+        $syncLocalCursorPosition(binding, provider);
       }
     }
   }, {
@@ -1492,7 +1504,7 @@ function syncYjsChangesToLexical(binding, provider, events, isFromUndoManger) {
     tag: isFromUndoManger ? 'historic' : 'collaboration'
   });
 }
-function handleNormalizationMergeConflicts(binding, normalizedNodes) {
+function $handleNormalizationMergeConflicts(binding, normalizedNodes) {
   // We handle the merge operations here
   const normalizedNodesKeys = Array.from(normalizedNodes);
   const collabNodeMap = binding.collabNodeMap;
@@ -1540,7 +1552,7 @@ function syncLexicalUpdateToYjs(binding, provider, prevEditorState, currEditorSt
       // when we need to handle normalization merge conflicts.
       if (tags.has('collaboration') || tags.has('historic')) {
         if (normalizedNodes.size > 0) {
-          handleNormalizationMergeConflicts(binding, normalizedNodes);
+          $handleNormalizationMergeConflicts(binding, normalizedNodes);
         }
         return;
       }
@@ -1565,6 +1577,7 @@ function syncLexicalUpdateToYjs(binding, provider, prevEditorState, currEditorSt
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const CONNECTED_COMMAND = lexical.createCommand('CONNECTED_COMMAND');
 const TOGGLE_CONNECT_COMMAND = lexical.createCommand('TOGGLE_CONNECT_COMMAND');
 function createUndoManager(binding, root) {

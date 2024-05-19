@@ -61,6 +61,6 @@ export declare class TableCellNode extends ElementNode {
     canBeEmpty(): false;
     canIndent(): false;
 }
-export declare function convertTableCellNodeElement(domNode: Node): DOMConversionOutput;
+export declare function $convertTableCellNodeElement(domNode: Node): DOMConversionOutput;
 export declare function $createTableCellNode(headerState: TableCellHeaderState, colSpan?: number, width?: number): TableCellNode;
 export declare function $isTableCellNode(node: LexicalNode | null | undefined): node is TableCellNode;

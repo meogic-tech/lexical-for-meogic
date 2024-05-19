@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { DecoratorNode } from 'lexical';
 
 /**
@@ -13,6 +15,7 @@ import { DecoratorNode } from 'lexical';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class DecoratorBlockNode extends DecoratorNode {
   constructor(format, key) {
     super(key);
@@ -24,6 +27,9 @@ class DecoratorBlockNode extends DecoratorNode {
       type: 'decorator-block',
       version: 1
     };
+  }
+  canIndent() {
+    return false;
   }
   createDOM() {
     return document.createElement('div');

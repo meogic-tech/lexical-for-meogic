@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -12,6 +14,19 @@ var utils = require('@lexical/utils');
 var lexical = require('lexical');
 var React = require('react');
 
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -19,6 +34,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const INSERT_HORIZONTAL_RULE_COMMAND = lexical.createCommand('INSERT_HORIZONTAL_RULE_COMMAND');
 function HorizontalRuleComponent({
   nodeKey,
@@ -26,7 +42,7 @@ function HorizontalRuleComponent({
 }) {
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection.useLexicalNodeSelection(nodeKey);
-  const onDelete = React.useCallback(event => {
+  const $onDelete = React.useCallback(event => {
     if (isSelected && lexical.$isNodeSelection(lexical.$getSelection())) {
       event.preventDefault();
       const node = lexical.$getNodeByKey(nodeKey);
@@ -48,8 +64,8 @@ function HorizontalRuleComponent({
         return true;
       }
       return false;
-    }, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_DELETE_COMMAND, onDelete, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_BACKSPACE_COMMAND, onDelete, lexical.COMMAND_PRIORITY_LOW));
-  }, [clearSelection, editor, isSelected, nodeKey, onDelete, setSelected]);
+    }, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_DELETE_COMMAND, $onDelete, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_BACKSPACE_COMMAND, $onDelete, lexical.COMMAND_PRIORITY_LOW));
+  }, [clearSelection, editor, isSelected, nodeKey, $onDelete, setSelected]);
   React.useEffect(() => {
     const hrElem = editor.getElementByKey(nodeKey);
     if (hrElem !== null) {
@@ -59,7 +75,7 @@ function HorizontalRuleComponent({
   const hrArray = Array.from({
     length: count
   }, (_, index) => index);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, hrArray.map((_, index) => /*#__PURE__*/React.createElement("hr", {
+  return /*#__PURE__*/React__namespace.createElement(React__namespace.Fragment, null, hrArray.map((_, index) => /*#__PURE__*/React__namespace.createElement("hr", {
     key: index
   })));
 }
@@ -76,7 +92,7 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
   static importDOM() {
     return {
       hr: () => ({
-        conversion: convertHorizontalRuleElement,
+        conversion: $convertHorizontalRuleElement,
         priority: 0
       })
     };
@@ -117,7 +133,7 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
     return false;
   }
   decorate() {
-    return /*#__PURE__*/React.createElement(HorizontalRuleComponent, {
+    return /*#__PURE__*/React__namespace.createElement(HorizontalRuleComponent, {
       nodeKey: this.__key,
       count: this.__count
     });
@@ -129,7 +145,7 @@ class HorizontalRuleNode extends lexical.DecoratorNode {
     return writableSelf;
   }
 }
-function convertHorizontalRuleElement() {
+function $convertHorizontalRuleElement() {
   return {
     node: $createHorizontalRuleNode()
   };

@@ -15,6 +15,7 @@ export declare class DecoratorBlockNode extends DecoratorNode<JSX.Element> {
     __format: ElementFormatType;
     constructor(format?: ElementFormatType, key?: NodeKey);
     exportJSON(): SerializedDecoratorBlockNode;
+    canIndent(): false;
     createDOM(): HTMLElement;
     updateDOM(): false;
     setFormat(format: ElementFormatType): void;

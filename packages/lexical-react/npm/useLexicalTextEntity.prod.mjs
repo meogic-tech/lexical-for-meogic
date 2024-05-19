@@ -3,5 +3,7 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import{useLexicalComposerContext as o}from"@lexical/react/LexicalComposerContext";import{registerLexicalTextEntity as t}from"@lexical/text";import{mergeRegister as r}from"@lexical/utils";import{useEffect as e}from"react";function i(i,m,c){const[l]=o();e((()=>r(...t(l,i,m,c))),[c,l,i,m])}export{i as useLexicalTextEntity};

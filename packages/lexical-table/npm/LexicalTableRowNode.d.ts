@@ -28,6 +28,6 @@ export declare class TableRowNode extends ElementNode {
     canBeEmpty(): false;
     canIndent(): false;
 }
-export declare function convertTableRowElement(domNode: Node): DOMConversionOutput;
+export declare function $convertTableRowElement(domNode: Node): DOMConversionOutput;
 export declare function $createTableRowNode(height?: number): TableRowNode;
 export declare function $isTableRowNode(node: LexicalNode | null | undefined): node is TableRowNode;

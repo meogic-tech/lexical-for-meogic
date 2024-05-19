@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var lexical = require('lexical');
@@ -16,6 +18,7 @@ var utils = require('@lexical/utils');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class MarkNode extends lexical.ElementNode {
   /** @internal */
@@ -160,6 +163,7 @@ function $isMarkNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $unwrapMarkNode(node) {
   const children = node.getChildren();
   let target = null;

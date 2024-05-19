@@ -12,5 +12,5 @@ type OptionalProps = {
     strlen?: (input: string) => number;
 };
 export declare function useCharacterLimit(editor: LexicalEditor, maxCharacters: number, optional?: OptionalProps): void;
-export declare function mergePrevious(overflowNode: OverflowNode): void;
+export declare function $mergePrevious(overflowNode: OverflowNode): void;
 export {};

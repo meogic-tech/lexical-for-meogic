@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $isLinkNode } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $findMatchingParent, isHTMLAnchorElement } from '@lexical/utils';
@@ -17,6 +19,7 @@ import { useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function findMatchingDOM(startNode, predicate) {
   let node = startNode;
   while (node != null) {
@@ -34,10 +37,6 @@ function LexicalClickableLinkPlugin({
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
     const onClick = event => {
-      if (disabled) {
-        event.preventDefault();
-        return;
-      }
       const target = event.target;
       if (!(target instanceof Node)) {
         return;
@@ -52,14 +51,16 @@ function LexicalClickableLinkPlugin({
         const clickedNode = $getNearestNodeFromDOMNode(target);
         if (clickedNode !== null) {
           const maybeLinkNode = $findMatchingParent(clickedNode, $isElementNode);
-          if ($isLinkNode(maybeLinkNode)) {
-            url = maybeLinkNode.sanitizeUrl(maybeLinkNode.getURL());
-            urlTarget = maybeLinkNode.getTarget();
-          } else {
-            const a = findMatchingDOM(target, isHTMLAnchorElement);
-            if (a !== null) {
-              url = a.href;
-              urlTarget = a.target;
+          if (!disabled) {
+            if ($isLinkNode(maybeLinkNode)) {
+              url = maybeLinkNode.sanitizeUrl(maybeLinkNode.getURL());
+              urlTarget = maybeLinkNode.getTarget();
+            } else {
+              const a = findMatchingDOM(target, isHTMLAnchorElement);
+              if (a !== null) {
+                url = a.href;
+                urlTarget = a.target;
+              }
             }
           }
         }
@@ -79,7 +80,7 @@ function LexicalClickableLinkPlugin({
       event.preventDefault();
     };
     const onMouseUp = event => {
-      if (!disabled && event.button === 1) {
+      if (event.button === 1) {
         onClick(event);
       }
     };

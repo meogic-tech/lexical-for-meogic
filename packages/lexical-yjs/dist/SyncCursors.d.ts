@@ -27,6 +27,6 @@ export type Cursor = {
     name: string;
     selection: null | CursorSelection;
 };
-export declare function syncLocalCursorPosition(binding: Binding, provider: Provider): void;
+export declare function $syncLocalCursorPosition(binding: Binding, provider: Provider): void;
 export declare function syncCursorPositions(binding: Binding, provider: Provider): void;
 export declare function syncLexicalSelectionToYjs(binding: Binding, provider: Provider, prevSelection: null | BaseSelection, nextSelection: null | BaseSelection): void;

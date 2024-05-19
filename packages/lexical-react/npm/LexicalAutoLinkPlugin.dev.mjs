@@ -3,11 +3,13 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { AutoLinkNode, $isAutoLinkNode, $isLinkNode, $createAutoLinkNode } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import { TextNode, $isTextNode, $isLineBreakNode, $isElementNode, $createTextNode, $getSelection, $isRangeSelection, $isNodeSelection } from 'lexical';
+import { TextNode, $isTextNode, $isElementNode, $isLineBreakNode, $createTextNode, $getSelection, $isRangeSelection, $isNodeSelection } from 'lexical';
 import { useEffect } from 'react';
 
 /**
@@ -17,6 +19,7 @@ import { useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function createLinkMatcherWithRegExp(regExp, urlTransformer = text => text) {
   return text => {
     const match = regExp.exec(text);
@@ -98,7 +101,7 @@ function extractMatchingNodes(nodes, startIndex, endIndex) {
   }
   return [matchingOffset, unmodifiedBeforeNodes, matchingNodes, unmodifiedAfterNodes];
 }
-function createAutoLinkNode(nodes, startIndex, endIndex, match) {
+function $createAutoLinkNode_(nodes, startIndex, endIndex, match) {
   const linkNode = $createAutoLinkNode(match.url, match.attributes);
   if (nodes.length === 1) {
     let remainingTextNode = nodes[0];
@@ -111,6 +114,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
     const textNode = $createTextNode(match.text);
     textNode.setFormat(linkTextNode.getFormat());
     textNode.setDetail(linkTextNode.getDetail());
+    textNode.setStyle(linkTextNode.getStyle());
     linkNode.append(textNode);
     linkTextNode.replace(linkNode);
     return remainingTextNode;
@@ -147,6 +151,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
     const textNode = $createTextNode(firstLinkTextNode.getTextContent());
     textNode.setFormat(firstLinkTextNode.getFormat());
     textNode.setDetail(firstLinkTextNode.getDetail());
+    textNode.setStyle(firstLinkTextNode.getStyle());
     linkNode.append(textNode, ...linkNodes);
     // it does not preserve caret position if caret was at the first text node
     // so we need to restore caret position
@@ -162,7 +167,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
   }
   return undefined;
 }
-function handleLinkCreation(nodes, matchers, onChange) {
+function $handleLinkCreation(nodes, matchers, onChange) {
   let currentNodes = [...nodes];
   const initialText = currentNodes.map(node => node.getTextContent()).join('');
   let text = initialText;
@@ -177,7 +182,7 @@ function handleLinkCreation(nodes, matchers, onChange) {
       const [matchingOffset,, matchingNodes, unmodifiedAfterNodes] = extractMatchingNodes(currentNodes, invalidMatchEnd + matchStart, invalidMatchEnd + matchEnd);
       const actualMatchStart = invalidMatchEnd + matchStart - matchingOffset;
       const actualMatchEnd = invalidMatchEnd + matchEnd - matchingOffset;
-      const remainingTextNode = createAutoLinkNode(matchingNodes, actualMatchStart, actualMatchEnd, match);
+      const remainingTextNode = $createAutoLinkNode_(matchingNodes, actualMatchStart, actualMatchEnd, match);
       currentNodes = remainingTextNode ? [remainingTextNode, ...unmodifiedAfterNodes] : unmodifiedAfterNodes;
       onChange(match.url, null);
       invalidMatchEnd = 0;
@@ -293,7 +298,7 @@ function useAutoLink(editor, matchers, onChange) {
       } else if (!$isLinkNode(parent)) {
         if (textNode.isSimpleText() && (startsWithSeparator(textNode.getTextContent()) || !$isAutoLinkNode(previous))) {
           const textNodesToMatch = getTextNodesToMatch(textNode);
-          handleLinkCreation(textNodesToMatch, matchers, onChangeWrapped);
+          $handleLinkCreation(textNodesToMatch, matchers, onChangeWrapped);
         }
         handleBadNeighbors(textNode, matchers, onChangeWrapped);
       }

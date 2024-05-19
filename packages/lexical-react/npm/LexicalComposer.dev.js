@@ -3,12 +3,27 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var lexical = require('lexical');
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -27,8 +42,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const useLayoutEffectImpl = CAN_USE_DOM ? React.useLayoutEffect : React.useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -37,6 +52,7 @@ var useLayoutEffect = useLayoutEffectImpl;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const HISTORY_MERGE_OPTIONS = {
   tag: 'history-merge'
 };
@@ -74,7 +90,7 @@ function LexicalComposer({
   // We only do this for init
   // eslint-disable-next-line react-hooks/exhaustive-deps
   []);
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     const isEditable = initialConfig.editable;
     const [editor] = composerContext;
     editor.setEditable(isEditable !== undefined ? isEditable : true);
@@ -82,7 +98,7 @@ function LexicalComposer({
     // We only do this for init
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return /*#__PURE__*/React.createElement(LexicalComposerContext.LexicalComposerContext.Provider, {
+  return /*#__PURE__*/React__namespace.createElement(LexicalComposerContext.LexicalComposerContext.Provider, {
     value: composerContext
   }, children);
 }

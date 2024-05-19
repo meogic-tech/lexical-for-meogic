@@ -3,11 +3,14 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import * as modDev from './LexicalTable.dev.mjs';
 import * as modProd from './LexicalTable.prod.mjs';
 const mod = process.env.NODE_ENV === 'development' ? modDev : modProd;
 export const $computeTableMap = mod.$computeTableMap;
+export const $computeTableMapSkipCellCheck = mod.$computeTableMapSkipCellCheck;
 export const $createTableCellNode = mod.$createTableCellNode;
 export const $createTableNode = mod.$createTableNode;
 export const $createTableNodeWithDimensions = mod.$createTableNodeWithDimensions;

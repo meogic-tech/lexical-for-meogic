@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var link = require('@lexical/link');
@@ -19,6 +21,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function findMatchingDOM(startNode, predicate) {
   let node = startNode;
   while (node != null) {
@@ -36,10 +39,6 @@ function LexicalClickableLinkPlugin({
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
   react.useEffect(() => {
     const onClick = event => {
-      if (disabled) {
-        event.preventDefault();
-        return;
-      }
       const target = event.target;
       if (!(target instanceof Node)) {
         return;
@@ -54,14 +53,16 @@ function LexicalClickableLinkPlugin({
         const clickedNode = lexical.$getNearestNodeFromDOMNode(target);
         if (clickedNode !== null) {
           const maybeLinkNode = utils.$findMatchingParent(clickedNode, lexical.$isElementNode);
-          if (link.$isLinkNode(maybeLinkNode)) {
-            url = maybeLinkNode.sanitizeUrl(maybeLinkNode.getURL());
-            urlTarget = maybeLinkNode.getTarget();
-          } else {
-            const a = findMatchingDOM(target, utils.isHTMLAnchorElement);
-            if (a !== null) {
-              url = a.href;
-              urlTarget = a.target;
+          if (!disabled) {
+            if (link.$isLinkNode(maybeLinkNode)) {
+              url = maybeLinkNode.sanitizeUrl(maybeLinkNode.getURL());
+              urlTarget = maybeLinkNode.getTarget();
+            } else {
+              const a = findMatchingDOM(target, utils.isHTMLAnchorElement);
+              if (a !== null) {
+                url = a.href;
+                urlTarget = a.target;
+              }
             }
           }
         }
@@ -81,7 +82,7 @@ function LexicalClickableLinkPlugin({
       event.preventDefault();
     };
     const onMouseUp = event => {
-      if (!disabled && event.button === 1) {
+      if (event.button === 1) {
         onClick(event);
       }
     };

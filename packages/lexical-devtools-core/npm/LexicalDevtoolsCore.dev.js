@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var html = require('@lexical/html');
@@ -13,6 +15,19 @@ var table = require('@lexical/table');
 var lexical = require('lexical');
 var React = require('react');
 
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -20,6 +35,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const NON_SINGLE_WIDTH_CHARS_REPLACEMENT = Object.freeze({
   '\t': '\\t',
   '\n': '\\n'
@@ -37,7 +53,7 @@ const FORMAT_PREDICATES = [node => node.hasFormat('bold') && 'Bold', node => nod
 const FORMAT_PREDICATES_PARAGRAPH = [node => node.hasTextFormat('bold') && 'Bold', node => node.hasTextFormat('code') && 'Code', node => node.hasTextFormat('italic') && 'Italic', node => node.hasTextFormat('strikethrough') && 'Strikethrough', node => node.hasTextFormat('subscript') && 'Subscript', node => node.hasTextFormat('superscript') && 'Superscript', node => node.hasTextFormat('underline') && 'Underline'];
 const DETAIL_PREDICATES = [node => node.isDirectionless() && 'Directionless', node => node.isUnmergeable() && 'Unmergeable'];
 const MODE_PREDICATES = [node => node.isToken() && 'Token', node => node.isSegmented() && 'Segmented'];
-function generateContent(editor, commandsLog, exportDOM) {
+function generateContent(editor, commandsLog, exportDOM, obfuscateText = false) {
   const editorState = editor.getEditorState();
   const editorConfig = editor._config;
   const compositionKey = editor._compositionKey;
@@ -58,8 +74,8 @@ function generateContent(editor, commandsLog, exportDOM) {
       const typeDisplay = node.getType() || '';
       const isSelected = node.isSelected();
       const idsDisplay = mark.$isMarkNode(node) ? ` id: [ ${node.getIDs().join(', ')} ] ` : '';
-      res += `${isSelected ? SYMBOLS.selectedLine : ' '} ${indent.join(' ')} ${nodeKeyDisplay} ${typeDisplay} ${idsDisplay} ${printNode(node)}\n`;
-      res += printSelectedCharsLine({
+      res += `${isSelected ? SYMBOLS.selectedLine : ' '} ${indent.join(' ')} ${nodeKeyDisplay} ${typeDisplay} ${idsDisplay} ${printNode(node, obfuscateText)}\n`;
+      res += $printSelectedCharsLine({
         indent,
         isSelected,
         node,
@@ -121,20 +137,24 @@ function visitTree(currentNode, visitor, indent = []) {
     }
   });
 }
-function normalize(text) {
-  return Object.entries(NON_SINGLE_WIDTH_CHARS_REPLACEMENT).reduce((acc, [key, value]) => acc.replace(new RegExp(key, 'g'), String(value)), text);
+function normalize(text, obfuscateText = false) {
+  const textToPrint = Object.entries(NON_SINGLE_WIDTH_CHARS_REPLACEMENT).reduce((acc, [key, value]) => acc.replace(new RegExp(key, 'g'), String(value)), text);
+  if (obfuscateText) {
+    return textToPrint.replace(/[^\s]/g, '*');
+  }
+  return textToPrint;
 }
 
 // TODO Pass via props to allow customizability
-function printNode(node) {
+function printNode(node, obfuscateText = false) {
   if (lexical.$isTextNode(node)) {
     const text = node.getTextContent();
-    const title = text.length === 0 ? '(empty)' : `"${normalize(text)}"`;
+    const title = text.length === 0 ? '(empty)' : `"${normalize(text, obfuscateText)}"`;
     const properties = printAllTextNodeProperties(node);
     return [title, properties.length !== 0 ? `{ ${properties} }` : null].filter(Boolean).join(' ').trim();
   } else if (link.$isLinkNode(node)) {
     const link = node.getURL();
-    const title = link.length === 0 ? '(empty)' : `"${normalize(link)}"`;
+    const title = link.length === 0 ? '(empty)' : `"${normalize(link, obfuscateText)}"`;
     const properties = printAllLinkNodeProperties(node);
     return [title, properties.length !== 0 ? `{ ${properties} }` : null].filter(Boolean).join(' ').trim();
   } else if (lexical.$isParagraphNode(node)) {
@@ -202,7 +222,7 @@ function printTitleProperties(node) {
   }
   return str;
 }
-function printSelectedCharsLine({
+function $printSelectedCharsLine({
   indent,
   isSelected,
   node,
@@ -294,6 +314,7 @@ function $getSelectionStartEnd(node, selection) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const LARGE_EDITOR_STATE_SIZE = 1000;
 const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
   treeTypeButtonClassName,
@@ -381,17 +402,17 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
     generateTree(!showExportDOM);
     setShowExportDOM(!showExportDOM);
   };
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React__namespace.createElement("div", {
     className: viewClassName
-  }, !showLimited && isLimited ? /*#__PURE__*/React.createElement("div", {
+  }, !showLimited && isLimited ? /*#__PURE__*/React__namespace.createElement("div", {
     style: {
       padding: 20
     }
-  }, /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React__namespace.createElement("span", {
     style: {
       marginRight: 20
     }
-  }, "Detected large EditorState, this can impact debugging performance."), /*#__PURE__*/React.createElement("button", {
+  }, "Detected large EditorState, this can impact debugging performance."), /*#__PURE__*/React__namespace.createElement("button", {
     onClick: () => {
       setShowLimited(true);
     },
@@ -402,11 +423,11 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
       cursor: 'pointer',
       padding: 5
     }
-  }, "Show full tree")) : null, !showLimited ? /*#__PURE__*/React.createElement("button", {
+  }, "Show full tree")) : null, !showLimited ? /*#__PURE__*/React__namespace.createElement("button", {
     onClick: () => handleExportModeToggleClick(),
     className: treeTypeButtonClassName,
     type: "button"
-  }, showExportDOM ? 'Tree' : 'Export DOM') : null, !timeTravelEnabled && (showLimited || !isLimited) && totalEditorStates > 2 && /*#__PURE__*/React.createElement("button", {
+  }, showExportDOM ? 'Tree' : 'Export DOM') : null, !timeTravelEnabled && (showLimited || !isLimited) && totalEditorStates > 2 && /*#__PURE__*/React__namespace.createElement("button", {
     onClick: () => {
       setEditorReadOnly(true);
       playingIndexRef.current = totalEditorStates - 1;
@@ -414,11 +435,11 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
     },
     className: timeTravelButtonClassName,
     type: "button"
-  }, "Time Travel"), (showLimited || !isLimited) && /*#__PURE__*/React.createElement("pre", {
+  }, "Time Travel"), (showLimited || !isLimited) && /*#__PURE__*/React__namespace.createElement("pre", {
     ref: ref
-  }, content), timeTravelEnabled && (showLimited || !isLimited) && /*#__PURE__*/React.createElement("div", {
+  }, content), timeTravelEnabled && (showLimited || !isLimited) && /*#__PURE__*/React__namespace.createElement("div", {
     className: timeTravelPanelClassName
-  }, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React__namespace.createElement("button", {
     className: timeTravelPanelButtonClassName,
     onClick: () => {
       if (playingIndexRef.current === totalEditorStates - 1) {
@@ -427,7 +448,7 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
       setIsPlaying(!isPlaying);
     },
     type: "button"
-  }, isPlaying ? 'Pause' : 'Play'), /*#__PURE__*/React.createElement("input", {
+  }, isPlaying ? 'Pause' : 'Play'), /*#__PURE__*/React__namespace.createElement("input", {
     className: timeTravelPanelSliderClassName,
     ref: inputRef,
     onChange: event => {
@@ -441,7 +462,7 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
     type: "range",
     min: "1",
     max: totalEditorStates - 1
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React__namespace.createElement("button", {
     className: timeTravelPanelButtonClassName,
     onClick: () => {
       setEditorReadOnly(false);
@@ -466,6 +487,7 @@ const TreeView = /*#__PURE__*/React.forwardRef(function TreeViewWrapped({
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function registerLexicalCommandLogger(editor, setLoggedCommands) {
   const unregisterCommandListeners = new Set();
   for (const [command] of editor._commands) {

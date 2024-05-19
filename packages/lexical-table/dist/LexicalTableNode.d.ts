@@ -35,6 +35,6 @@ export declare class TableNode extends ElementNode {
     canIndent(): false;
 }
 export declare function $getElementForTableNode(editor: LexicalEditor, tableNode: TableNode): TableDOMTable;
-export declare function convertTableElement(_domNode: Node): DOMConversionOutput;
+export declare function $convertTableElement(_domNode: Node): DOMConversionOutput;
 export declare function $createTableNode(): TableNode;
 export declare function $isTableNode(node: LexicalNode | null | undefined): node is TableNode;

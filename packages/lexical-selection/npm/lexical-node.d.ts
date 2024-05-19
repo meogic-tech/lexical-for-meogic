@@ -34,7 +34,7 @@ export declare function $isAtNodeEnd(point: Point): boolean;
  * @param anchor - The anchor of the current selection, where the selection should be pointing.
  * @param delCount - The amount of characters to delete. Useful as a dynamic variable eg. textContentSize - maxLength;
  */
-export declare function trimTextContentFromAnchor(editor: LexicalEditor, anchor: Point, delCount: number): void;
+export declare function $trimTextContentFromAnchor(editor: LexicalEditor, anchor: Point, delCount: number): void;
 /**
  * Gets the TextNode's style object and adds the styles to the CSS.
  * @param node - The TextNode to add styles to.

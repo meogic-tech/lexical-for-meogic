@@ -14,7 +14,7 @@ export type SerializedLexicalNode = {
     type: string;
     version: number;
 };
-export declare function removeNode(nodeToRemove: LexicalNode, restoreSelection: boolean, preserveEmptyParent?: boolean): void;
+export declare function $removeNode(nodeToRemove: LexicalNode, restoreSelection: boolean, preserveEmptyParent?: boolean): void;
 export type DOMConversion<T extends HTMLElement = HTMLElement> = {
     conversion: DOMConversionFn<T>;
     priority?: 0 | 1 | 2 | 3 | 4;

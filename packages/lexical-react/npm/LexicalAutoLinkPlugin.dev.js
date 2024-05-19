@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var link = require('@lexical/link');
@@ -19,6 +21,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function createLinkMatcherWithRegExp(regExp, urlTransformer = text => text) {
   return text => {
     const match = regExp.exec(text);
@@ -100,7 +103,7 @@ function extractMatchingNodes(nodes, startIndex, endIndex) {
   }
   return [matchingOffset, unmodifiedBeforeNodes, matchingNodes, unmodifiedAfterNodes];
 }
-function createAutoLinkNode(nodes, startIndex, endIndex, match) {
+function $createAutoLinkNode_(nodes, startIndex, endIndex, match) {
   const linkNode = link.$createAutoLinkNode(match.url, match.attributes);
   if (nodes.length === 1) {
     let remainingTextNode = nodes[0];
@@ -113,6 +116,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
     const textNode = lexical.$createTextNode(match.text);
     textNode.setFormat(linkTextNode.getFormat());
     textNode.setDetail(linkTextNode.getDetail());
+    textNode.setStyle(linkTextNode.getStyle());
     linkNode.append(textNode);
     linkTextNode.replace(linkNode);
     return remainingTextNode;
@@ -149,6 +153,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
     const textNode = lexical.$createTextNode(firstLinkTextNode.getTextContent());
     textNode.setFormat(firstLinkTextNode.getFormat());
     textNode.setDetail(firstLinkTextNode.getDetail());
+    textNode.setStyle(firstLinkTextNode.getStyle());
     linkNode.append(textNode, ...linkNodes);
     // it does not preserve caret position if caret was at the first text node
     // so we need to restore caret position
@@ -164,7 +169,7 @@ function createAutoLinkNode(nodes, startIndex, endIndex, match) {
   }
   return undefined;
 }
-function handleLinkCreation(nodes, matchers, onChange) {
+function $handleLinkCreation(nodes, matchers, onChange) {
   let currentNodes = [...nodes];
   const initialText = currentNodes.map(node => node.getTextContent()).join('');
   let text = initialText;
@@ -179,7 +184,7 @@ function handleLinkCreation(nodes, matchers, onChange) {
       const [matchingOffset,, matchingNodes, unmodifiedAfterNodes] = extractMatchingNodes(currentNodes, invalidMatchEnd + matchStart, invalidMatchEnd + matchEnd);
       const actualMatchStart = invalidMatchEnd + matchStart - matchingOffset;
       const actualMatchEnd = invalidMatchEnd + matchEnd - matchingOffset;
-      const remainingTextNode = createAutoLinkNode(matchingNodes, actualMatchStart, actualMatchEnd, match);
+      const remainingTextNode = $createAutoLinkNode_(matchingNodes, actualMatchStart, actualMatchEnd, match);
       currentNodes = remainingTextNode ? [remainingTextNode, ...unmodifiedAfterNodes] : unmodifiedAfterNodes;
       onChange(match.url, null);
       invalidMatchEnd = 0;
@@ -295,7 +300,7 @@ function useAutoLink(editor, matchers, onChange) {
       } else if (!link.$isLinkNode(parent)) {
         if (textNode.isSimpleText() && (startsWithSeparator(textNode.getTextContent()) || !link.$isAutoLinkNode(previous))) {
           const textNodesToMatch = getTextNodesToMatch(textNode);
-          handleLinkCreation(textNodesToMatch, matchers, onChangeWrapped);
+          $handleLinkCreation(textNodesToMatch, matchers, onChangeWrapped);
         }
         handleBadNeighbors(textNode, matchers, onChangeWrapped);
       }

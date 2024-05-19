@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -18,7 +20,8 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
-function indentOverTab(selection) {
+
+function $indentOverTab(selection) {
   // const handled = new Set();
   const nodes = selection.getNodes();
   const canIndentBlockNodes = utils.$filter(nodes, node => {
@@ -57,7 +60,7 @@ function registerTabIndentation(editor) {
       return false;
     }
     event.preventDefault();
-    const command = indentOverTab(selection) ? event.shiftKey ? lexical.OUTDENT_CONTENT_COMMAND : lexical.INDENT_CONTENT_COMMAND : lexical.INSERT_TAB_COMMAND;
+    const command = $indentOverTab(selection) ? event.shiftKey ? lexical.OUTDENT_CONTENT_COMMAND : lexical.INDENT_CONTENT_COMMAND : lexical.INSERT_TAB_COMMAND;
     return editor.dispatchCommand(command, undefined);
   }, lexical.COMMAND_PRIORITY_EDITOR);
 }

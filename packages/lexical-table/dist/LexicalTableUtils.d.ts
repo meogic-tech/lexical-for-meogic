@@ -36,6 +36,7 @@ export declare function $deleteTableRow__EXPERIMENTAL(): void;
 export declare function $deleteTableColumn__EXPERIMENTAL(): void;
 export declare function $unmergeCell(): void;
 export declare function $computeTableMap(grid: TableNode, cellA: TableCellNode, cellB: TableCellNode): [TableMapType, TableMapValueType, TableMapValueType];
+export declare function $computeTableMapSkipCellCheck(grid: TableNode, cellA: null | TableCellNode, cellB: null | TableCellNode): [TableMapType, TableMapValueType | null, TableMapValueType | null];
 export declare function $getNodeTriplet(source: PointType | LexicalNode | TableCellNode): [TableCellNode, TableRowNode, TableNode];
 export declare function $getTableCellNodeRect(tableCellNode: TableCellNode): {
     rowIndex: number;

@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var clipboard = require('@lexical/clipboard');
@@ -28,20 +30,15 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
-CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
 const CAN_USE_BEFORE_INPUT = CAN_USE_DOM && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
 const IS_SAFARI = CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
 const IS_IOS = CAN_USE_DOM && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const IS_ANDROID = CAN_USE_DOM && /Android/.test(navigator.userAgent);
 
 // Keep these in case we need to use them in the future.
 // export const IS_WINDOWS: boolean = CAN_USE_DOM && /Win/.test(navigator.platform);
 const IS_CHROME = CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
-// export const canUseTextInputEvent: boolean = CAN_USE_DOM && 'TextEvent' in window && !documentMode;
-
-CAN_USE_DOM && IS_ANDROID && IS_CHROME;
 const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
 
 /**
@@ -51,6 +48,7 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function onCopyForPlainText(event, editor) {
   editor.update(() => {
     if (event !== null) {
@@ -211,6 +209,13 @@ function registerPlainText(editor) {
       event.preventDefault();
     }
     return editor.dispatchCommand(lexical.INSERT_LINE_BREAK_COMMAND, false);
+  }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerCommand(lexical.KEY_ESCAPE_COMMAND, () => {
+    const selection = lexical.$getSelection();
+    if (!lexical.$isRangeSelection(selection)) {
+      return false;
+    }
+    editor.blur();
+    return true;
   }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerCommand(lexical.SELECT_ALL_COMMAND, () => {
     lexical.$selectAll();
     return true;

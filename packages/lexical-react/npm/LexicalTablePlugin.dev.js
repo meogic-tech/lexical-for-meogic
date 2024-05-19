@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -19,6 +21,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function TablePlugin({
   hasCellMerge = true,
   hasCellBackgroundColor = true,
@@ -31,7 +34,7 @@ function TablePlugin({
         throw Error(`TablePlugin: TableNode, TableCellNode or TableRowNode not registered on editor`);
       }
     }
-    return editor.registerCommand(table.INSERT_TABLE_COMMAND, ({
+    return utils.mergeRegister(editor.registerCommand(table.INSERT_TABLE_COMMAND, ({
       columns,
       rows,
       includeHeaders
@@ -43,7 +46,30 @@ function TablePlugin({
         firstDescendant.select();
       }
       return true;
-    }, lexical.COMMAND_PRIORITY_EDITOR);
+    }, lexical.COMMAND_PRIORITY_EDITOR), editor.registerNodeTransform(table.TableNode, node => {
+      const [gridMap] = table.$computeTableMapSkipCellCheck(node, null, null);
+      const maxRowLength = gridMap.reduce((curLength, row) => {
+        return Math.max(curLength, row.length);
+      }, 0);
+      for (let i = 0; i < gridMap.length; ++i) {
+        const rowLength = gridMap[i].length;
+        if (rowLength === maxRowLength) {
+          continue;
+        }
+        const lastCellMap = gridMap[i][rowLength - 1];
+        const lastRowCell = lastCellMap.cell;
+        for (let j = rowLength; j < maxRowLength; ++j) {
+          // TODO: inherit header state from another header or body
+          const newCell = table.$createTableCellNode(0);
+          newCell.append(lexical.$createParagraphNode());
+          if (lastRowCell !== null) {
+            lastRowCell.insertAfter(newCell);
+          } else {
+            utils.$insertFirst(lastRowCell, newCell);
+          }
+        }
+      }
+    }));
   }, [editor]);
   react.useEffect(() => {
     const tableSelections = new Map();

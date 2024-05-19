@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useCollaborationContext } from '@lexical/react/LexicalCollaborationContext';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import * as React from 'react';
@@ -21,6 +23,7 @@ import { UndoManager } from 'yjs';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useYjsCollaboration(editor, id, provider, docMap, name, color, shouldBootstrap, cursorsContainerRef, initialEditorState, excludedProperties, awarenessData) {
   const isReloadingDoc = useRef(false);
   const [doc, setDoc] = useState(docMap.get(id));
@@ -269,6 +272,7 @@ function clearEditorSkipCollab(editor, binding) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function CollaborationPlugin({
   id,
   providerFactory,

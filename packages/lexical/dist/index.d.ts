@@ -6,7 +6,7 @@
  *
  */
 export type { PasteCommandType } from './LexicalCommands';
-export type { CommandListener, CommandListenerPriority, CommandPayloadType, CreateEditorArgs, EditableListener, EditorConfig, EditorSetOptions, EditorThemeClasses, HTMLConfig, Klass, KlassConstructor, LexicalCommand, LexicalEditor, LexicalNodeReplacement, MutationListener, NodeMutation, SerializedEditor, Spread, Transform, } from './LexicalEditor';
+export type { CommandListener, CommandListenerPriority, CommandPayloadType, CreateEditorArgs, EditableListener, EditorConfig, EditorSetOptions, EditorThemeClasses, EditorThemeClassName, HTMLConfig, Klass, KlassConstructor, LexicalCommand, LexicalEditor, LexicalNodeReplacement, MutationListener, NodeMutation, SerializedEditor, Spread, Transform, } from './LexicalEditor';
 export type { EditorState, SerializedEditorState } from './LexicalEditorState';
 export type { DOMChildConversion, DOMConversion, DOMConversionFn, DOMConversionMap, DOMConversionOutput, DOMExportOutput, LexicalNode, NodeKey, NodeMap, SerializedLexicalNode, } from './LexicalNode';
 export type { BaseSelection, ElementPointType as ElementPoint, NodeSelection, Point, PointType, RangeSelection, TextPointType as TextPoint, } from './LexicalSelection';
@@ -19,7 +19,8 @@ export type { EventHandler } from './LexicalEvents';
 export { $normalizeSelection as $normalizeSelection__EXPERIMENTAL } from './LexicalNormalization';
 export { $createNodeSelection, $createPoint, $createRangeSelection, $createRangeSelectionFromDom, $getCharacterOffsets, $getPreviousSelection, $getSelection, $getTextContent, $insertNodes, $isBlockElementNode, $isNodeSelection, $isRangeSelection, } from './LexicalSelection';
 export { $parseSerializedNode, isCurrentlyReadOnlyMode } from './LexicalUpdates';
-export { $addUpdateTag, $applyNodeReplacement, $copyNode, $getAdjacentNode, $getEditor, $getNearestNodeFromDOMNode, $getNearestRootOrShadowRoot, $getNodeByKey, $getRoot, $hasAncestor, $hasUpdateTag, $isInlineElementOrDecoratorNode, $isLeafNode, $isRootOrShadowRoot, $nodesOfType, $selectAll, $setCompositionKey, $setSelection, $splitNode, getNearestEditorFromDOMNode, isHTMLAnchorElement, isHTMLElement, isSelectionCapturedInDecoratorInput, isSelectionWithinEditor, } from './LexicalUtils';
+export { $addUpdateTag, $applyNodeReplacement, $copyNode, $getAdjacentNode, $getEditor, $getNearestNodeFromDOMNode, $getNearestRootOrShadowRoot, $getNodeByKey, $getRoot, $hasAncestor, $hasUpdateTag, $isInlineElementOrDecoratorNode, $isLeafNode, $isRootOrShadowRoot, $nodesOfType, $selectAll, $setCompositionKey, $setSelection, $splitNode, getNearestEditorFromDOMNode, isBlockDomNode, isHTMLAnchorElement, isHTMLElement, isInlineDomNode, isSelectionCapturedInDecoratorInput, isSelectionWithinEditor, } from './LexicalUtils';
+export { ArtificialNode__DO_NOT_USE } from './nodes/ArtificialNode';
 export { $isDecoratorNode, DecoratorNode } from './nodes/LexicalDecoratorNode';
 export { $isElementNode, ElementNode } from './nodes/LexicalElementNode';
 export type { SerializedLineBreakNode } from './nodes/LexicalLineBreakNode';

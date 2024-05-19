@@ -3,12 +3,27 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var devtoolsCore = require('@lexical/devtools-core');
 var utils = require('@lexical/utils');
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -17,6 +32,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function TreeView({
   treeTypeButtonClassName,
   timeTravelButtonClassName,
@@ -26,7 +42,7 @@ function TreeView({
   timeTravelPanelClassName,
   editor
 }) {
-  const treeElementRef = /*#__PURE__*/React.createRef();
+  const treeElementRef = /*#__PURE__*/React__namespace.createRef();
   const [editorCurrentState, setEditorCurrentState] = React.useState(editor.getEditorState());
   const commandsLog = devtoolsCore.useLexicalCommandsLog(editor);
   React.useEffect(() => {
@@ -56,7 +72,7 @@ function TreeView({
     }
     rootElement.contentEditable = isReadonly ? 'false' : 'true';
   };
-  return /*#__PURE__*/React.createElement(devtoolsCore.TreeView, {
+  return /*#__PURE__*/React__namespace.createElement(devtoolsCore.TreeView, {
     treeTypeButtonClassName: treeTypeButtonClassName,
     timeTravelButtonClassName: timeTravelButtonClassName,
     timeTravelPanelSliderClassName: timeTravelPanelSliderClassName,

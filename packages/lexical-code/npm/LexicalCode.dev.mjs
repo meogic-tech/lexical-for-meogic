@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import 'prismjs';
 import 'prismjs/components/prism-clike.js';
 import 'prismjs/components/prism-javascript.js';
@@ -13,6 +15,7 @@ import 'prismjs/components/prism-c.js';
 import 'prismjs/components/prism-css.js';
 import 'prismjs/components/prism-objectivec.js';
 import 'prismjs/components/prism-sql.js';
+import 'prismjs/components/prism-powershell.js';
 import 'prismjs/components/prism-python.js';
 import 'prismjs/components/prism-rust.js';
 import 'prismjs/components/prism-swift.js';
@@ -20,7 +23,7 @@ import 'prismjs/components/prism-typescript.js';
 import 'prismjs/components/prism-java.js';
 import 'prismjs/components/prism-cpp.js';
 import { isHTMLElement, addClassNamesToElement, removeClassNamesFromElement, mergeRegister } from '@lexical/utils';
-import { ElementNode, $applyNodeReplacement, $createParagraphNode, $isTextNode, $isTabNode, $createTabNode, $createLineBreakNode, TextNode, $isLineBreakNode, $createTextNode, $getNodeByKey, $getSelection, $isRangeSelection, INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND, INSERT_TAB_COMMAND, KEY_ARROW_UP_COMMAND, MOVE_TO_START, KEY_TAB_COMMAND, COMMAND_PRIORITY_LOW, $insertNodes, KEY_ARROW_DOWN_COMMAND, MOVE_TO_END } from 'lexical';
+import { ElementNode, $createParagraphNode, $isTextNode, $isTabNode, $createTabNode, $createLineBreakNode, $applyNodeReplacement, TextNode, $isLineBreakNode, $createTextNode, $getNodeByKey, $getSelection, $isRangeSelection, INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND, INSERT_TAB_COMMAND, KEY_ARROW_UP_COMMAND, MOVE_TO_START, KEY_TAB_COMMAND, COMMAND_PRIORITY_LOW, $insertNodes, KEY_ARROW_DOWN_COMMAND, MOVE_TO_END } from 'lexical';
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -55,6 +58,7 @@ function invariant(cond, message, ...args) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const mapToPrismLanguage = language => {
   // eslint-disable-next-line no-prototype-builtins
   return language != null && window.Prism.languages.hasOwnProperty(language) ? language : undefined;
@@ -128,16 +132,16 @@ class CodeNode extends ElementNode {
       code: node => {
         const isMultiLine = node.textContent != null && (/\r?\n/.test(node.textContent) || hasChildDOMNodeTag(node, 'BR'));
         return isMultiLine ? {
-          conversion: convertPreElement,
+          conversion: $convertPreElement,
           priority: 1
         } : null;
       },
       div: node => ({
-        conversion: convertDivElement,
+        conversion: $convertDivElement,
         priority: 1
       }),
       pre: node => ({
-        conversion: convertPreElement,
+        conversion: $convertPreElement,
         priority: 0
       }),
       table: node => {
@@ -145,7 +149,7 @@ class CodeNode extends ElementNode {
         // domNode is a <table> since we matched it by nodeName
         if (isGitHubCodeTable(table)) {
           return {
-            conversion: convertTableElement,
+            conversion: $convertTableElement,
             priority: 3
           };
         }
@@ -155,13 +159,7 @@ class CodeNode extends ElementNode {
         // element is a <td> since we matched it by nodeName
         const td = node;
         const table = td.closest('table');
-        if (isGitHubCodeCell(td)) {
-          return {
-            conversion: convertTableCellElement,
-            priority: 3
-          };
-        }
-        if (table && isGitHubCodeTable(table)) {
+        if (isGitHubCodeCell(td) || table && isGitHubCodeTable(table)) {
           // Return a no-op if it's a table cell in a code table, but not a code line.
           // Otherwise it'll fall back to the T
           return {
@@ -296,7 +294,7 @@ function $createCodeNode(language) {
 function $isCodeNode(node) {
   return node instanceof CodeNode;
 }
-function convertPreElement(domNode) {
+function $convertPreElement(domNode) {
   let language;
   if (isHTMLElement(domNode)) {
     language = domNode.getAttribute(LANGUAGE_DATA_ATTRIBUTE);
@@ -305,7 +303,7 @@ function convertPreElement(domNode) {
     node: $createCodeNode(language)
   };
 }
-function convertDivElement(domNode) {
+function $convertDivElement(domNode) {
   // domNode is a <div> since we matched it by nodeName
   const div = domNode;
   const isCode = isCodeElement(div);
@@ -315,37 +313,16 @@ function convertDivElement(domNode) {
     };
   }
   return {
-    after: childLexicalNodes => {
-      const domParent = domNode.parentNode;
-      if (domParent != null && domNode !== domParent.lastChild) {
-        childLexicalNodes.push($createLineBreakNode());
-      }
-      return childLexicalNodes;
-    },
     node: isCode ? $createCodeNode() : null
   };
 }
-function convertTableElement() {
+function $convertTableElement() {
   return {
     node: $createCodeNode()
   };
 }
 function convertCodeNoop() {
   return {
-    node: null
-  };
-}
-function convertTableCellElement(domNode) {
-  // domNode is a <td> since we matched it by nodeName
-  const cell = domNode;
-  return {
-    after: childLexicalNodes => {
-      if (cell.parentNode && cell.parentNode.nextSibling) {
-        // Append newline between code lines
-        childLexicalNodes.push($createLineBreakNode());
-      }
-      return childLexicalNodes;
-    },
     node: null
   };
 }
@@ -376,6 +353,7 @@ function isGitHubCodeTable(table) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const DEFAULT_CODE_LANGUAGE = 'javascript';
 const CODE_LANGUAGE_FRIENDLY_NAME_MAP = {
   c: 'C',
@@ -388,6 +366,7 @@ const CODE_LANGUAGE_FRIENDLY_NAME_MAP = {
   markdown: 'Markdown',
   objc: 'Objective-C',
   plain: 'Plain Text',
+  powershell: 'PowerShell',
   py: 'Python',
   rust: 'Rust',
   sql: 'SQL',
@@ -522,6 +501,7 @@ function getLastCodeNodeOfLine(anchor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const PrismTokenizer = {
   defaultLanguage: DEFAULT_CODE_LANGUAGE,
   tokenize(code, language) {
@@ -628,7 +608,7 @@ function getEndOfCodeInLine(anchor) {
   }
   return lastNode;
 }
-function textNodeTransform(node, editor, tokenizer) {
+function $textNodeTransform(node, editor, tokenizer) {
   // Since CodeNode has flat children structure we only need to check
   // if node's parent is a code node and run highlighting if so
   const parentNode = node.getParent();
@@ -689,14 +669,14 @@ function codeNodeTransform(node, editor, tokenizer) {
   // each individual codehighlight node to be transformed again as it's already
   // in its final state
   editor.update(() => {
-    updateAndRetainSelection(nodeKey, () => {
+    $updateAndRetainSelection(nodeKey, () => {
       const currentNode = $getNodeByKey(nodeKey);
       if (!$isCodeNode(currentNode) || !currentNode.isAttached()) {
         return false;
       }
       const code = currentNode.getTextContent();
       const tokens = tokenizer.tokenize(code, currentNode.getLanguage() || tokenizer.defaultLanguage);
-      const highlightNodes = getHighlightNodes(tokens);
+      const highlightNodes = $getHighlightNodes(tokens);
       const diffRange = getDiffRange(currentNode.getChildren(), highlightNodes);
       const {
         from,
@@ -716,7 +696,7 @@ function codeNodeTransform(node, editor, tokenizer) {
     skipTransforms: true
   });
 }
-function getHighlightNodes(tokens, type) {
+function $getHighlightNodes(tokens, type) {
   const nodes = [];
   for (const token of tokens) {
     if (typeof token === 'string') {
@@ -737,9 +717,9 @@ function getHighlightNodes(tokens, type) {
         content
       } = token;
       if (typeof content === 'string') {
-        nodes.push(...getHighlightNodes([content], token.type));
+        nodes.push(...$getHighlightNodes([content], token.type));
       } else if (Array.isArray(content)) {
-        nodes.push(...getHighlightNodes(content, token.type));
+        nodes.push(...$getHighlightNodes(content, token.type));
       }
     }
   }
@@ -748,7 +728,7 @@ function getHighlightNodes(tokens, type) {
 
 // Wrapping update function into selection retainer, that tries to keep cursor at the same
 // position as before.
-function updateAndRetainSelection(nodeKey, updateFn) {
+function $updateAndRetainSelection(nodeKey, updateFn) {
   const node = $getNodeByKey(nodeKey);
   if (!$isCodeNode(node) || !node.isAttached()) {
     return;
@@ -870,7 +850,7 @@ function $getCodeLines(selection) {
   }
   return lines;
 }
-function handleTab(shiftKey) {
+function $handleTab(shiftKey) {
   const selection = $getSelection();
   if (!$isRangeSelection(selection) || !$isSelectionInCode(selection)) {
     return null;
@@ -910,7 +890,7 @@ function handleTab(shiftKey) {
   // 3. Else: tab/outdent
   return tabOrOutdent;
 }
-function handleMultilineIndent(type) {
+function $handleMultilineIndent(type) {
   const selection = $getSelection();
   if (!$isRangeSelection(selection) || !$isSelectionInCode(selection)) {
     return false;
@@ -966,7 +946,7 @@ function handleMultilineIndent(type) {
   }
   return true;
 }
-function handleShiftLines(type, event) {
+function $handleShiftLines(type, event) {
   // We only care about the alt+arrow keys
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
@@ -1064,7 +1044,7 @@ function handleShiftLines(type, event) {
   selection.setTextNodeRange(anchorNode, anchorOffset, focusNode, focusOffset);
   return true;
 }
-function handleMoveTo(type, event) {
+function $handleMoveTo(type, event) {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
     return false;
@@ -1120,8 +1100,8 @@ function registerCodeHighlighting(editor, tokenizer) {
         }
       }
     });
-  }), editor.registerNodeTransform(CodeNode, node => codeNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(TextNode, node => textNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(CodeHighlightNode, node => textNodeTransform(node, editor, tokenizer)), editor.registerCommand(KEY_TAB_COMMAND, event => {
-    const command = handleTab(event.shiftKey);
+  }), editor.registerNodeTransform(CodeNode, node => codeNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(TextNode, node => $textNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(CodeHighlightNode, node => $textNodeTransform(node, editor, tokenizer)), editor.registerCommand(KEY_TAB_COMMAND, event => {
+    const command = $handleTab(event.shiftKey);
     if (command === null) {
       return false;
     }
@@ -1135,7 +1115,7 @@ function registerCodeHighlighting(editor, tokenizer) {
     }
     $insertNodes([$createTabNode()]);
     return true;
-  }, COMMAND_PRIORITY_LOW), editor.registerCommand(INDENT_CONTENT_COMMAND, payload => handleMultilineIndent(INDENT_CONTENT_COMMAND), COMMAND_PRIORITY_LOW), editor.registerCommand(OUTDENT_CONTENT_COMMAND, payload => handleMultilineIndent(OUTDENT_CONTENT_COMMAND), COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_ARROW_UP_COMMAND, payload => handleShiftLines(KEY_ARROW_UP_COMMAND, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_ARROW_DOWN_COMMAND, payload => handleShiftLines(KEY_ARROW_DOWN_COMMAND, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(MOVE_TO_END, payload => handleMoveTo(MOVE_TO_END, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(MOVE_TO_START, payload => handleMoveTo(MOVE_TO_START, payload), COMMAND_PRIORITY_LOW));
+  }, COMMAND_PRIORITY_LOW), editor.registerCommand(INDENT_CONTENT_COMMAND, payload => $handleMultilineIndent(INDENT_CONTENT_COMMAND), COMMAND_PRIORITY_LOW), editor.registerCommand(OUTDENT_CONTENT_COMMAND, payload => $handleMultilineIndent(OUTDENT_CONTENT_COMMAND), COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_ARROW_UP_COMMAND, payload => $handleShiftLines(KEY_ARROW_UP_COMMAND, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_ARROW_DOWN_COMMAND, payload => $handleShiftLines(KEY_ARROW_DOWN_COMMAND, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(MOVE_TO_END, payload => $handleMoveTo(MOVE_TO_END, payload), COMMAND_PRIORITY_LOW), editor.registerCommand(MOVE_TO_START, payload => $handleMoveTo(MOVE_TO_START, payload), COMMAND_PRIORITY_LOW));
 }
 
 /**

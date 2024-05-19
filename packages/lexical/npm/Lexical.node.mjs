@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 const mod = await (process.env.NODE_ENV === 'development' ? import('./Lexical.dev.mjs') : import('./Lexical.prod.mjs'));
 export const $addUpdateTag = mod.$addUpdateTag;
 export const $applyNodeReplacement = mod.$applyNodeReplacement;
@@ -50,6 +52,7 @@ export const $selectAll = mod.$selectAll;
 export const $setCompositionKey = mod.$setCompositionKey;
 export const $setSelection = mod.$setSelection;
 export const $splitNode = mod.$splitNode;
+export const ArtificialNode__DO_NOT_USE = mod.ArtificialNode__DO_NOT_USE;
 export const BLUR_COMMAND = mod.BLUR_COMMAND;
 export const CAN_REDO_COMMAND = mod.CAN_REDO_COMMAND;
 export const CAN_UNDO_COMMAND = mod.CAN_UNDO_COMMAND;
@@ -110,8 +113,10 @@ export const UNDO_COMMAND = mod.UNDO_COMMAND;
 export const createCommand = mod.createCommand;
 export const createEditor = mod.createEditor;
 export const getNearestEditorFromDOMNode = mod.getNearestEditorFromDOMNode;
+export const isBlockDomNode = mod.isBlockDomNode;
 export const isCurrentlyReadOnlyMode = mod.isCurrentlyReadOnlyMode;
 export const isHTMLAnchorElement = mod.isHTMLAnchorElement;
 export const isHTMLElement = mod.isHTMLElement;
+export const isInlineDomNode = mod.isInlineDomNode;
 export const isSelectionCapturedInDecoratorInput = mod.isSelectionCapturedInDecoratorInput;
 export const isSelectionWithinEditor = mod.isSelectionWithinEditor;

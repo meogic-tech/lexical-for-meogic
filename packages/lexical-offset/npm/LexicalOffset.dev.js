@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var lexical = require('lexical');
@@ -15,6 +17,7 @@ var lexical = require('lexical');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class OffsetView {
   constructor(offsetMap, firstNode, blockOffsetSize = 1) {
     this._offsetMap = offsetMap;
@@ -244,7 +247,7 @@ function $createOffsetNode(state, key, parent, nodeMap, offsetMap, blockOffsetSi
   }
   const start = state.offset;
   if (lexical.$isElementNode(node)) {
-    const childKeys = createChildrenArray(node, nodeMap);
+    const childKeys = $createChildrenArray(node, nodeMap);
     const blockIsEmpty = childKeys.length === 0;
     const child = blockIsEmpty ? null : $createOffsetChild(state, childKeys, null, nodeMap, offsetMap, blockOffsetSize);
 
@@ -288,14 +291,14 @@ function $createOffsetChild(state, children, parent, nodeMap, offsetMap, blockOf
   }
   return firstNode;
 }
-function createChildrenArray(element, nodeMap) {
+function $createChildrenArray(element, nodeMap) {
   const children = [];
   let nodeKey = element.__first;
   while (nodeKey !== null) {
     const node = nodeMap === null ? lexical.$getNodeByKey(nodeKey) : nodeMap.get(nodeKey);
     if (node === null || node === undefined) {
       {
-        throw Error(`createChildrenArray: node does not exist in nodeMap`);
+        throw Error(`$createChildrenArray: node does not exist in nodeMap`);
       }
     }
     children.push(nodeKey);
@@ -303,6 +306,8 @@ function createChildrenArray(element, nodeMap) {
   }
   return children;
 }
+/** @deprecated renamed to {@link $createChildrenArray} by @lexical/eslint-plugin rules-of-lexical */
+const createChildrenArray = $createChildrenArray;
 function $createOffsetView(editor, blockOffsetSize = 1, editorState) {
   const targetEditorState = editorState || editor._pendingEditorState || editor._editorState;
   const nodeMap = targetEditorState._nodeMap;
@@ -312,10 +317,11 @@ function $createOffsetView(editor, blockOffsetSize = 1, editorState) {
     offset: 0,
     prevIsBlock: false
   };
-  const node = $createOffsetChild(state, createChildrenArray(root, nodeMap), null, nodeMap, offsetMap, blockOffsetSize);
+  const node = $createOffsetChild(state, $createChildrenArray(root, nodeMap), null, nodeMap, offsetMap, blockOffsetSize);
   return new OffsetView(offsetMap, node, blockOffsetSize);
 }
 
+exports.$createChildrenArray = $createChildrenArray;
 exports.$createOffsetView = $createOffsetView;
 exports.OffsetView = OffsetView;
 exports.createChildrenArray = createChildrenArray;

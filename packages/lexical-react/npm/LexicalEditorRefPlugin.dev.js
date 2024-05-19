@@ -3,11 +3,26 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -16,6 +31,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 
 /**
  *
@@ -28,7 +44,7 @@ function EditorRefPlugin({
   editorRef
 }) {
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
-  React.useEffect(() => {
+  React__namespace.useEffect(() => {
     if (typeof editorRef === 'function') {
       editorRef(editor);
     } else if (typeof editorRef === 'object') {

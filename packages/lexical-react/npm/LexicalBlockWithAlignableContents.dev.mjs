@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $isDecoratorBlockNode } from '@lexical/react/LexicalDecoratorBlockNode';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -19,6 +21,7 @@ import { useRef, useCallback, useEffect } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function BlockWithAlignableContents({
   children,
   format,
@@ -28,7 +31,7 @@ function BlockWithAlignableContents({
   const [editor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const ref = useRef(null);
-  const onDelete = useCallback(event => {
+  const $onDelete = useCallback(event => {
     if (isSelected && $isNodeSelection($getSelection())) {
       event.preventDefault();
       const node = $getNodeByKey(nodeKey);
@@ -72,8 +75,8 @@ function BlockWithAlignableContents({
         return true;
       }
       return false;
-    }, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_DELETE_COMMAND, onDelete, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_BACKSPACE_COMMAND, onDelete, COMMAND_PRIORITY_LOW));
-  }, [clearSelection, editor, isSelected, nodeKey, onDelete, setSelected]);
+    }, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_DELETE_COMMAND, $onDelete, COMMAND_PRIORITY_LOW), editor.registerCommand(KEY_BACKSPACE_COMMAND, $onDelete, COMMAND_PRIORITY_LOW));
+  }, [clearSelection, editor, isSelected, nodeKey, $onDelete, setSelected]);
   return /*#__PURE__*/React.createElement("div", {
     className: [className.base, isSelected ? className.focus : null].filter(Boolean).join(' '),
     ref: ref,

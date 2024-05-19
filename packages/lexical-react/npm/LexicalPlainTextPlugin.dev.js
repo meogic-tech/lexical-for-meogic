@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
@@ -14,6 +16,19 @@ var utils = require('@lexical/utils');
 var reactDom = require('react-dom');
 var dragon = require('@lexical/dragon');
 var plainText = require('@lexical/plain-text');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -32,8 +47,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const useLayoutEffectImpl = CAN_USE_DOM ? React.useLayoutEffect : React.useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -42,13 +57,14 @@ var useLayoutEffect = useLayoutEffectImpl;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function canShowPlaceholderFromCurrentEditorState(editor) {
   const currentCanShowPlaceholder = editor.getEditorState().read(text.$canShowPlaceholderCurry(editor.isComposing()));
   return currentCanShowPlaceholder;
 }
 function useCanShowPlaceholder(editor) {
   const [canShowPlaceholder, setCanShowPlaceholder] = React.useState(() => canShowPlaceholderFromCurrentEditorState(editor));
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     function resetCanShowPlaceholder() {
       const currentCanShowPlaceholder = canShowPlaceholderFromCurrentEditorState(editor);
       setCanShowPlaceholder(currentCanShowPlaceholder);
@@ -70,11 +86,12 @@ function useCanShowPlaceholder(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function useDecorators(editor, ErrorBoundary) {
   const [decorators, setDecorators] = React.useState(() => editor.getDecorators());
 
   // Subscribe to changes
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     return editor.registerDecoratorListener(nextDecorators => {
       reactDom.flushSync(() => {
         setDecorators(nextDecorators);
@@ -94,9 +111,9 @@ function useDecorators(editor, ErrorBoundary) {
     const decoratorKeys = Object.keys(decorators);
     for (let i = 0; i < decoratorKeys.length; i++) {
       const nodeKey = decoratorKeys[i];
-      const reactDecorator = /*#__PURE__*/React.createElement(ErrorBoundary, {
+      const reactDecorator = /*#__PURE__*/React__namespace.createElement(ErrorBoundary, {
         onError: e => editor._onError(e)
-      }, /*#__PURE__*/React.createElement(React.Suspense, {
+      }, /*#__PURE__*/React__namespace.createElement(React.Suspense, {
         fallback: null
       }, decorators[nodeKey]));
       const element = editor.getElementByKey(nodeKey);
@@ -115,8 +132,9 @@ function useDecorators(editor, ErrorBoundary) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function usePlainTextSetup(editor) {
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     return utils.mergeRegister(plainText.registerPlainText(editor), dragon.registerDragonSupport(editor));
 
     // We only do this for init
@@ -131,6 +149,7 @@ function usePlainTextSetup(editor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function PlainTextPlugin({
   contentEditable,
   placeholder,
@@ -139,7 +158,7 @@ function PlainTextPlugin({
   const [editor] = LexicalComposerContext.useLexicalComposerContext();
   const decorators = useDecorators(editor, ErrorBoundary);
   usePlainTextSetup(editor);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, contentEditable, /*#__PURE__*/React.createElement(Placeholder, {
+  return /*#__PURE__*/React__namespace.createElement(React__namespace.Fragment, null, contentEditable, /*#__PURE__*/React__namespace.createElement(Placeholder, {
     content: placeholder
   }), decorators);
 }

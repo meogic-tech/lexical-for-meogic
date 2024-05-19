@@ -6,6 +6,7 @@
  *
  */
 import type { BaseSelection, ElementNode, LexicalNode, RangeSelection } from 'lexical';
+import { TableSelection } from '@lexical/table';
 /**
  * Converts all nodes in the selection that are of one block type to another.
  * @param selection - The selected blocks to be converted.
@@ -71,7 +72,7 @@ export declare function $selectAll(selection: RangeSelection): void;
  * @param defaultValue - The default value for the property, defaults to an empty string.
  * @returns The value of the property for the selected TextNodes.
  */
-export declare function $getSelectionStyleValueForProperty(selection: RangeSelection, styleProperty: string, defaultValue?: string): string;
+export declare function $getSelectionStyleValueForProperty(selection: RangeSelection | TableSelection, styleProperty: string, defaultValue?: string): string;
 /**
  * This function is for internal use of the library.
  * Please do not use it as it may change in the future.

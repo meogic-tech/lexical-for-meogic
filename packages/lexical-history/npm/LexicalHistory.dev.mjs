@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { mergeRegister } from '@lexical/utils';
 import { UNDO_COMMAND, COMMAND_PRIORITY_EDITOR, REDO_COMMAND, CLEAR_EDITOR_COMMAND, CLEAR_HISTORY_COMMAND, CAN_REDO_COMMAND, CAN_UNDO_COMMAND, $isRangeSelection, $isTextNode, $isRootNode } from 'lexical';
 
@@ -14,6 +16,7 @@ import { UNDO_COMMAND, COMMAND_PRIORITY_EDITOR, REDO_COMMAND, CLEAR_EDITOR_COMMA
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const HISTORY_MERGE = 0;
 const HISTORY_PUSH = 1;
 const DISCARD_HISTORY_CANDIDATE = 2;
@@ -260,7 +263,7 @@ function registerHistory(editor, historyState, delay) {
       editorState
     };
   };
-  const unregisterCommandListener = mergeRegister(editor.registerCommand(UNDO_COMMAND, () => {
+  const unregister = mergeRegister(editor.registerCommand(UNDO_COMMAND, () => {
     undo(editor, historyState);
     return true;
   }, COMMAND_PRIORITY_EDITOR), editor.registerCommand(REDO_COMMAND, () => {
@@ -275,11 +278,7 @@ function registerHistory(editor, historyState, delay) {
     editor.dispatchCommand(CAN_UNDO_COMMAND, false);
     return true;
   }, COMMAND_PRIORITY_EDITOR), editor.registerUpdateListener(applyChange));
-  const unregisterUpdateListener = editor.registerUpdateListener(applyChange);
-  return () => {
-    unregisterCommandListener();
-    unregisterUpdateListener();
-  };
+  return unregister;
 }
 
 /**

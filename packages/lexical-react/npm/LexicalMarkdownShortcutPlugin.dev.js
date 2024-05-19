@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var markdown = require('@lexical/markdown');
@@ -18,6 +20,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const HR = {
   dependencies: [LexicalHorizontalRuleNode.HorizontalRuleNode],
   export: node => {

@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $getRoot, $isElementNode, $isDecoratorNode, $isLineBreakNode, $isTextNode, $createTextNode, $createParagraphNode, $getSelection, $isParagraphNode, $createLineBreakNode, $isRangeSelection, $isRootOrShadowRoot, $createRangeSelection, $setSelection } from 'lexical';
 import { $isListNode, $isListItemNode, ListNode, ListItemNode, $createListItemNode, $createListNode } from '@lexical/list';
 import { $isQuoteNode, HeadingNode, $isHeadingNode, QuoteNode, $createQuoteNode, $createHeadingNode } from '@lexical/rich-text';
@@ -18,6 +20,7 @@ import { LinkNode, $isLinkNode, $createLinkNode } from '@lexical/link';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function indexBy(list, callback) {
   const index = {};
   for (const item of list) {
@@ -47,6 +50,7 @@ const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function createMarkdownExport(transformers) {
   const byType = transformersByType(transformers);
 
@@ -187,20 +191,15 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const documentMode = CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
-CAN_USE_DOM && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-CAN_USE_DOM && /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent);
 CAN_USE_DOM && 'InputEvent' in window && !documentMode ? 'getTargetRanges' in new window.InputEvent('input') : false;
 const IS_SAFARI = CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
 const IS_IOS = CAN_USE_DOM && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const IS_ANDROID = CAN_USE_DOM && /Android/.test(navigator.userAgent);
 
 // Keep these in case we need to use them in the future.
 // export const IS_WINDOWS: boolean = CAN_USE_DOM && /Win/.test(navigator.platform);
 const IS_CHROME = CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
-// export const canUseTextInputEvent: boolean = CAN_USE_DOM && 'TextEvent' in window && !documentMode;
-
-CAN_USE_DOM && IS_ANDROID && IS_CHROME;
 const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
 
 /**
@@ -210,6 +209,7 @@ const IS_APPLE_WEBKIT = CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.user
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const MARKDOWN_EMPTY_LINE_REG_EXP = /^\s{0,3}$/;
 function createMarkdownImport(transformers) {
   const byType = transformersByType(transformers);
@@ -246,7 +246,7 @@ function createMarkdownImport(transformers) {
       if (isMatched) {
         continue;
       }
-      importBlocks(lineText, root, byType.element, textFormatTransformersIndex, byType.textMatch);
+      $importBlocks(lineText, root, byType.element, textFormatTransformersIndex, byType.textMatch);
     }
 
     // Removing empty paragraphs as md does not really
@@ -269,7 +269,7 @@ function isEmptyParagraph(node) {
   const firstChild = node.getFirstChild();
   return firstChild == null || node.getChildrenSize() === 1 && $isTextNode(firstChild) && MARKDOWN_EMPTY_LINE_REG_EXP.test(firstChild.getTextContent());
 }
-function importBlocks(lineText, rootNode, elementTransformers, textFormatTransformersIndex, textMatchTransformers) {
+function $importBlocks(lineText, rootNode, elementTransformers, textFormatTransformersIndex, textMatchTransformers) {
   const lineTextTrimmed = lineText.trim();
   const textNode = $createTextNode(lineTextTrimmed);
   const elementNode = $createParagraphNode();
@@ -466,6 +466,7 @@ function createTextFormatTransformersIndex(textTransformers) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function runElementTransformers(parentNode, anchorNode, anchorOffset, elementTransformers) {
   const grandParentNode = parentNode.getParent();
   if (!$isRootOrShadowRoot(grandParentNode) || parentNode.getFirstChild() !== anchorNode) {
@@ -530,7 +531,7 @@ function runTextMatchTransformers(anchorNode, anchorOffset, transformersByTrigge
   }
   return false;
 }
-function runTextFormatTransformers(anchorNode, anchorOffset, textFormatTransformers) {
+function $runTextFormatTransformers(anchorNode, anchorOffset, textFormatTransformers) {
   const textContent = anchorNode.getTextContent();
   const closeTagEndIndex = anchorOffset - 1;
   const closeChar = textContent[closeTagEndIndex];
@@ -682,14 +683,14 @@ function registerMarkdownShortcuts(editor, transformers = TRANSFORMERS) {
       }
     }
   }
-  const transform = (parentNode, anchorNode, anchorOffset) => {
+  const $transform = (parentNode, anchorNode, anchorOffset) => {
     if (runElementTransformers(parentNode, anchorNode, anchorOffset, byType.element)) {
       return;
     }
     if (runTextMatchTransformers(anchorNode, anchorOffset, textMatchTransformersIndex)) {
       return;
     }
-    runTextFormatTransformers(anchorNode, anchorOffset, textFormatTransformersIndex);
+    $runTextFormatTransformers(anchorNode, anchorOffset, textFormatTransformersIndex);
   };
   return editor.registerUpdateListener(({
     tags,
@@ -726,7 +727,7 @@ function registerMarkdownShortcuts(editor, transformers = TRANSFORMERS) {
       if (parentNode === null || $isCodeNode(parentNode)) {
         return;
       }
-      transform(parentNode, anchorNode, selection.anchor.offset);
+      $transform(parentNode, anchorNode, selection.anchor.offset);
     });
   });
 }
@@ -738,6 +739,7 @@ function registerMarkdownShortcuts(editor, transformers = TRANSFORMERS) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const createBlockNode = createNode => {
   return (parentNode, children, match) => {
     const node = createNode(match);
@@ -882,7 +884,7 @@ const CODE = {
     }
     return 1;
   },
-  regExp: /^```(\w{1,10})?\s?$/,
+  regExp: /^[ \t]*```(\w{1,10})?\s/,
   replace: createBlockNode(match => {
     return $createCodeNode(match ? match[1] : undefined);
   }),
@@ -1008,6 +1010,7 @@ const LINK = {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const ELEMENT_TRANSFORMERS = [HEADING, QUOTE, CODE, UNORDERED_LIST, ORDERED_LIST];
 
 // Order of text format transformers matters:

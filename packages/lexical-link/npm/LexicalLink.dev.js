@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var utils = require('@lexical/utils');
@@ -16,6 +18,7 @@ var lexical = require('lexical');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const SUPPORTED_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'sms:', 'tel:']);
 
 /** @noInheritDoc */
@@ -99,7 +102,7 @@ class LinkNode extends lexical.ElementNode {
   static importDOM() {
     return {
       a: node => ({
-        conversion: convertAnchorElement,
+        conversion: $convertAnchorElement,
         priority: 1
       })
     };
@@ -196,7 +199,7 @@ class LinkNode extends lexical.ElementNode {
     return this.isParentOf(anchorNode) && this.isParentOf(focusNode) && selection.getTextContent().length > 0;
   }
 }
-function convertAnchorElement(domNode) {
+function $convertAnchorElement(domNode) {
   let node = null;
   if (utils.isHTMLAnchorElement(domNode)) {
     const content = domNode.textContent;
@@ -308,7 +311,7 @@ const TOGGLE_LINK_COMMAND = lexical.createCommand('TOGGLE_LINK_COMMAND');
  * @param url - The URL the link directs to.
  * @param attributes - Optional HTML a tag attributes. { target, rel, title }
  */
-function toggleLink(url, attributes = {}) {
+function $toggleLink(url, attributes = {}) {
   const {
     target,
     title
@@ -409,6 +412,8 @@ function toggleLink(url, attributes = {}) {
     });
   }
 }
+/** @deprecated renamed to {@link $toggleLink} by @lexical/eslint-plugin rules-of-lexical */
+const toggleLink = $toggleLink;
 function $getAncestor(node, predicate) {
   let parent = node;
   while (parent !== null && parent.getParent() !== null && !predicate(parent)) {
@@ -421,6 +426,7 @@ exports.$createAutoLinkNode = $createAutoLinkNode;
 exports.$createLinkNode = $createLinkNode;
 exports.$isAutoLinkNode = $isAutoLinkNode;
 exports.$isLinkNode = $isLinkNode;
+exports.$toggleLink = $toggleLink;
 exports.AutoLinkNode = AutoLinkNode;
 exports.LinkNode = LinkNode;
 exports.TOGGLE_LINK_COMMAND = TOGGLE_LINK_COMMAND;

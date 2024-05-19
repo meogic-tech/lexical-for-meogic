@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { createContext, useContext } from 'react';
 
 /**
@@ -13,6 +15,7 @@ import { createContext, useContext } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const LexicalComposerContext = /*#__PURE__*/createContext(null);
 function createLexicalComposerContext(parent, theme) {
   let parentContext = null;

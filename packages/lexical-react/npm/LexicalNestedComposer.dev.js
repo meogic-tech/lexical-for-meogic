@@ -3,12 +3,27 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalCollaborationContext = require('@lexical/react/LexicalCollaborationContext');
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var React = require('react');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -17,6 +32,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function getTransformSetFromKlass(klass) {
   const transform = klass.transform();
   return transform !== null ? new Set([transform]) : new Set();
@@ -102,7 +118,7 @@ function LexicalNestedComposer({
       initialEditor.setEditable(editable);
     });
   }, [initialEditor, parentEditor]);
-  return /*#__PURE__*/React.createElement(LexicalComposerContext.LexicalComposerContext.Provider, {
+  return /*#__PURE__*/React__namespace.createElement(LexicalComposerContext.LexicalComposerContext.Provider, {
     value: composerContext
   }, !isCollabActive || isCollabReady ? children : null);
 }

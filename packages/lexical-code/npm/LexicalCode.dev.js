@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 require('prismjs');
@@ -15,6 +17,7 @@ require('prismjs/components/prism-c');
 require('prismjs/components/prism-css');
 require('prismjs/components/prism-objectivec');
 require('prismjs/components/prism-sql');
+require('prismjs/components/prism-powershell');
 require('prismjs/components/prism-python');
 require('prismjs/components/prism-rust');
 require('prismjs/components/prism-swift');
@@ -57,6 +60,7 @@ function invariant(cond, message, ...args) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const mapToPrismLanguage = language => {
   // eslint-disable-next-line no-prototype-builtins
   return language != null && window.Prism.languages.hasOwnProperty(language) ? language : undefined;
@@ -130,16 +134,16 @@ class CodeNode extends lexical.ElementNode {
       code: node => {
         const isMultiLine = node.textContent != null && (/\r?\n/.test(node.textContent) || hasChildDOMNodeTag(node, 'BR'));
         return isMultiLine ? {
-          conversion: convertPreElement,
+          conversion: $convertPreElement,
           priority: 1
         } : null;
       },
       div: node => ({
-        conversion: convertDivElement,
+        conversion: $convertDivElement,
         priority: 1
       }),
       pre: node => ({
-        conversion: convertPreElement,
+        conversion: $convertPreElement,
         priority: 0
       }),
       table: node => {
@@ -147,7 +151,7 @@ class CodeNode extends lexical.ElementNode {
         // domNode is a <table> since we matched it by nodeName
         if (isGitHubCodeTable(table)) {
           return {
-            conversion: convertTableElement,
+            conversion: $convertTableElement,
             priority: 3
           };
         }
@@ -157,13 +161,7 @@ class CodeNode extends lexical.ElementNode {
         // element is a <td> since we matched it by nodeName
         const td = node;
         const table = td.closest('table');
-        if (isGitHubCodeCell(td)) {
-          return {
-            conversion: convertTableCellElement,
-            priority: 3
-          };
-        }
-        if (table && isGitHubCodeTable(table)) {
+        if (isGitHubCodeCell(td) || table && isGitHubCodeTable(table)) {
           // Return a no-op if it's a table cell in a code table, but not a code line.
           // Otherwise it'll fall back to the T
           return {
@@ -298,7 +296,7 @@ function $createCodeNode(language) {
 function $isCodeNode(node) {
   return node instanceof CodeNode;
 }
-function convertPreElement(domNode) {
+function $convertPreElement(domNode) {
   let language;
   if (utils.isHTMLElement(domNode)) {
     language = domNode.getAttribute(LANGUAGE_DATA_ATTRIBUTE);
@@ -307,7 +305,7 @@ function convertPreElement(domNode) {
     node: $createCodeNode(language)
   };
 }
-function convertDivElement(domNode) {
+function $convertDivElement(domNode) {
   // domNode is a <div> since we matched it by nodeName
   const div = domNode;
   const isCode = isCodeElement(div);
@@ -317,37 +315,16 @@ function convertDivElement(domNode) {
     };
   }
   return {
-    after: childLexicalNodes => {
-      const domParent = domNode.parentNode;
-      if (domParent != null && domNode !== domParent.lastChild) {
-        childLexicalNodes.push(lexical.$createLineBreakNode());
-      }
-      return childLexicalNodes;
-    },
     node: isCode ? $createCodeNode() : null
   };
 }
-function convertTableElement() {
+function $convertTableElement() {
   return {
     node: $createCodeNode()
   };
 }
 function convertCodeNoop() {
   return {
-    node: null
-  };
-}
-function convertTableCellElement(domNode) {
-  // domNode is a <td> since we matched it by nodeName
-  const cell = domNode;
-  return {
-    after: childLexicalNodes => {
-      if (cell.parentNode && cell.parentNode.nextSibling) {
-        // Append newline between code lines
-        childLexicalNodes.push(lexical.$createLineBreakNode());
-      }
-      return childLexicalNodes;
-    },
     node: null
   };
 }
@@ -378,6 +355,7 @@ function isGitHubCodeTable(table) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const DEFAULT_CODE_LANGUAGE = 'javascript';
 const CODE_LANGUAGE_FRIENDLY_NAME_MAP = {
   c: 'C',
@@ -390,6 +368,7 @@ const CODE_LANGUAGE_FRIENDLY_NAME_MAP = {
   markdown: 'Markdown',
   objc: 'Objective-C',
   plain: 'Plain Text',
+  powershell: 'PowerShell',
   py: 'Python',
   rust: 'Rust',
   sql: 'SQL',
@@ -524,6 +503,7 @@ function getLastCodeNodeOfLine(anchor) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const PrismTokenizer = {
   defaultLanguage: DEFAULT_CODE_LANGUAGE,
   tokenize(code, language) {
@@ -630,7 +610,7 @@ function getEndOfCodeInLine(anchor) {
   }
   return lastNode;
 }
-function textNodeTransform(node, editor, tokenizer) {
+function $textNodeTransform(node, editor, tokenizer) {
   // Since CodeNode has flat children structure we only need to check
   // if node's parent is a code node and run highlighting if so
   const parentNode = node.getParent();
@@ -691,14 +671,14 @@ function codeNodeTransform(node, editor, tokenizer) {
   // each individual codehighlight node to be transformed again as it's already
   // in its final state
   editor.update(() => {
-    updateAndRetainSelection(nodeKey, () => {
+    $updateAndRetainSelection(nodeKey, () => {
       const currentNode = lexical.$getNodeByKey(nodeKey);
       if (!$isCodeNode(currentNode) || !currentNode.isAttached()) {
         return false;
       }
       const code = currentNode.getTextContent();
       const tokens = tokenizer.tokenize(code, currentNode.getLanguage() || tokenizer.defaultLanguage);
-      const highlightNodes = getHighlightNodes(tokens);
+      const highlightNodes = $getHighlightNodes(tokens);
       const diffRange = getDiffRange(currentNode.getChildren(), highlightNodes);
       const {
         from,
@@ -718,7 +698,7 @@ function codeNodeTransform(node, editor, tokenizer) {
     skipTransforms: true
   });
 }
-function getHighlightNodes(tokens, type) {
+function $getHighlightNodes(tokens, type) {
   const nodes = [];
   for (const token of tokens) {
     if (typeof token === 'string') {
@@ -739,9 +719,9 @@ function getHighlightNodes(tokens, type) {
         content
       } = token;
       if (typeof content === 'string') {
-        nodes.push(...getHighlightNodes([content], token.type));
+        nodes.push(...$getHighlightNodes([content], token.type));
       } else if (Array.isArray(content)) {
-        nodes.push(...getHighlightNodes(content, token.type));
+        nodes.push(...$getHighlightNodes(content, token.type));
       }
     }
   }
@@ -750,7 +730,7 @@ function getHighlightNodes(tokens, type) {
 
 // Wrapping update function into selection retainer, that tries to keep cursor at the same
 // position as before.
-function updateAndRetainSelection(nodeKey, updateFn) {
+function $updateAndRetainSelection(nodeKey, updateFn) {
   const node = lexical.$getNodeByKey(nodeKey);
   if (!$isCodeNode(node) || !node.isAttached()) {
     return;
@@ -872,7 +852,7 @@ function $getCodeLines(selection) {
   }
   return lines;
 }
-function handleTab(shiftKey) {
+function $handleTab(shiftKey) {
   const selection = lexical.$getSelection();
   if (!lexical.$isRangeSelection(selection) || !$isSelectionInCode(selection)) {
     return null;
@@ -912,7 +892,7 @@ function handleTab(shiftKey) {
   // 3. Else: tab/outdent
   return tabOrOutdent;
 }
-function handleMultilineIndent(type) {
+function $handleMultilineIndent(type) {
   const selection = lexical.$getSelection();
   if (!lexical.$isRangeSelection(selection) || !$isSelectionInCode(selection)) {
     return false;
@@ -968,7 +948,7 @@ function handleMultilineIndent(type) {
   }
   return true;
 }
-function handleShiftLines(type, event) {
+function $handleShiftLines(type, event) {
   // We only care about the alt+arrow keys
   const selection = lexical.$getSelection();
   if (!lexical.$isRangeSelection(selection)) {
@@ -1066,7 +1046,7 @@ function handleShiftLines(type, event) {
   selection.setTextNodeRange(anchorNode, anchorOffset, focusNode, focusOffset);
   return true;
 }
-function handleMoveTo(type, event) {
+function $handleMoveTo(type, event) {
   const selection = lexical.$getSelection();
   if (!lexical.$isRangeSelection(selection)) {
     return false;
@@ -1122,8 +1102,8 @@ function registerCodeHighlighting(editor, tokenizer) {
         }
       }
     });
-  }), editor.registerNodeTransform(CodeNode, node => codeNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(lexical.TextNode, node => textNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(CodeHighlightNode, node => textNodeTransform(node, editor, tokenizer)), editor.registerCommand(lexical.KEY_TAB_COMMAND, event => {
-    const command = handleTab(event.shiftKey);
+  }), editor.registerNodeTransform(CodeNode, node => codeNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(lexical.TextNode, node => $textNodeTransform(node, editor, tokenizer)), editor.registerNodeTransform(CodeHighlightNode, node => $textNodeTransform(node, editor, tokenizer)), editor.registerCommand(lexical.KEY_TAB_COMMAND, event => {
+    const command = $handleTab(event.shiftKey);
     if (command === null) {
       return false;
     }
@@ -1137,7 +1117,7 @@ function registerCodeHighlighting(editor, tokenizer) {
     }
     lexical.$insertNodes([lexical.$createTabNode()]);
     return true;
-  }, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.INDENT_CONTENT_COMMAND, payload => handleMultilineIndent(lexical.INDENT_CONTENT_COMMAND), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.OUTDENT_CONTENT_COMMAND, payload => handleMultilineIndent(lexical.OUTDENT_CONTENT_COMMAND), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_ARROW_UP_COMMAND, payload => handleShiftLines(lexical.KEY_ARROW_UP_COMMAND, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_ARROW_DOWN_COMMAND, payload => handleShiftLines(lexical.KEY_ARROW_DOWN_COMMAND, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.MOVE_TO_END, payload => handleMoveTo(lexical.MOVE_TO_END, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.MOVE_TO_START, payload => handleMoveTo(lexical.MOVE_TO_START, payload), lexical.COMMAND_PRIORITY_LOW));
+  }, lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.INDENT_CONTENT_COMMAND, payload => $handleMultilineIndent(lexical.INDENT_CONTENT_COMMAND), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.OUTDENT_CONTENT_COMMAND, payload => $handleMultilineIndent(lexical.OUTDENT_CONTENT_COMMAND), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_ARROW_UP_COMMAND, payload => $handleShiftLines(lexical.KEY_ARROW_UP_COMMAND, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.KEY_ARROW_DOWN_COMMAND, payload => $handleShiftLines(lexical.KEY_ARROW_DOWN_COMMAND, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.MOVE_TO_END, payload => $handleMoveTo(lexical.MOVE_TO_END, payload), lexical.COMMAND_PRIORITY_LOW), editor.registerCommand(lexical.MOVE_TO_START, payload => $handleMoveTo(lexical.MOVE_TO_START, payload), lexical.COMMAND_PRIORITY_LOW));
 }
 
 /**

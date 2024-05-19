@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { $isLinkNode, LinkNode, AutoLinkNode } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { MenuOption, LexicalNodeMenuPlugin } from '@lexical/react/LexicalNodeMenuPlugin';
@@ -19,6 +21,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const URL_MATCHER = /((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
 const INSERT_EMBED_COMMAND = createCommand('INSERT_EMBED_COMMAND');
 class AutoEmbedOption extends MenuOption {

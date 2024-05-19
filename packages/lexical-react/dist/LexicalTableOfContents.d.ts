@@ -6,8 +6,8 @@
  *
  */
 /// <reference types="react" />
-import type { LexicalEditor, NodeKey } from 'lexical';
 import { HeadingTagType } from '@lexical/rich-text';
+import { LexicalEditor, NodeKey } from 'lexical';
 export type TableOfContentsEntry = [
     key: NodeKey,
     text: string,

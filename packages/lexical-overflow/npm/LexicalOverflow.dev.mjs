@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 import { ElementNode, $applyNodeReplacement } from 'lexical';
 
 /**
@@ -13,6 +15,7 @@ import { ElementNode, $applyNodeReplacement } from 'lexical';
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class OverflowNode extends ElementNode {
   static getType() {

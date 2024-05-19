@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var link = require('@lexical/link');
@@ -13,6 +15,19 @@ var utils = require('@lexical/utils');
 var lexical = require('lexical');
 var React = require('react');
 
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -20,6 +35,7 @@ var React = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const URL_MATCHER = /((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
 const INSERT_EMBED_COMMAND = lexical.createCommand('INSERT_EMBED_COMMAND');
 class AutoEmbedOption extends LexicalNodeMenuPlugin.MenuOption {
@@ -119,7 +135,7 @@ function LexicalAutoEmbedPlugin({
       closeMenu();
     });
   }, [editor]);
-  return nodeKey != null ? /*#__PURE__*/React.createElement(LexicalNodeMenuPlugin.LexicalNodeMenuPlugin, {
+  return nodeKey != null ? /*#__PURE__*/React__namespace.createElement(LexicalNodeMenuPlugin.LexicalNodeMenuPlugin, {
     nodeKey: nodeKey,
     onClose: reset,
     onSelectOption: onSelectOption,

@@ -3,13 +3,28 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var LexicalComposerContext = require('@lexical/react/LexicalComposerContext');
 var lexical = require('lexical');
 var React = require('react');
 var utils = require('@lexical/utils');
+
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    for (var k in e) {
+      n[k] = e[k];
+    }
+  }
+  n.default = e;
+  return n;
+}
+
+var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -28,8 +43,8 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const useLayoutEffectImpl = CAN_USE_DOM ? React.useLayoutEffect : React.useEffect;
-var useLayoutEffect = useLayoutEffectImpl;
 
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -38,6 +53,7 @@ var useLayoutEffect = useLayoutEffectImpl;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class MenuOption {
   constructor(key) {
     this.key = key;
@@ -125,7 +141,7 @@ function $splitNodeContainingQuery(match) {
 function getScrollParent$1(element, includeHidden) {
   let style = getComputedStyle(element);
   const excludeStaticParent = style.position === 'absolute';
-  const overflowRegex = includeHidden ? /(auto|scroll|hidden)/ : /(auto|scroll)/;
+  const overflowRegex = /(auto|scroll)/;
   if (style.position === 'fixed') {
     return document.body;
   }
@@ -152,7 +168,7 @@ function useDynamicPositioning(resolution, targetElement, onReposition, onVisibi
   React.useEffect(() => {
     if (targetElement != null && resolution != null) {
       const rootElement = editor.getRootElement();
-      const rootScrollParent = rootElement != null ? getScrollParent$1(rootElement, false) : document.body;
+      const rootScrollParent = rootElement != null ? getScrollParent$1(rootElement) : document.body;
       let ticking = false;
       let previousIsInView = isTriggerVisibleInNearestScrollContainer(targetElement, rootScrollParent);
       const handleScroll = function () {
@@ -224,7 +240,7 @@ function LexicalMenu({
       }
     };
   }, [editor]);
-  useLayoutEffect(() => {
+  useLayoutEffectImpl(() => {
     if (options === null) {
       setHighlightedIndex(null);
     } else if (selectedIndex === null) {
@@ -336,7 +352,7 @@ function useMenuAnchorRef(resolution, setResolution, className, parent = documen
         if (left + menuWidth > rootElementRect.right) {
           containerDiv.style.left = `${rootElementRect.right - menuWidth + window.pageXOffset}px`;
         }
-        if ((top + menuHeight > window.innerHeight || top + menuHeight > rootElementRect.bottom) && top - rootElementRect.top > menuHeight) {
+        if ((top + menuHeight > window.innerHeight || top + menuHeight > rootElementRect.bottom) && top - rootElementRect.top > menuHeight + height) {
           containerDiv.style.top = `${top - menuHeight + window.pageYOffset - height}px`;
         }
       }
@@ -388,6 +404,7 @@ function useMenuAnchorRef(resolution, setResolution, className, parent = documen
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const PUNCTUATION = '\\.,\\+\\*\\?\\$\\@\\|#{}\\(\\)\\^\\-\\[\\]\\\\/!%\'"~=<>_:;';
 function getTextUpToAnchor(selection) {
   const anchor = selection.anchor;
@@ -447,8 +464,8 @@ function isSelectionOnEntityBoundary(editor, offset) {
   });
 }
 function startTransition(callback) {
-  if (React.startTransition) {
-    React.startTransition(callback);
+  if (React__namespace.startTransition) {
+    React__namespace.startTransition(callback);
   } else {
     callback();
   }
@@ -554,7 +571,7 @@ function LexicalTypeaheadMenuPlugin({
       removeUpdateListener();
     };
   }, [editor, triggerFn, onQueryChange, resolution, closeTypeahead, openTypeahead]);
-  return resolution === null || editor === null ? null : /*#__PURE__*/React.createElement(LexicalMenu, {
+  return resolution === null || editor === null ? null : /*#__PURE__*/React__namespace.createElement(LexicalMenu, {
     close: closeTypeahead,
     resolution: resolution,
     editor: editor,

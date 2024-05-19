@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var hashtag = require('@lexical/hashtag');
@@ -18,6 +20,7 @@ var react = require('react');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function getHashtagRegexStringChars() {
   // Latin accented characters
   // Excludes 0xd7 from the range
@@ -142,7 +145,7 @@ function HashtagPlugin() {
       throw new Error('HashtagPlugin: HashtagNode not registered on editor');
     }
   }, [editor]);
-  const createHashtagNode = react.useCallback(textNode => {
+  const $createHashtagNode_ = react.useCallback(textNode => {
     return hashtag.$createHashtagNode(textNode.getTextContent());
   }, []);
   const getHashtagMatch = react.useCallback(text => {
@@ -158,7 +161,7 @@ function HashtagPlugin() {
       start: startOffset
     };
   }, []);
-  useLexicalTextEntity.useLexicalTextEntity(getHashtagMatch, hashtag.HashtagNode, createHashtagNode);
+  useLexicalTextEntity.useLexicalTextEntity(getHashtagMatch, hashtag.HashtagNode, $createHashtagNode_);
   return null;
 }
 

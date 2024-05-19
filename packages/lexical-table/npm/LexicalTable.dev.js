@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  */
+
 'use strict';
 
 var utils = require('@lexical/utils');
@@ -26,6 +28,7 @@ const PIXEL_VALUE_REG_EXP = /^(\d+(?:\.\d+)?)px$/;
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const TableCellHeaderStates = {
   BOTH: 3,
   COLUMN: 2,
@@ -56,11 +59,11 @@ class TableCellNode extends lexical.ElementNode {
   static importDOM() {
     return {
       td: node => ({
-        conversion: convertTableCellNodeElement,
+        conversion: $convertTableCellNodeElement,
         priority: 0
       }),
       th: node => ({
-        conversion: convertTableCellNodeElement,
+        conversion: $convertTableCellNodeElement,
         priority: 0
       })
     };
@@ -208,7 +211,7 @@ class TableCellNode extends lexical.ElementNode {
     return false;
   }
 }
-function convertTableCellNodeElement(domNode) {
+function $convertTableCellNodeElement(domNode) {
   const domNode_ = domNode;
   const nodeName = domNode.nodeName.toLowerCase();
   let width = undefined;
@@ -222,10 +225,11 @@ function convertTableCellNodeElement(domNode) {
     tableCellNode.__backgroundColor = backgroundColor;
   }
   const style = domNode_.style;
+  const textDecoration = style.textDecoration.split(' ');
   const hasBoldFontWeight = style.fontWeight === '700' || style.fontWeight === 'bold';
-  const hasLinethroughTextDecoration = style.textDecoration === 'line-through';
+  const hasLinethroughTextDecoration = textDecoration.includes('line-through');
   const hasItalicFontStyle = style.fontStyle === 'italic';
-  const hasUnderlineTextDecoration = style.textDecoration === 'underline';
+  const hasUnderlineTextDecoration = textDecoration.includes('underline');
   return {
     after: childLexicalNodes => {
       if (childLexicalNodes.length === 0) {
@@ -275,6 +279,7 @@ function $isTableCellNode(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const INSERT_TABLE_COMMAND = lexical.createCommand('INSERT_TABLE_COMMAND');
 
 /**
@@ -284,6 +289,7 @@ const INSERT_TABLE_COMMAND = lexical.createCommand('INSERT_TABLE_COMMAND');
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class TableRowNode extends lexical.ElementNode {
   /** @internal */
@@ -297,7 +303,7 @@ class TableRowNode extends lexical.ElementNode {
   static importDOM() {
     return {
       tr: node => ({
-        conversion: convertTableRowElement,
+        conversion: $convertTableRowElement,
         priority: 0
       })
     };
@@ -348,7 +354,7 @@ class TableRowNode extends lexical.ElementNode {
     return false;
   }
 }
-function convertTableRowElement(domNode) {
+function $convertTableRowElement(domNode) {
   const domNode_ = domNode;
   let height = undefined;
   if (PIXEL_VALUE_REG_EXP.test(domNode_.style.height)) {
@@ -382,6 +388,7 @@ const CAN_USE_DOM = typeof window !== 'undefined' && typeof window.document !== 
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 function $createTableNodeWithDimensions(rowCount, columnCount, includeHeaders = true) {
   const tableNode = $createTableNode();
   for (let iRow = 0; iRow < rowCount; iRow++) {
@@ -914,6 +921,16 @@ function $unmergeCell() {
   }
 }
 function $computeTableMap(grid, cellA, cellB) {
+  const [tableMap, cellAValue, cellBValue] = $computeTableMapSkipCellCheck(grid, cellA, cellB);
+  if (!(cellAValue !== null)) {
+    throw Error(`Anchor not found in Grid`);
+  }
+  if (!(cellBValue !== null)) {
+    throw Error(`Focus not found in Grid`);
+  }
+  return [tableMap, cellAValue, cellBValue];
+}
+function $computeTableMapSkipCellCheck(grid, cellA, cellB) {
   const tableMap = [];
   let cellAValue = null;
   let cellBValue = null;
@@ -933,10 +950,10 @@ function $computeTableMap(grid, cellA, cellB) {
         tableMap[startRow + i][startColumn + j] = value;
       }
     }
-    if (cellA.is(cell)) {
+    if (cellA !== null && cellA.is(cell)) {
       cellAValue = value;
     }
-    if (cellB.is(cell)) {
+    if (cellB !== null && cellB.is(cell)) {
       cellBValue = value;
     }
   }
@@ -961,12 +978,6 @@ function $computeTableMap(grid, cellA, cellB) {
       write(i, j, cell);
       j += cell.__colSpan;
     }
-  }
-  if (!(cellAValue !== null)) {
-    throw Error(`Anchor not found in Grid`);
-  }
-  if (!(cellBValue !== null)) {
-    throw Error(`Focus not found in Grid`);
   }
   return [tableMap, cellAValue, cellBValue];
 }
@@ -1050,6 +1061,7 @@ function $getTableCellNodeRect(tableCellNode) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class TableSelection {
   constructor(tableKey, anchor, focus) {
     this.anchor = anchor;
@@ -1315,6 +1327,7 @@ function $getChildrenRecursively(node) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 class TableObserver {
   constructor(editor, tableNodeKey) {
     this.isHighlightingCells = false;
@@ -1574,8 +1587,12 @@ class TableObserver {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 const LEXICAL_ELEMENT_KEY = '__lexicalTableSelection';
 const getDOMSelection = targetWindow => CAN_USE_DOM ? (targetWindow || window).getSelection() : null;
+const isMouseDownOnEvent = event => {
+  return (event.buttons & 1) === 1;
+};
 function applyTableHandlers(tableNode, tableElement, editor, hasTabHandler) {
   const rootElement = editor.getRootElement();
   if (rootElement === null) {
@@ -1591,11 +1608,20 @@ function applyTableHandlers(tableNode, tableElement, editor, hasTabHandler) {
       editorWindow.removeEventListener('mousemove', onMouseMove);
     };
     const onMouseMove = moveEvent => {
-      const focusCell = getDOMCellFromTarget(moveEvent.target);
-      if (focusCell !== null && (tableObserver.anchorX !== focusCell.x || tableObserver.anchorY !== focusCell.y)) {
-        moveEvent.preventDefault();
-        tableObserver.setFocusCellForSelection(focusCell);
-      }
+      // delaying mousemove handler to allow selectionchange handler from LexicalEvents.ts to be executed first
+      setTimeout(() => {
+        if (!isMouseDownOnEvent(moveEvent) && tableObserver.isSelecting) {
+          tableObserver.isSelecting = false;
+          editorWindow.removeEventListener('mouseup', onMouseUp);
+          editorWindow.removeEventListener('mousemove', onMouseMove);
+          return;
+        }
+        const focusCell = getDOMCellFromTarget(moveEvent.target);
+        if (focusCell !== null && (tableObserver.anchorX !== focusCell.x || tableObserver.anchorY !== focusCell.y)) {
+          moveEvent.preventDefault();
+          tableObserver.setFocusCellForSelection(focusCell);
+        }
+      }, 0);
     };
     return {
       onMouseMove: onMouseMove,
@@ -1693,7 +1719,7 @@ function applyTableHandlers(tableNode, tableElement, editor, hasTabHandler) {
   [lexical.DELETE_WORD_COMMAND, lexical.DELETE_LINE_COMMAND, lexical.DELETE_CHARACTER_COMMAND].forEach(command => {
     tableObserver.listenersToRemove.add(editor.registerCommand(command, deleteTextHandler(command), lexical.COMMAND_PRIORITY_CRITICAL));
   });
-  const deleteCellHandler = event => {
+  const $deleteCellHandler = event => {
     const selection = lexical.$getSelection();
     if (!$isSelectionInTable(selection, tableNode)) {
       return false;
@@ -1711,8 +1737,8 @@ function applyTableHandlers(tableNode, tableElement, editor, hasTabHandler) {
     }
     return false;
   };
-  tableObserver.listenersToRemove.add(editor.registerCommand(lexical.KEY_BACKSPACE_COMMAND, deleteCellHandler, lexical.COMMAND_PRIORITY_CRITICAL));
-  tableObserver.listenersToRemove.add(editor.registerCommand(lexical.KEY_DELETE_COMMAND, deleteCellHandler, lexical.COMMAND_PRIORITY_CRITICAL));
+  tableObserver.listenersToRemove.add(editor.registerCommand(lexical.KEY_BACKSPACE_COMMAND, $deleteCellHandler, lexical.COMMAND_PRIORITY_CRITICAL));
+  tableObserver.listenersToRemove.add(editor.registerCommand(lexical.KEY_DELETE_COMMAND, $deleteCellHandler, lexical.COMMAND_PRIORITY_CRITICAL));
   tableObserver.listenersToRemove.add(editor.registerCommand(lexical.FORMAT_TEXT_COMMAND, payload => {
     const selection = lexical.$getSelection();
     if (!$isSelectionInTable(selection, tableNode)) {
@@ -1910,7 +1936,7 @@ function applyTableHandlers(tableNode, tableElement, editor, hasTabHandler) {
       if (isPartialyWithinTable) {
         const newSelection = selection.clone();
         if (isFocusInside) {
-          newSelection.focus.set(tableNode.getParentOrThrow().getKey(), isBackward ? tableNode.getIndexWithinParent() : tableNode.getIndexWithinParent() + 1, 'element');
+          newSelection.focus.set(tableNode.getParentOrThrow().getKey(), tableNode.getIndexWithinParent(), 'element');
         } else {
           newSelection.anchor.set(tableNode.getParentOrThrow().getKey(), isBackward ? tableNode.getIndexWithinParent() + 1 : tableNode.getIndexWithinParent(), 'element');
         }
@@ -2234,6 +2260,9 @@ function $findTableNode(node) {
   return $isTableNode(tableNode) ? tableNode : null;
 }
 function $handleArrowKey(editor, event, direction, tableNode, tableObserver) {
+  if ((direction === 'up' || direction === 'down') && isTypeaheadMenuInView(editor)) {
+    return false;
+  }
   const selection = lexical.$getSelection();
   if (!$isSelectionInTable(selection, tableNode)) {
     if (direction === 'backward' && lexical.$isRangeSelection(selection) && selection.isCollapsed()) {
@@ -2361,13 +2390,22 @@ function stopEvent(event) {
   event.stopImmediatePropagation();
   event.stopPropagation();
 }
+function isTypeaheadMenuInView(editor) {
+  // There is no inbuilt way to check if the component picker is in view
+  // but we can check if the root DOM element has the aria-controls attribute "typeahead-menu".
+  const root = editor.getRootElement();
+  if (!root) {
+    return false;
+  }
+  return root.hasAttribute('aria-controls') && root.getAttribute('aria-controls') === 'typeahead-menu';
+}
 function isExitingTableAnchor(type, offset, anchorNode, direction) {
-  return isExitingTableElementAnchor(type, anchorNode, direction) || isExitingTableTextAnchor(type, offset, anchorNode, direction);
+  return isExitingTableElementAnchor(type, anchorNode, direction) || $isExitingTableTextAnchor(type, offset, anchorNode, direction);
 }
 function isExitingTableElementAnchor(type, anchorNode, direction) {
   return type === 'element' && (direction === 'backward' ? anchorNode.getPreviousSibling() === null : anchorNode.getNextSibling() === null);
 }
-function isExitingTableTextAnchor(type, offset, anchorNode, direction) {
+function $isExitingTableTextAnchor(type, offset, anchorNode, direction) {
   const parentNode = utils.$findMatchingParent(anchorNode, n => lexical.$isElementNode(n) && !n.isInline());
   if (!parentNode) {
     return false;
@@ -2384,7 +2422,7 @@ function $handleTableExit(event, anchorNode, tableNode, direction) {
   if (!isExitingCell(tableMap, cellValue, direction)) {
     return false;
   }
-  const toNode = getExitingToNode(anchorNode, direction, tableNode);
+  const toNode = $getExitingToNode(anchorNode, direction, tableNode);
   if (!toNode || $isTableNode(toNode)) {
     return false;
   }
@@ -2405,7 +2443,7 @@ function isExitingCell(tableMap, cellValue, direction) {
   } = cellValue;
   return direction === 'backward' ? startColumn === firstCell.startColumn && startRow === firstCell.startRow : startColumn === lastCell.startColumn && startRow === lastCell.startRow;
 }
-function getExitingToNode(anchorNode, direction, tableNode) {
+function $getExitingToNode(anchorNode, direction, tableNode) {
   const parentNode = utils.$findMatchingParent(anchorNode, n => lexical.$isElementNode(n) && !n.isInline());
   if (!parentNode) {
     return undefined;
@@ -2462,6 +2500,7 @@ function $getTableEdgeCursorPosition(editor, selection, tableNode) {
  * LICENSE file in the root directory of this source tree.
  *
  */
+
 /** @noInheritDoc */
 class TableNode extends lexical.ElementNode {
   static getType() {
@@ -2473,7 +2512,7 @@ class TableNode extends lexical.ElementNode {
   static importDOM() {
     return {
       table: _node => ({
-        conversion: convertTableElement,
+        conversion: $convertTableElement,
         priority: 1
       })
     };
@@ -2613,7 +2652,7 @@ function $getElementForTableNode(editor, tableNode) {
   }
   return getTable(tableElement);
 }
-function convertTableElement(_domNode) {
+function $convertTableElement(_domNode) {
   return {
     node: $createTableNode()
   };
@@ -2626,6 +2665,7 @@ function $isTableNode(node) {
 }
 
 exports.$computeTableMap = $computeTableMap;
+exports.$computeTableMapSkipCellCheck = $computeTableMapSkipCellCheck;
 exports.$createTableCellNode = $createTableCellNode;
 exports.$createTableNode = $createTableNode;
 exports.$createTableNodeWithDimensions = $createTableNodeWithDimensions;

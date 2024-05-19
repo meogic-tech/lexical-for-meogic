@@ -268,12 +268,12 @@ export declare class RangeSelection implements BaseSelection {
 export declare function $isNodeSelection(x: unknown): x is NodeSelection;
 export declare function $getCharacterOffsets(selection: BaseSelection): [number, number];
 export declare function $isBlockElementNode(node: LexicalNode | null | undefined): node is ElementNode;
-export declare function internalMakeRangeSelection(anchorKey: NodeKey, anchorOffset: number, focusKey: NodeKey, focusOffset: number, anchorType: 'text' | 'element', focusType: 'text' | 'element'): RangeSelection;
+export declare function $internalMakeRangeSelection(anchorKey: NodeKey, anchorOffset: number, focusKey: NodeKey, focusOffset: number, anchorType: 'text' | 'element', focusType: 'text' | 'element'): RangeSelection;
 export declare function $createRangeSelection(): RangeSelection;
 export declare function $createNodeSelection(): NodeSelection;
-export declare function internalCreateSelection(editor: LexicalEditor): null | BaseSelection;
+export declare function $internalCreateSelection(editor: LexicalEditor): null | BaseSelection;
 export declare function $createRangeSelectionFromDom(domSelection: Selection | null, editor: LexicalEditor): null | RangeSelection;
-export declare function internalCreateRangeSelection(lastSelection: null | BaseSelection, domSelection: Selection | null, editor: LexicalEditor, event: UIEvent | Event | null): null | RangeSelection;
+export declare function $internalCreateRangeSelection(lastSelection: null | BaseSelection, domSelection: Selection | null, editor: LexicalEditor, event: UIEvent | Event | null): null | RangeSelection;
 export declare function $getSelection(): null | BaseSelection;
 export declare function $getPreviousSelection(): null | BaseSelection;
 export declare function $updateElementSelectionOnCreateDeleteNode(selection: RangeSelection, parentNode: LexicalNode, nodeOffset: number, times?: number): void;
